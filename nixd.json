@@ -1,0 +1,12 @@
+{
+  "nixd": {
+    "nixpkgs": {
+      "expr": "import <nixpkgs> {}"
+    },
+    "options": {
+      "nixos": {
+        "expr": "let config = (builtins.getFlake (toString ./.)).nixosConfigurations.nixos; in config.options"
+      }
+    }
+  }
+}
