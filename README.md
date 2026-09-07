@@ -8,6 +8,7 @@ This build utilizes:
 
 - Flakes
 - Dendritic pattern
+- Limine Bootloader with kernel specialization. use: kernel version to see which version each kern is currently at. I'd recommend you set your boot partition to 2-3GB with everything as is. You can do less, if you don't use the specializations.
 - A two monitor desktop setup, using an RTX 4070 Super GPU, and proprietary drivers. Set to rolling release
 - An older laptop setup with no Nvidia GPU. Set to fixed release
 - A boolean "hasNvidia" set to true on the desktop and false on the laptop 

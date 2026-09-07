@@ -23,6 +23,7 @@ let
   };
 in
 {
+  #System-level NixOS module list for the whole machine
   flake.modules.nixos.desktop = {
     imports = [
       config.flake.modules.nixos.bootloader
@@ -72,16 +73,16 @@ in
   flake.modules.nixos.laptop = {
     imports = [
       config.flake.modules.nixos.bootloader
-      config.flake.modules.nixos.diskoLaptop
-      config.flake.modules.nixos.kernel
-      config.flake.modules.nixos.zram
-      config.flake.modules.nixos.graphics
-      config.flake.modules.nixos.desktopEnvironment
+      config.flake.modules.nixos.chaotic
       config.flake.modules.nixos.core
+      config.flake.modules.nixos.desktopEnvironment
+      config.flake.modules.nixos.diskoLaptop
       config.flake.modules.nixos.flatpak
+      config.flake.modules.nixos.graphics
+      config.flake.modules.nixos.kernel
       config.flake.modules.nixos.nclean
       config.flake.modules.nixos.packages
-      config.flake.modules.nixos.chaotic
+      config.flake.modules.nixos.zram
 
 
       ../hosts/laptop/hardware-configuration.nix
@@ -111,6 +112,7 @@ in
     ];
   };
 
+#---Per-user module list — Configures your home directory and user-session state, not the whole OS.
   flake.modules.homeManager.desktop = {
     imports = [
       config.flake.modules.homeManager.aliases
@@ -127,6 +129,7 @@ in
       config.flake.modules.homeManager.lglPapercutter
       config.flake.modules.homeManager.nix-index
       config.flake.modules.homeManager.plasma
+      config.flake.modules.homeManager.xdgUserDirs
       ];
     };
 
