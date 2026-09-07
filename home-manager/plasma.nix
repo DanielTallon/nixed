@@ -6,6 +6,9 @@
       enable = true;
       kwin = {
         effects = {
+          hideCursor = {
+              enable = true;
+          };
           blur = {
             enable = true;
             strength = 6; # Adjust strength (0-10)
