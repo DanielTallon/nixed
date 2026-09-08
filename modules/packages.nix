@@ -14,9 +14,20 @@
     hardware.graphics.enable32Bit = true;
 
     environment.systemPackages = with pkgs; [
-      # --- General ---
-      #pkgs-unstable.
+      # --- Browsers ---
       brave
+      librewolf
+      inputs.zen-browser.packages.${pkgs.system}.default
+
+
+      # --- General ---
+      #pkgs-unstable is default for desktop
+
+      tealdeer
+
+
+
+
       baobab
       comma
       drawy
@@ -34,7 +45,6 @@
       kdePackages.kolourpaint
       lact
       lazygit
-      librewolf
       localsend
       mcp-nixos
       nixd
@@ -52,13 +62,6 @@
       xxd
       zenity
 
-      nix-update
-
-      #discord
-      #libreoffice
-      #vesktop
-      #vim
-
 
       # --- KDE ---
       kdePackages.konsole
@@ -75,37 +78,40 @@
       davinci-resolve
       parabolic
       pkgs-stable.obs-studio
-      #pkgs-stable.strawberry
       pkgs-stable.vlc
-      tauon
+      tauon #Music Player
       deno # Required for spotdl: nix-shell -p spotdl URL
+      unimatrix
 
       # --- Utilities ---
       dysk
       keepassxc
+      nix-update
       upscaler
       unzip
 
       # --- System & Monitoring ---
-      # --- BTop ---
-        (pkgs.btop.override { cudaSupport = true; })
-      ifuse
-      libimobiledevice
+      (pkgs.btop.override { cudaSupport = true; }) #BTop
       mission-center
       nix-output-monitor
       nvd
-      unimatrix
+
+      # --- iPhone ---
+      ifuse
+      libimobiledevice
+      idevicerestore
 
       # --- Notes & Recording ---
       obsidian
+      openshot-qt
 
       # --- Stable-pinned packages ---
       pkgs-stable.bottles
 
       # --- Gaming ---
       heroic-unwrapped
-      mangohud
-      mangojuice
+      mangohud # Track FPS of games
+      mangojuice # GUI configure MangoHud
       jq
       protontricks
       protonplus
@@ -175,6 +181,10 @@
     # --- Gaming: Gamemode ---
     programs.gamemode.enable = true;
     programs.command-not-found.enable = false;
+
+    # --- XBox Gaming Controller Support ---
+    hardware.xone.enable = true;
+    hardware.xpadneo.enable = true;
 
     # --- nh: NixOS helper with auto-clean ---
     programs.nh = {

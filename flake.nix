@@ -61,6 +61,9 @@
 
     # --- Unstable (primary) ---
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+    # --- Zen Browser ---
+    zen-browser.url = "github:0xc000022070/zen-browser-flake";
   };
 
   # The only file in this repo that isn't a flake-parts module.
