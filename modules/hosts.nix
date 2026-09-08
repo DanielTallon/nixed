@@ -134,13 +134,13 @@ in
     };
 
   flake.nixosConfigurations.nixos = inputs.nixpkgs.lib.nixosSystem {
-    inherit system;
-    specialArgs = { inherit inputs pkgs-stable username; };
-    modules = [
-      inputs.home-manager.nixosModules.home-manager
-      inputs.disko.nixosModules.disko
-      config.flake.modules.nixos.desktop
-      {
+      specialArgs = { inherit inputs pkgs-stable username; };
+      modules = [
+        { nixpkgs.hostPlatform = system; }
+        inputs.home-manager.nixosModules.home-manager
+        inputs.disko.nixosModules.disko
+        config.flake.modules.nixos.desktop
+        {
         home-manager = {
           backupFileExtension = "backup";
           useGlobalPkgs = true;
@@ -155,12 +155,12 @@ in
   };
 
   flake.nixosConfigurations.laptop = inputs.nixpkgs-stable.lib.nixosSystem {
-    inherit system;
-    specialArgs = { inherit inputs pkgs-stable pkgs-unstable username; };
-    modules = [
-      inputs.home-manager.nixosModules.home-manager
-      inputs.disko.nixosModules.disko
-      config.flake.modules.nixos.laptop
+      specialArgs = { inherit inputs pkgs-stable pkgs-unstable username; };
+      modules = [
+        { nixpkgs.hostPlatform = system; }
+        inputs.home-manager.nixosModules.home-manager
+        inputs.disko.nixosModules.disko
+        config.flake.modules.nixos.laptop
       {
         home-manager = {
           backupFileExtension = "backup";
