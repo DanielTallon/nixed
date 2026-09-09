@@ -31,6 +31,7 @@ in
       config.flake.modules.nixos.chaotic
       config.flake.modules.nixos.core
       config.flake.modules.nixos.desktopEnvironment
+      #config.flake.modules.nixos.disko
       config.flake.modules.nixos.flatpak
       config.flake.modules.nixos.graphics
       config.flake.modules.nixos.kenkuFm
@@ -129,7 +130,21 @@ in
       config.flake.modules.homeManager.lglPapercutter
       config.flake.modules.homeManager.nix-index
       config.flake.modules.homeManager.plasma
+      config.flake.modules.homeManager.protonDpi
       config.flake.modules.homeManager.xdgUserDirs
+        {
+          custom.protonDpi."2105600" = 192; # Larger loading window for RPG Stories
+          #custom.protonDpi."2105600" = 96; # Default setting
+          #96	100%
+          #120	125%
+          #144	150%
+          #168	175%
+          #192	200%
+          #216	225%
+          #240	250%
+          #288	300%
+
+        }
       ];
     };
 
