@@ -87,6 +87,7 @@
       dysk
       keepassxc
       nix-update
+      pv
       upscaler
       unzip
 
@@ -160,7 +161,30 @@
       binfmt = true;
     };
 
+    # --- Clam Antivirus---
+    services.clamav = {
+      daemon.enable = true;
+      clamonacc.enable = true; # Real-time scanning
+      updater.enable = true;
+      scanner.enable = true;   # Periodic scanning
 
+    daemon.settings = {
+      OnAccessPrevention = true;
+      OnAccessIncludePath = [ "/home" ];
+    };
+
+    scanner = {
+      scanDirectories = [ "/home" "/var/lib" "/tmp" ];
+      interval = "*-*-* 04:00:00"; # Daily at 4 AM
+    };
+
+    updater = {
+      interval = "hourly"; # Update virus definitions hourly
+    };
+  };
+
+
+    # --- Gameing: Steam ---
     programs.steam = {
       enable = true;
       remotePlay.openFirewall = true;
