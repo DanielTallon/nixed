@@ -22,12 +22,6 @@
 
       # --- General ---
       #pkgs-unstable is default for desktop
-
-      tealdeer
-
-
-
-
       baobab
       comma
       drawy
@@ -54,6 +48,7 @@
       py7zr
       spotdl
       superfile
+      tealdeer
       tree
       usbutils
       wget
@@ -162,26 +157,26 @@
     };
 
     # --- Clam Antivirus---
-    services.clamav = {
-      daemon.enable = true;
-      clamonacc.enable = true; # Real-time scanning
-      updater.enable = true;
-      scanner.enable = true;   # Periodic scanning
+#    services.clamav = {
+#      daemon.enable = true;
+#      clamonacc.enable = true; # Real-time scanning
+#      updater.enable = true;
+#      scanner.enable = true;   # Periodic scanning
+#
+#    daemon.settings = {
+#      OnAccessPrevention = true;
+#      OnAccessIncludePath = [ "/home" ];
+#    };
 
-    daemon.settings = {
-      OnAccessPrevention = true;
-      OnAccessIncludePath = [ "/home" ];
-    };
-
-    scanner = {
-      scanDirectories = [ "/home" "/var/lib" "/tmp" ];
-      interval = "*-*-* 04:00:00"; # Daily at 4 AM
-    };
-
-    updater = {
-      interval = "hourly"; # Update virus definitions hourly
-    };
-  };
+#    scanner = {
+#      scanDirectories = [ "/home" "/var/lib" "/tmp" ];
+#      interval = "*-*-* 04:00:00"; # Daily at 4 AM
+#    };
+#
+#    updater = {
+#      interval = "hourly"; # Update virus definitions hourly
+#    };
+#  };
 
 
     # --- Gameing: Steam ---
