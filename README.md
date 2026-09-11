@@ -13,6 +13,7 @@ This build utilizes:
 - An older laptop setup with no Nvidia GPU. Set to fixed release
 - A boolean "hasNvidia" set to true on the desktop and false on the laptop 
 - Krohnkite for tiling on KDE Plasma
+- Home Manager integrated directly into the NixOS configuration, not run standalone. There's no separate `home-manager` CLI to use here and no home-manager generations to manage on their own — everything under `home-manager/` is applied as part of each `nixos-rebuild`/`nh os switch`, so your user config and system config move together as one generation
 - A kernel.nix file to switch between different kernel options. Xddxdd or Chaotic (both from CachyOS), lts if you want long term support. Zen (from Garuda) and Xanmod (very good low latency support). To check the version of each, run: "kernel version" and it will show a current list.
 - Specialization, so that you can always load into the latest linux kernel, or whatever you set the default to be, on Limine
 - A bootloader limit of 10 generations and a system limit of 35 generations total, automatically cleaned every day.
@@ -33,6 +34,7 @@ This won't build or apply as-is on your machine. You'll need to:
    and copy the generated `hardware-configuration.nix` into the matching `hosts/<yourhost>/` folder.
 3. **Set your own git identity** — in `home-manager/git.nix`, replace the placeholder name/email, and swap in your own SSH signing key + `allowed_signers` entry (see git's SSH signing docs if you're not familiar).
 4. **Review before applying** — this is a personal config, not a hardened template. Skim through `modules/` and `home-manager/` first so you know what you're opting into (packages, services, etc.) before running `nixos-rebuild switch`.
+5. **Don't expect a standalone `home-manager` command to work** — Home Manager here is wired in as a NixOS module, not run as its own service. Use `nixos-rebuild switch` (or `nh os switch`) to apply changes under `home-manager/`, not `home-manager switch`, and don't go looking for home-manager generations — there aren't any separate from the system's own.
 
  **-- Bonus --** If you want my exact partition setup, follow the instructions found in /modules/disko/disko-RUNBOOK.md.
 
