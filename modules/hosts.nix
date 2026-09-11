@@ -27,6 +27,7 @@ in
   flake.modules.nixos.desktop = {
     imports = [
       config.flake.modules.nixos.bootloader
+      config.flake.modules.nixos.nixCaches
       config.flake.modules.nixos.cavalier
       config.flake.modules.nixos.chaotic
       config.flake.modules.nixos.core
@@ -74,6 +75,7 @@ in
   flake.modules.nixos.laptop = {
     imports = [
       config.flake.modules.nixos.bootloader
+      config.flake.modules.nixos.nixCaches
       config.flake.modules.nixos.chaotic
       config.flake.modules.nixos.core
       config.flake.modules.nixos.desktopEnvironment

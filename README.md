@@ -34,7 +34,7 @@ This won't build or apply as-is on your machine. You'll need to:
 3. **Set your own git identity** — in `home-manager/git.nix`, replace the placeholder name/email, and swap in your own SSH signing key + `allowed_signers` entry (see git's SSH signing docs if you're not familiar).
 4. **Review before applying** — this is a personal config, not a hardened template. Skim through `modules/` and `home-manager/` first so you know what you're opting into (packages, services, etc.) before running `nixos-rebuild switch`.
 
- **— Bonus -** - If you want my exact partition setup, follow the instructions found in /modules/disko/disko-RUNBOOK.md.
+ **-- Bonus --** If you want my exact partition setup, follow the instructions found in /modules/disko/disko-RUNBOOK.md.
 
 ## Structure
 
