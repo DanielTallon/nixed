@@ -146,6 +146,22 @@
       ];
     };
 
+    # --- Brave Settings ---
+    programs.chromium = {
+      enable = true;
+        extraOpts = {
+          BraveWalletDisabled       = true;
+          BraveNewsDisabled         = true;
+          BraveTalkDisabled         = true;
+          BraveAIChatEnabled        = false;
+          BraveRewardsDisabled      = true;
+          BraveVPNDisabled          = true;
+          MetricsReportingEnabled   = false;
+          BraveStatsPingEnabled     = false;
+          BraveWebDiscoveryEnabled  = false;
+        };
+      };
+
     # --- Shell ---
     programs.fish.enable = true;
     users.users.${username}.shell = pkgs.fish;
