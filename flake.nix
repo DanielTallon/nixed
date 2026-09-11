@@ -35,8 +35,8 @@
 
     # --- Nixcord
     nixcord.url = "github:4evy/nixcord?rev=998b3f6eac9cdbf1a496325af0ed8647d237ecb3";
-    #nixcord.url = "github:4evy/nixcord";
-    #nixcord.url = "github:4evy/nixcord?rev=d3b4dc6c60d700f499333489f6d1777a21a58859";
+    #❌nixcord.url = "github:4evy/nixcord";
+    #❌nixcord.url = "github:4evy/nixcord?rev=d3b4dc6c60d700f499333489f6d1777a21a58859";
 
 
     # --- NClean ---
