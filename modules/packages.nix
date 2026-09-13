@@ -70,7 +70,7 @@
 
       # --- Music, Audio, Video ---
       audacity
-      davinci-resolve
+      pkgs-stable.davinci-resolve
       parabolic
       pkgs-stable.obs-studio
       pkgs-stable.vlc
