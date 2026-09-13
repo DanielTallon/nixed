@@ -51,8 +51,7 @@
           # the next time something touches the GPU — first app launch,
           # first CUDA/compute call, nvidia-smi, etc. Minor tradeoff: GPU
           # stays in a slightly higher power/thermal state at idle instead
-          # of dropping all the way down. Not tied to any specific kernel
-          # provider — this is a standing preference, independent of open/closed.
+          # of dropping all the way down.
           nvidiaPersistenced = true;
           # Driver package selection — pick one:
           package = config.boot.kernelPackages.nvidiaPackages.latest; # tracks newest driver automatically as nixpkgs updates

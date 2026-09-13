@@ -1,4 +1,4 @@
-# /.dotfiles/home-manager/discord.nix
+# /.dotfiles/home-manager/discord-nixcord.nix
 
 { inputs, ... }:
 {
@@ -8,7 +8,10 @@
     programs.nixcord = {
       enable = true;
       vesktop.enable = true;
-      discord.vencord.enable = true;
+      discord = {
+        vencord.enable = true;
+        krisp.enable = true;
+      };
 
       quickCss = ''
         /* Add your custom CSS here */

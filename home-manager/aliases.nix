@@ -1,4 +1,4 @@
-# /.dotfiles/home-manager/Aliases.nix
+# /.dotfiles/home-manager/aliases.nix
 {
   flake.modules.homeManager.aliases = { config, pkgs, lib, ... }: {
     # --- Fonts ---
