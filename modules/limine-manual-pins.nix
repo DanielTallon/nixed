@@ -26,12 +26,22 @@
       type = lib.types.listOf (lib.types.submodule {
         options = {
           name       = lib.mkOption { type = lib.types.str; description = "Short id, used in filenames — no spaces."; };
+        #You make this up (short id, no spaces, e.g. gen-144)
           title      = lib.mkOption { type = lib.types.str; description = "Menu entry title."; };
+        #You make this up (what shows in the Limine menu)
           comment    = lib.mkOption { type = lib.types.str; default = ""; };
+        #Comment — optional, your own note
+
+        #Run these commands to find each:
+
           kernelPath = lib.mkOption { type = lib.types.str; description = "Path to bzImage."; };
+        #readlink -f /nix/var/nix/profiles/system-144-link/kernel
           initrdPath = lib.mkOption { type = lib.types.str; description = "Path to initrd."; };
+        #readlink -f /nix/var/nix/profiles/system-144-link/initrd
           init       = lib.mkOption { type = lib.types.str; description = "Absolute /nix/store path to the generation's init."; };
+        #readlink -f /nix/var/nix/profiles/system-144-link/init
           cmdline    = lib.mkOption { type = lib.types.str; description = "Remaining cmdline flags, without init=."; };
+        #cat /nix/var/nix/profiles/system-144-link/kernel-params
         };
       });
     };

@@ -80,6 +80,7 @@
 
       # --- Utilities ---
       dysk
+      kdePackages.kcalc    # Traditional scientific calculator
       keepassxc
       nix-update
       pv
