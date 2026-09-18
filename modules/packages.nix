@@ -5,7 +5,14 @@
   # laptop (base `pkgs` = 26.05 stable), `pkgs-unstable` is the real opt-in
   # unstable channel — use it like `pkgs-unstable.somePackage` for the
   # occasional package you want off unstable there.
-  flake.modules.nixos.packages = { pkgs, pkgs-stable, pkgs-unstable ? pkgs, inputs, username, ... }: {
+  flake.modules.nixos.packages = { pkgs, pkgs-stable, pkgs-unstable ? pkgs, inputs, username, ... }:
+  let
+    system = pkgs.stdenv.hostPlatform.system;
+    nix-packages = inputs.nix-packages.packages.${system};
+    zen-browser = inputs.zen-browser.packages.${system}.default;
+    limine-gardener = inputs.nix-packages.packages.${system}.limine-gardener;
+  in
+  {
     nixpkgs.config.allowUnfree = true;
     nixpkgs.config.problems.handlers = {
       cups.broken = "warn"; # or "ignore" to silence entirely
@@ -17,8 +24,7 @@
       # --- Browsers ---
       brave
       librewolf
-      inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
-
+      zen-browser
 
       # --- General ---
       #pkgs-unstable is default for desktop
@@ -39,6 +45,7 @@
       kdePackages.kolourpaint
       lact
       lazygit
+      limine-gardener
       localsend
       mcp-nixos
       nixd
@@ -140,9 +147,7 @@
         libGL
         pkgsi686Linux.freetype
         stdenv.cc.cc.lib
-        #pkgs-stable.
         vulkan-loader
-        #pkgs-stable.
         vulkan-validation-layers
       ];
     };
@@ -172,28 +177,6 @@
       enable = true;
       binfmt = true;
     };
-
-    # --- Clam Antivirus---
-#    services.clamav = {
-#      daemon.enable = true;
-#      clamonacc.enable = true; # Real-time scanning
-#      updater.enable = true;
-#      scanner.enable = true;   # Periodic scanning
-#
-#    daemon.settings = {
-#      OnAccessPrevention = true;
-#      OnAccessIncludePath = [ "/home" ];
-#    };
-
-#    scanner = {
-#      scanDirectories = [ "/home" "/var/lib" "/tmp" ];
-#      interval = "*-*-* 04:00:00"; # Daily at 4 AM
-#    };
-#
-#    updater = {
-#      interval = "hourly"; # Update virus definitions hourly
-#    };
-#  };
 
 
     # --- Gameing: Steam ---

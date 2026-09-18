@@ -54,6 +54,8 @@ in
 
         custom.cavalier.enable = true;
 
+        custom.limineManualPins = builtins.fromJSON (builtins.readFile ../limine-pins.json);
+
         # Windows dual-boot entry (desktop only — this disk layout is
         # specific to this machine's EFI partition).
         boot.loader.limine.extraEntries = ''
