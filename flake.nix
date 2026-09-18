@@ -26,9 +26,8 @@
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
     chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
 
-    # --- Personal packages (LGL-Papercutter & Kenku-FM) ---
+    # --- Personal packages (Limine Gardener, LGL-Papercutter & Kenku-FM) ---
     nix-packages.url = "github:DanielTallon/nix-packages";
-
 
     # --- Multiverse (Pull Any Published Package) ---
     multiverse.url = "github:fzakaria/nixpkgs-multiverse";
