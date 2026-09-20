@@ -21,6 +21,33 @@
         useQuickCss = true;
 
         plugins = {
+        # Media / quality
+        fixImagesQuality.enable = true;      # loads images at original resolution
+        fixYoutubeEmbeds.enable = true;      # bypasses YouTube embed blocks
+
+        # Voice
+        disableCallIdle.enable = true;       # don't get kicked from DM VCs after 3 min
+        callTimer.enable = true;             # timer in voice channels
+
+        # Chat
+        shikiCodeblocks.enable = true;       # VSCode-style code blocks
+        #clearURLs.enable = true;             # strips tracking params from links
+        fullSearchContext.enable = true;           # search within reply threads
+        voiceMessages.enable = true;         # send voice messages
+        gifPaste.enable = true;              # paste GIFs from clipboard
+        betterUploadButton.enable = true;    # single-click upload
+
+        # Misc
+        noTrack.enable = true;               # disables Discord analytics/Sentry
+        alwaysTrust.enable = true;           # removes "untrusted domain" popups
+        platformIndicators.enable = true;    # shows Desktop/Mobile/Web badges
+        showHiddenChannels.enable = true;    # see channels you can't view
+        showConnections.enable = true;       # linked accounts in profiles
+        consoleJanitor.enable = true;        # silences console spam
+        translate.enable = true;             # translate messages
+        #newGuildSettings = { enable = true; autoMute = true; };  # auto-mute new servers
+        #usrBg.enable = true;                 #Shows USRBG banner on their profile even without Nitro
+
           fakeNitro = {
             enable = true;
 

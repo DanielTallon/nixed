@@ -37,6 +37,10 @@
       flatpak
       gh
       git
+
+      fzf
+      pdfarranger
+
       gimp
       gpu-screen-recorder-gtk
       headsetcontrol

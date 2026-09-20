@@ -50,7 +50,7 @@
         type = lib.types.enum kernelProviders;
 
 
-                                      default = "zen";
+                                      default = "xanmod";
 
 
         description = "Kernel provider used for the default (non-specialised) boot entry.";
@@ -72,6 +72,10 @@
             "nvidia-drm.modeset=1"
             "nvidia-drm.fbdev=1"
           ];
+          boot.kernelModules = [ "ntsync" ];
+          services.udev.extraRules = ''
+            KERNEL=="ntsync", MODE="0660", TAG+="uaccess"
+          '';
         }
         # --- Default boot entry: whichever provider kernelProvider is set to ---
         (providerConfig config.kernelProvider)
