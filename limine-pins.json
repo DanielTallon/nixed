@@ -1,11 +1,1 @@
-[
-  {
-    "name": "gen-144",
-    "title": "NixOS (gen 144 — 2026-08-26)",
-    "comment": "",
-    "kernelPath": "/nix/store/8m5s4l8gj9i5s10amw2q4b1fym7hly6j-linux-zen-7.1.9/bzImage",
-    "initrdPath": "/nix/store/7d7vczh8b3q6wj0s99chwx2iskkb8s0r-initrd-linux-zen-7.1.9/initrd",
-    "init": "/nix/store/ziny7nkpy7slvckdlr3hm0gr3mqmc59w-nixos-system-nixos-26.11.20260823.56c02bc/init",
-    "cmdline": "transparent_hugepage=always nvidia.NVreg_PreserveVideoMemoryAllocations=1 nvidia-drm.modeset=1 nvidia-drm.fbdev=1 quiet splash udev.log_level=3 usbcore.autosuspend=-1 nvidia_drm.modeset=1 nvidia_drm.fbdev=1 root=fstab splash loglevel=0 lsm=landlock,yama,bpf"
-  }
-]
+[]
