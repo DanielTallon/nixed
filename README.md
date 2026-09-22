@@ -17,7 +17,7 @@ This build utilizes:
 - A kernel.nix file to switch between different kernel options. Xddxdd or Chaotic (both from CachyOS), lts if you want long term support. Zen (from Garuda) and Xanmod (very good low latency support). To check the version of each, run: "kernel version" and it will show a current list.
 - Specialization, so that you can always load into the latest linux kernel, or whatever you set the default to be, on Limine
 - A bootloader limit of 10 generations and a system limit of 35 generations total, automatically cleaned every day.
-- The ability to pin an older generation on Limine, as long as it is pinned within 35 generations, then you always have it.
+- A new TUI tool I developed, called Boot Gardener, that allows you to manage your generations easier, and even free up space from /boot.
 - And other personalizations
 
 

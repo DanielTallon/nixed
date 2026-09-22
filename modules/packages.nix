@@ -10,7 +10,7 @@
     system = pkgs.stdenv.hostPlatform.system;
     nix-packages = inputs.nix-packages.packages.${system};
     zen-browser = inputs.zen-browser.packages.${system}.default;
-    limine-gardener = inputs.nix-packages.packages.${system}.limine-gardener;
+    boot-gardener = inputs.nix-packages.packages.${system}.boot-gardener;
   in
   {
     nixpkgs.config.allowUnfree = true;
@@ -49,7 +49,7 @@
       kdePackages.kolourpaint
       lact
       lazygit
-      limine-gardener
+      boot-gardener
       localsend
       mcp-nixos
       nixd
