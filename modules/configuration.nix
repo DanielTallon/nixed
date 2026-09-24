@@ -20,6 +20,16 @@
 
     # --- Networking ---
     networking.networkmanager.enable = true;
+    # Lets devices on local network find each other and their services without DNS server.
+    services.avahi = {
+      enable = true;
+      nssmdns4 = true;
+      publish = {
+        enable = true;
+        workstation = true;
+        hinfo = true;
+      };
+    };
 
     # --- Locale & Time ---
     time.timeZone = "America/New_York";
@@ -95,15 +105,6 @@
     services.usbmuxd = {
       enable = true;
       package = pkgs.usbmuxd2;
-    };
-    services.avahi = {
-      enable = true;
-      nssmdns4 = true;
-      publish = {
-        enable = true;
-        workstation = true;
-        hinfo = true;
-      };
     };
 
     # --- Steam Shaders Set To Use Multicore Setup ---
