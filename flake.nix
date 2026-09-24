@@ -33,9 +33,6 @@
     # --- Multiverse (Pull Any Published Package) ---
     multiverse.url = "github:fzakaria/nixpkgs-multiverse";
 
-    # --- NClean ---
-    nclean.url = "github:p0nczek/nclean";
-
     # --- Nix Index ---
     nix-index-database.url = "github:nix-community/nix-index-database";
       nix-index-database.inputs.nixpkgs.follows = "nixpkgs";

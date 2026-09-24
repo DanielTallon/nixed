@@ -10,7 +10,6 @@
     system = pkgs.stdenv.hostPlatform.system;
     nix-packages = inputs.nix-packages.packages.${system};
     zen-browser = inputs.zen-browser.packages.${system}.default;
-    boot-gardener = inputs.nix-packages.packages.${system}.boot-gardener;
   in
   {
     nixpkgs.config.allowUnfree = true;
@@ -49,7 +48,6 @@
       kdePackages.kolourpaint
       lact
       lazygit
-      boot-gardener
       localsend
       mcp-nixos
       nixd
@@ -72,7 +70,7 @@
       # --- KDE ---
       kdePackages.konsole
       kdePackages.kate
-      (kdePackages.discover.overrideAttrs (old: {
+      (kdePackages.discover.overrideAttrs (_old: {
         postFixup = ''
           wrapProgram $out/bin/plasma-discover \
             --add-flags "--backends flatpak"
@@ -97,6 +95,17 @@
       pv
       upscaler
       unzip
+
+      # --- My packages (DanielTallon/nix-packages) ---
+      nix-packages.boot-gardener
+      nix-packages.kenku-fm
+      nix-packages.lgl-papercutter
+
+      # --- Nix Tooling ---
+      deadnix   # Find unused bindings/arguments in .nix files
+      nix-init  # Generate package derivations from a URL
+      nurl      # Generate fetcher calls (with hashes) from a URL
+      statix    # Lint .nix files for antipatterns (`statix fix` auto-fixes)
 
       # --- System & Monitoring ---
       (pkgs.btop.override { cudaSupport = true; }) #BTop

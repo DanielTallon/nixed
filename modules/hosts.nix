@@ -35,10 +35,8 @@ in
       #config.flake.modules.nixos.disko
       config.flake.modules.nixos.flatpak
       config.flake.modules.nixos.graphics
-      config.flake.modules.nixos.kenkuFm
       config.flake.modules.nixos.kernel
       config.flake.modules.nixos.multiverse
-      config.flake.modules.nixos.nclean
       config.flake.modules.nixos.packages
       config.flake.modules.nixos.zram
 
@@ -85,7 +83,6 @@ in
       config.flake.modules.nixos.flatpak
       config.flake.modules.nixos.graphics
       config.flake.modules.nixos.kernel
-      config.flake.modules.nixos.nclean
       config.flake.modules.nixos.packages
       config.flake.modules.nixos.zram
 
@@ -131,7 +128,6 @@ in
       config.flake.modules.homeManager.kate
       config.flake.modules.homeManager.konsole
       config.flake.modules.homeManager.krohnkite
-      config.flake.modules.homeManager.lglPapercutter
       config.flake.modules.homeManager.nix-index
       config.flake.modules.homeManager.plasma
       config.flake.modules.homeManager.protonDpi

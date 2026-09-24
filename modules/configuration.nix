@@ -31,6 +31,12 @@
       };
     };
 
+    # Clear a PID file left behind by a crashed instance before starting
+    systemd.services.avahi-daemon.serviceConfig = {
+      ExecStartPre = [ "-${pkgs.coreutils}/bin/rm -f /run/avahi-daemon/pid" ];
+      Restart = "on-failure";
+    };
+
     # --- Locale & Time ---
     time.timeZone = "America/New_York";
     i18n.defaultLocale = "en_US.UTF-8";
