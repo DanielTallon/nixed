@@ -21,6 +21,16 @@ This build utilizes:
 - And other personalizations
 
 
+## Quick install
+
+On a fresh NixOS install (partitioned by hand, installed with Calamares), log in as your normal user and run:
+
+```
+nix --extra-experimental-features 'nix-command flakes' run github:DanielTallon/nixed -- nixos   # or: laptop
+```
+
+It clones this repo to `~/.dotfiles`, drops in your machine's hardware config, sets your username, and rebuilds. The full walkthrough, including my partition layout, is in [INSTALL.md](INSTALL.md).
+
 ## Before you use this
 
 This won't build or apply as-is on your machine. You'll need to:
@@ -36,7 +46,6 @@ This won't build or apply as-is on your machine. You'll need to:
 4. **Review before applying** — this is a personal config, not a hardened template. Skim through `modules/` and `home-manager/` first so you know what you're opting into (packages, services, etc.) before running `nixos-rebuild switch`.
 5. **Don't expect a standalone `home-manager` command to work** — Home Manager here is wired in as a NixOS module, not run as its own service. Use `nixos-rebuild switch` (or `nh os switch`) to apply changes under `home-manager/`, not `home-manager switch`, and don't go looking for home-manager generations — there aren't any separate from the system's own.
 
- **-- Bonus --** If you want my exact partition setup, follow the instructions found in /modules/disko/disko-RUNBOOK.md.
 
 ## Structure
 

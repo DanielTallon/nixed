@@ -32,7 +32,6 @@ in
       config.flake.modules.nixos.chaotic
       config.flake.modules.nixos.core
       config.flake.modules.nixos.desktopEnvironment
-      #config.flake.modules.nixos.disko
       config.flake.modules.nixos.flatpak
       config.flake.modules.nixos.graphics
       config.flake.modules.nixos.kernel
@@ -79,7 +78,6 @@ in
       config.flake.modules.nixos.chaotic
       config.flake.modules.nixos.core
       config.flake.modules.nixos.desktopEnvironment
-      config.flake.modules.nixos.diskoLaptop
       config.flake.modules.nixos.flatpak
       config.flake.modules.nixos.graphics
       config.flake.modules.nixos.kernel
@@ -153,7 +151,6 @@ in
       modules = [
         { nixpkgs.hostPlatform = system; }
         inputs.home-manager.nixosModules.home-manager
-        inputs.disko.nixosModules.disko
         config.flake.modules.nixos.desktop
         {
         home-manager = {
@@ -174,7 +171,6 @@ in
       modules = [
         { nixpkgs.hostPlatform = system; }
         inputs.home-manager.nixosModules.home-manager
-        inputs.disko.nixosModules.disko
         config.flake.modules.nixos.laptop
       {
         home-manager = {

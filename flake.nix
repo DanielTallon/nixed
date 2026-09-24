@@ -16,10 +16,6 @@
     nixcord.url = "github:4evy/nixcord";
     ##✅nixcord.url = "github:4evy/nixcord?rev=998b3f6eac9cdbf1a496325af0ed8647d237ecb3";
 
-    # --- Disko Installer---
-    disko.url = "github:nix-community/disko";
-    disko.inputs.nixpkgs.follows = "nixpkgs";
-
     # --- Home Manager (follows unstable) ---
     home-manager = {
       url = "github:nix-community/home-manager/master";
