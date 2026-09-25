@@ -23,13 +23,21 @@ This build utilizes:
 
 ## Quick install
 
-On a fresh NixOS install (partitioned by hand, installed with Calamares), log in as your normal user and run:
+On a fresh NixOS install (partitioned by hand, installed with Calamares), log in as your normal user.
+
+If you would like a quick install of my gaming setup (following the rolling release branch), run:
 
 ```
-nix --extra-experimental-features 'nix-command flakes' run github:DanielTallon/nixed -- nixos   # or: laptop
+nix --extra-experimental-features 'nix-command flakes' run github:DanielTallon/nixed -- nixos
 ```
 
-It clones this repo to `~/.dotfiles`, drops in your machine's hardware config, sets your username, and rebuilds. The full walkthrough, including my partition layout, is in [INSTALL.md](INSTALL.md).
+Or if you would like a quick install of my laptop setup (following the versioned release branch), run:
+
+```
+nix --extra-experimental-features 'nix-command flakes' run github:DanielTallon/nixed -- laptop
+```
+
+Either one clones this repo to `~/.dotfiles`, drops in your machine's hardware config, sets your username, and rebuilds. Reboot when it finishes. The full walkthrough, including disk sizes and my partition layout, is in [INSTALL.md](INSTALL.md).
 
 ## Before you use this
 
