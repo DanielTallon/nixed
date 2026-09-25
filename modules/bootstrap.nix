@@ -8,10 +8,10 @@
 # <host> is "nixos" (desktop) or "laptop"; defaults to the current hostname.
 # Run it as your normal user (not root) AFTER Calamares has installed a
 # minimal system and you've rebooted into it. It will:
-#   1. Clone the repo to ~/.dotfiles (refuses if that path already exists)
-#   2. Copy this machine's /etc/nixos/hardware-configuration.nix into it
-#   3. Wwap the placeholder username for yours (public copy only)
-#   4. Build the system with nom (live dependency tree), then
+#   1. clone the repo to ~/.dotfiles (refuses if that path already exists)
+#   2. copy this machine's /etc/nixos/hardware-configuration.nix into it
+#   3. swap the placeholder username for yours (public copy only)
+#   4. build the system with nom (live dependency tree), then
 #      `nixos-rebuild boot` — then you reboot into the real config
 #
 # Overrides: NIXED_REPO=<git url>  NIXED_DEST=<path>
@@ -53,6 +53,12 @@
             exit 1
           fi
 
+          # Ask for sudo once up front and keep it alive for the whole install
+          # (the build can outlast sudo's 5-minute timeout). The loop exits
+          # on its own when this script does.
+          sudo -v
+          while kill -0 "$$" 2>/dev/null; do sudo -n true; sleep 60; done &
+
           echo "==> Cloning $repo into $dest"
           git clone "$repo" "$dest"
 
@@ -70,9 +76,12 @@
 
           # Fresh installs don't have flakes or the nix-community cache enabled
           # yet; pass both for this first build (root is a trusted user).
+          # warn-dirty: the hardware config and username edits are
+          # intentionally left uncommitted, so skip the "Git tree is dirty" noise.
           nixconf="experimental-features = nix-command flakes
           extra-substituters = https://nix-community.cachix.org
-          extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+          extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+          warn-dirty = false"
 
           # `boot`, not `switch`: the real kernel/NVIDIA setup differs from
           # Calamares' defaults, so don't activate it in the live session.

@@ -53,7 +53,10 @@ nix --extra-experimental-features 'nix-command flakes' \
 
 This clones the repo to `~/.dotfiles`, copies in this machine's
 `/etc/nixos/hardware-configuration.nix`, sets `username` in `flake.nix` to
-your login name, and runs `sudo nixos-rebuild boot`. Details are in
+your login name, builds the system with a live dependency tree
+(nix-output-monitor), and then runs `sudo nixos-rebuild boot` to install
+the boot entry. It asks for your sudo password once, at the start. The
+build takes a while, so you can walk away. Details are in
 `modules/bootstrap.nix`.
 
 It deliberately uses `boot`, not `switch`: the real kernel and NVIDIA
@@ -71,4 +74,48 @@ Reboot into the new generation. From here on, use `switch` (or
   The public copy has placeholders there, and `commit.gpgsign = true`
   will block commits until it's filled in.
 - Want to clone to a different path or repo? Set `NIXED_DEST=<path>` or
-  `NIXED_REPO=<git url>` before `nix run`.
+  `NIXED_REPO=<git url>` before `nix run`. If you change the path, `nh`
+  won't find the flake by itself (`programs.nh.flake` points at
+  `~/.dotfiles`), so pass the path: `nh os switch <path>`.
+
+## Making it your own
+
+This repo is meant to be a starting point, so feel free to change anything.
+Your `~/.dotfiles` is a clone of *this* repo, though, so its `origin` still
+points here. You can pull updates from it, but you can't push to it. To
+keep your changes under version control:
+
+1. **Fork this repo on GitHub** (or create an empty repo of your own).
+2. **Point your clone at your fork**, and keep this repo as `upstream` so
+   you can still pull updates from it later:
+
+   ```
+   cd ~/.dotfiles
+   git remote rename origin upstream
+   git remote add origin https://github.com/<you>/<your-repo>.git
+   ```
+
+3. **Commit what the installer changed.** The bootstrap leaves your
+   `hardware-configuration.nix` and `username` staged but uncommitted. Fill
+   in `home-manager/git.nix` first (see above), then:
+
+   ```
+   git commit -m "Initial setup for my machine"
+   git push -u origin main
+   ```
+
+4. **Make the one-command install yours too** (optional). In your fork,
+   change the default `repo=` URL in `modules/bootstrap.nix` to your
+   repo. Then this installs *your* config on a fresh machine:
+
+   ```
+   nix --extra-experimental-features 'nix-command flakes' \
+     run github:<you>/<your-repo> -- nixos
+   ```
+
+   The host names (`nixos`, `laptop`) and their `hosts/` folders are
+   defined in `modules/hosts.nix` and the `case` block in `bootstrap.nix`.
+   Rename or add hosts in both places.
+
+To pull in later changes from this repo: `git pull upstream main`. You may
+need to resolve conflicts in files you've customized.
