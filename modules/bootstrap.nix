@@ -8,10 +8,11 @@
 # <host> is "nixos" (desktop) or "laptop"; defaults to the current hostname.
 # Run it as your normal user (not root) AFTER Calamares has installed a
 # minimal system and you've rebooted into it. It will:
-#   1. clone the repo to ~/.dotfiles (refuses if that path already exists)
-#   2. copy this machine's /etc/nixos/hardware-configuration.nix into it
-#   3. swap the placeholder username for yours (public copy only)
-#   4. `nixos-rebuild boot` — then you reboot into the real config
+#   1. Clone the repo to ~/.dotfiles (refuses if that path already exists)
+#   2. Copy this machine's /etc/nixos/hardware-configuration.nix into it
+#   3. Wwap the placeholder username for yours (public copy only)
+#   4. Build the system with nom (live dependency tree), then
+#      `nixos-rebuild boot` — then you reboot into the real config
 #
 # Overrides: NIXED_REPO=<git url>  NIXED_DEST=<path>
 # See INSTALL.md for the full install walkthrough.
@@ -22,7 +23,7 @@
       meta.description = "Clone these dotfiles onto a fresh NixOS install and rebuild";
       program = pkgs.lib.getExe (pkgs.writeShellApplication {
         name = "nixed-bootstrap";
-        runtimeInputs = [ pkgs.git ];
+        runtimeInputs = [ pkgs.git pkgs.nix-output-monitor ];
         text = ''
           repo="''${NIXED_REPO:-https://github.com/DanielTallon/nixed.git}"
           dest="''${NIXED_DEST:-$HOME/.dotfiles}"
@@ -75,11 +76,15 @@
 
           # `boot`, not `switch`: the real kernel/NVIDIA setup differs from
           # Calamares' defaults, so don't activate it in the live session.
-          echo "==> Building $host (nixos-rebuild boot). This can take a while."
+          echo "==> Building $host. This can take a while."
+          sudo env NIX_CONFIG="$nixconf" PATH="$PATH" \
+            nom build "$dest#nixosConfigurations.$host.config.system.build.toplevel" --no-link
+
+          echo "==> Installing boot entry"
           sudo env NIX_CONFIG="$nixconf" nixos-rebuild boot --flake "$dest#$host"
 
           echo
-          echo "Done. Reboot to start the real config. Use 'switch' (or nh os switch) from then on."
+          echo "Done. Reboot to start the real config. Use 'nh os switch' from then on."
         '';
       });
     };
