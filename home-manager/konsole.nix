@@ -90,6 +90,27 @@
         };
       };
 
+      # --- Konsole window chrome & launch shortcut ---
+      programs.plasma.configFile."konsolerc" = {
+        "MainWindow"."MenuBar" = "Disabled";
+        "KonsoleWindow"."RememberWindowSize" = false;
+      };
+
+      programs.plasma.shortcuts."services/org.kde.konsole.desktop"."_launch" = [ "Ctrl+Alt+T" "Meta+Return" ];
+
+      # Hide both toolbars (main + session: New Tab / Split View / Copy / Paste / Find).
+      # KDE 6 keeps toolbar visibility only inside Qt's saveState() blob in
+      # ~/.local/state/konsolestaterc, so this writes that key on activation.
+      # Written with kwriteconfig6 (not a home.file symlink) because Konsole
+      # rewrites the file itself on close. Blob captured from a working setup.
+      home.activation.konsoleHideToolbars = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        run mkdir -p "${config.xdg.stateHome}"
+        run ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 \
+          --file "${config.xdg.stateHome}/konsolestaterc" \
+          --group MainWindow --key State \
+          "AAAA/wAAAAD9AAAAAQAAAAAAAAAAAAAAAPwCAAAAAvsAAAAiAFEAdQBpAGMAawBDAG8AbQBtAGEAbgBkAHMARABvAGMAawAAAAAA/////wAAAYMA////+wAAABwAUwBTAEgATQBhAG4AYQBnAGUAcgBEAG8AYwBrAAAAAAD/////AAABJwD///8AAAYYAAAD2gAAAAQAAAAEAAAACAAAAAj8AAAAAQAAAAIAAAACAAAAFgBtAGEAaQBuAFQAbwBvAGwAQgBhAHIAAAAAAP////8AAAAAAAAAAAAAABwAcwBlAHMAcwBpAG8AbgBUAG8AbwBsAGIAYQByAAAAAQ7/////AAAAAAAAAAA="
+      '';
+
       # --- Oh My Posh Ricing ---
       programs.oh-my-posh = {
         enable = true;

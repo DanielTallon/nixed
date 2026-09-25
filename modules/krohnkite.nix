@@ -21,6 +21,23 @@
       "kwinrc"."Script-krohnkite"."screenGapRight" = 20;
       "kwinrc"."Script-krohnkite"."screenGapTop" = 20;
       "kwinrc"."Script-krohnkite"."screenGapBottom" = 20;
+      "kwinrc"."Script-krohnkite"."screenGapBetween" = 10; # the actual gap between tiled windows
+
+      # Layout cycle order (Monocle -> Three Column -> Tile)
+      "kwinrc"."Script-krohnkite"."monocleLayoutOrder" = 1;
+      "kwinrc"."Script-krohnkite"."threeColumnLayoutOrder" = 2;
+      "kwinrc"."Script-krohnkite"."tileLayoutOrder" = 3;
+
+      # Size (%) of a window when it is the only one on the screen
+      "kwinrc"."Script-krohnkite"."soleWindowWidth" = 75;
+      "kwinrc"."Script-krohnkite"."soleWindowHeight" = 95;
+
+      "kwinrc"."Script-krohnkite"."limitTileWidthRatio" = 1;
+      "kwinrc"."Script-krohnkite"."notificationDuration" = 500;
     };
+
+    # Meta+Return launches Konsole (see konsole.nix); unbind Krohnkite's
+    # default "Set master" so the two don't fight over it.
+    programs.plasma.shortcuts.kwin."KrohnkiteSetMaster" = [ ];
   };
 }
