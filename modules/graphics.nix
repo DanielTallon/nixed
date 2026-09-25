@@ -72,6 +72,13 @@
         systemd.services.nvidia-performance = {
           description = "Set NVIDIA GPU to maximum performance mode";
           wantedBy = [ "multi-user.target" ];
+          after = [ "systemd-modules-load.service" ];
+          # Skip (not fail) when no NVIDIA GPU is present, e.g. in a VM or on
+          # a machine without an NVIDIA card. /proc/driver/nvidia only exists
+          # once the nvidia kernel module has loaded, and the module refuses
+          # to load when it finds no GPU. On the desktop the module is loaded
+          # in the initrd, so this is always true there by multi-user.target.
+          unitConfig.ConditionPathExists = "/proc/driver/nvidia";
           serviceConfig = {
             Type = "oneshot";
             ExecStart = "/run/current-system/sw/bin/nvidia-smi -pm 1";

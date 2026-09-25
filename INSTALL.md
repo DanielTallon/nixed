@@ -12,6 +12,16 @@ system, then one `nix run` pulls this repo and builds the real config.
   which disk is which before touching anything, and leave Windows' disk
   alone.
 
+## Disk space (measured on a VM install, Sept 2026)
+
+- **`/` needs 80 GB minimum; 100 GB recommended.** The first build peaks at
+  about 64 GB used. A 47 GB disk ran out partway through. After reboot and
+  `sudo nix-collect-garbage -d` it settles around 44 GB.
+- **`/boot`:** each distinct kernel set (default + `latest` specialisation,
+  with initrds) takes about 500 MB. A 1 GB ESP holds the first install plus
+  roughly one kernel update, so you'll need to prune with Boot Gardener. 3 GB
+  holds about five, which is what I run.
+
 ## 2. Graphical installer (Calamares)
 
 At the partitioning step choose **Manual Partitioning** and create, on the
@@ -19,11 +29,10 @@ target disk (GPT):
 
 | Partition | Size      | Filesystem | Mount   | Flags     |
 |-----------|-----------|------------|---------|-----------|
-| ESP       | 3 GB      | FAT32      | `/boot` | boot, esp |
+| ESP       | 3 GB (1 GB min) | FAT32 | `/boot` | boot, esp |
 | root      | remaining | btrfs      | `/`     |           |
 
-3 GB for `/boot` leaves room for Limine's kernel specialisations across
-10 generations.
+See "Disk space" above for why 3 GB.
 
 - Pick the lightest or no desktop environment. The real one comes from
   the rebuild.
