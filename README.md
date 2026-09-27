@@ -1,6 +1,6 @@
 # nixed
 
-My daily-driver NixOS dotfiles. Gaming rig, and simple laptop. Nothing fancy.
+My daily-driver NixOS dotfiles. One setup, two flavors: rolling release for my gaming rig, stable release for my older laptop. Nothing fancy.
 
 A flake-based NixOS + home-manager configuration for my desktop and laptop, managed as modular `.nix` files under `modules/` and `home-manager/`. Shared here as-is in case any of it is useful to someone else — not written as a general-purpose template, so expect to adapt things rather than a turn key experience per se.
 
@@ -9,9 +9,10 @@ This build utilizes:
 - Flakes
 - Dendritic pattern
 - Limine Bootloader with kernel specialization. use: kernel version to see which version each kern is currently at. I'd recommend you set your boot partition to 2-3GB with everything as is. You can do less, if you don't use the specializations.
-- A two monitor desktop setup, using an RTX 4070 Super GPU, and proprietary drivers. Set to rolling release
-- An older laptop setup with no Nvidia GPU. Set to fixed release
-- A boolean "hasNvidia" set to true on the desktop and false on the laptop 
+- One shared system setup and one shared Home Manager profile, built two ways:
+  - `nixos` — rolling release (nixos-unstable). My two monitor desktop, with an RTX 4070 Super GPU and proprietary drivers
+  - `nixos-stable` — versioned release (nixos-26.05), with any individual package switchable to unstable via `pkgs-unstable`. Runs on my older laptop, which has no Nvidia GPU
+- A boolean "hasNvidia" set to true on `nixos` and false on `nixos-stable`
 - Krohnkite for tiling on KDE Plasma
 - Home Manager integrated directly into the NixOS configuration, not run standalone. There's no separate `home-manager` CLI to use here and no home-manager generations to manage on their own — everything under `home-manager/` is applied as part of each `nixos-rebuild`/`nh os switch`, so your user config and system config move together as one generation
 - A kernel.nix file to switch between different kernel options. Xddxdd or Chaotic (both from CachyOS), lts if you want long term support. Zen (from Garuda) and Xanmod (very good low latency support). To check the version of each, run: "kernel version" and it will show a current list.
@@ -28,13 +29,13 @@ On a fresh NixOS install (partitioned by hand, installed with Calamares), log in
 If you would like a quick install of my gaming setup (following the rolling release branch), run:
 
 ```
-nix --extra-experimental-features 'nix-command flakes' run github:DanielTallon/nixed -- nixos
+nix run --extra-experimental-features 'nix-command flakes' github:DanielTallon/nixed -- nixos
 ```
 
-Or if you would like a quick install of my laptop setup (following the versioned release branch), run:
+Or if you would like the same setup on the versioned release branch, without Nvidia, run:
 
 ```
-nix --extra-experimental-features 'nix-command flakes' run github:DanielTallon/nixed -- laptop
+nix run --extra-experimental-features 'nix-command flakes' github:DanielTallon/nixed -- nixos-stable
 ```
 
 Either one clones this repo to `~/.dotfiles`, drops in your machine's hardware config, sets your username, and rebuilds. Reboot when it finishes. The full walkthrough, including disk sizes and my partition layout, is in [INSTALL.md](INSTALL.md).
@@ -45,7 +46,7 @@ This won't build or apply as-is on your machine. You'll need to:
 
 1. **Set your own username** — in `flake.nix`, change `username = "youruser";` to your actual username. Everything else in the flake reads from this single value.
 
-2. **Generate your own hardware config** — the files at `hosts/desktop/hardware-configuration.nix` and `hosts/laptop/hardware-configuration.nix` are placeholders. Run:
+2. **Generate your own hardware config** — the files at `hosts/desktop/hardware-configuration.nix` and `hosts/nixos-stable/hardware-configuration.nix` are placeholders. Run:
    ```
    sudo nixos-generate-config
    ```
@@ -58,7 +59,7 @@ This won't build or apply as-is on your machine. You'll need to:
 ## Structure
 
 - `flake.nix` / `flake.lock` — flake inputs and outputs
-- `hosts/` — per-machine configs (desktop, laptop)
+- `hosts/` — per-machine hardware configs (desktop, nixos-stable)
 - `modules/` — NixOS system modules (bootloader, kernel, graphics, users, etc.)
 - `home-manager/` — user-level (home-manager) configs
 - `scripts/` — misc helper scripts

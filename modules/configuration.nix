@@ -1,6 +1,6 @@
 # /.dotfiles/modules/configuration.nix
 # Core system settings.
-# NOTE:Host-specific values (hostname, stateVersion, cpuFreqGovernor) live in hosts/desktop.nix
+# NOTE:Host-specific values (hostname, stateVersion, cpuFreqGovernor) live in modules/hosts.nix
 {
   flake.modules.nixos.core = { config, pkgs, lib, username, ... }: {
     # --- Nix Settings ---

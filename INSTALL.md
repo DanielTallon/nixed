@@ -36,7 +36,7 @@ See "Disk space" above for why 3 GB.
 
 - Pick the lightest or no desktop environment. The real one comes from
   the rebuild.
-- Set the hostname to `nixos` (desktop) or `laptop` so the next step
+- Set the hostname to `nixos` (desktop) or `nixos-stable` so the next step
   finds the right config on its own.
 - Create your user with the username you want to keep.
 
@@ -48,7 +48,7 @@ Log in as your normal user (not root) and run:
 
 ```
 nix --extra-experimental-features 'nix-command flakes' \
-  run github:DanielTallon/nixed -- nixos     # or: laptop
+  run github:DanielTallon/nixed -- nixos     # or: nixos-stable
 ```
 
 This clones the repo to `~/.dotfiles`, copies in this machine's
@@ -113,7 +113,7 @@ keep your changes under version control:
      run github:<you>/<your-repo> -- nixos
    ```
 
-   The host names (`nixos`, `laptop`) and their `hosts/` folders are
+   The host names (`nixos`, `nixos-stable`) and their `hosts/` folders are
    defined in `modules/hosts.nix` and the `case` block in `bootstrap.nix`.
    Rename or add hosts in both places.
 

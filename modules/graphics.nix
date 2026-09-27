@@ -1,7 +1,7 @@
 # /.dotfiles/modules/graphics.nix
 # NOTE:GPU/Vulkan/VA-API setup. NVIDIA-specific bits are gated behind `hasNvidia`
 # (defined here, set per-host in modules/hosts.nix) so hosts without an
-# NOTE:NVIDIA card — e.g. the laptop — get plain Mesa/Intel graphics instead.
+# NOTE:NVIDIA card — e.g. nixos-stable — get plain Mesa/Intel graphics instead.
 {
   flake.modules.nixos.graphics = { config, lib, pkgs, ... }: {
     options.hasNvidia = lib.mkOption {
@@ -96,7 +96,7 @@
           GST_VAAPI_ALL_DRIVERS = "1"; # Optional: makes gstreamer's VAAPI plugin actually pick nvidia
         };
       })
-      # --- Intel-only (laptop) ---
+      # --- Intel-only (nixos-stable) ---
       (lib.mkIf (!config.hasNvidia) {
         services.xserver.videoDrivers = [ "modesetting" ];
         hardware.graphics.extraPackages = with pkgs; [

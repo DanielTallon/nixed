@@ -5,7 +5,8 @@
 #   nix --extra-experimental-features 'nix-command flakes' \
 #     run github:DanielTallon/nixed -- <host>
 #
-# <host> is "nixos" (desktop) or "laptop"; defaults to the current hostname.
+# <host> is "nixos" (desktop, unstable) or "nixos-stable" (26.05, no NVIDIA);
+# defaults to the current hostname.
 # Run it as your normal user (not root) AFTER Calamares has installed a
 # minimal system and you've rebooted into it. It will:
 #   1. clone the repo to ~/.dotfiles (refuses if that path already exists)
@@ -30,10 +31,10 @@
           host="''${1:-$(hostname)}"
 
           case "$host" in
-            nixos | desktop) host="nixos";  hwdir="desktop" ;;
-            laptop)          host="laptop"; hwdir="laptop"  ;;
+            nixos | desktop)       host="nixos";        hwdir="desktop"      ;;
+            nixos-stable | laptop) host="nixos-stable"; hwdir="nixos-stable" ;;
             *)
-              echo "Unknown host '$host'. Usage: nix run github:DanielTallon/nixed -- <nixos|laptop>" >&2
+              echo "Unknown host '$host'. Usage: nix run github:DanielTallon/nixed -- <nixos|nixos-stable>" >&2
               exit 1
               ;;
           esac

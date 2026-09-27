@@ -2,10 +2,10 @@
 {
   # NOTE:`pkgs-unstable` defaults to `pkgs` itself when not passed via specialArgs
   # (true on the desktop, where the base `pkgs` already IS unstable). On the
-  # laptop (base `pkgs` = 26.05 stable), `pkgs-unstable` is the real opt-in
+  # nixos-stable host (base `pkgs` = 26.05 stable), `pkgs-unstable` is the real opt-in
   # unstable channel — use it like `pkgs-unstable.somePackage` for the
   # occasional package you want off unstable there.
-  flake.modules.nixos.packages = { pkgs, pkgs-stable, pkgs-unstable ? pkgs, inputs, username, ... }:
+  flake.modules.nixos.packages = { config, pkgs, pkgs-stable, pkgs-unstable ? pkgs, inputs, username, ... }:
   let
     system = pkgs.stdenv.hostPlatform.system;
     nix-packages = inputs.nix-packages.packages.${system};
@@ -108,7 +108,7 @@
       statix    # Lint .nix files for antipatterns (`statix fix` auto-fixes)
 
       # --- System & Monitoring ---
-      (pkgs.btop.override { cudaSupport = true; }) #BTop
+      (pkgs.btop.override { cudaSupport = config.hasNvidia; }) #BTop (GPU stats on NVIDIA hosts)
       mission-center
       nix-output-monitor
       nvd
