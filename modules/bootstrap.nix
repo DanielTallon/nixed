@@ -2,8 +2,7 @@
 #
 # One-command setup for a freshly installed NixOS machine:
 #
-#   nix --extra-experimental-features 'nix-command flakes' \
-#     run github:DanielTallon/nixed -- <host>
+#   nix run --extra-experimental-features 'nix-command flakes' github:DanielTallon/nixed -- <host>
 #
 # <host> is "nixos" (desktop, unstable) or "nixos-stable" (26.05);
 # defaults to the current hostname. Either host works with or without an
@@ -12,7 +11,9 @@
 # minimal system and you've rebooted into it. It will:
 #   1. clone the repo to ~/.dotfiles (refuses if that path already exists)
 #   2. copy this machine's /etc/nixos/hardware-configuration.nix into it,
-#      and detect whether it has an NVIDIA GPU (writes hosts/<host>/gpu.nix)
+#      detect whether it has an NVIDIA GPU (writes hosts/<host>/gpu.nix),
+#      and look for a Windows install to add to Limine's menu
+#      (writes hosts/<host>/dualboot.nix)
 #   3. swap the placeholder username for yours (public copy only)
 #   4. build the system with nom (live dependency tree), then
 #      `nixos-rebuild boot` — then you reboot into the real config
@@ -26,7 +27,7 @@
       meta.description = "Clone these dotfiles onto a fresh NixOS install and rebuild";
       program = pkgs.lib.getExe (pkgs.writeShellApplication {
         name = "nixed-bootstrap";
-        runtimeInputs = [ pkgs.git pkgs.nix-output-monitor ];
+        runtimeInputs = [ pkgs.git pkgs.nix-output-monitor pkgs.util-linux ];
         text = ''
           repo="''${NIXED_REPO:-https://github.com/DanielTallon/nixed.git}"
           dest="''${NIXED_DEST:-$HOME/.dotfiles}"
@@ -83,6 +84,52 @@
           # Flip it by hand if detection got it wrong. See modules/nvidia.nix.
           { hasNvidia = $has_nvidia; }
           EOF
+
+          # Look for Windows: any EFI System Partition (GPT type c12a7328-...)
+          # holding Microsoft's boot manager. Covers Windows on its own disk
+          # and Windows sharing the Linux ESP. sudo because NixOS mounts /boot
+          # with fmask/dmask 0077, and unmounted ESPs need a (read-only) mount.
+          esp_guid="c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
+          bootmgr="EFI/Microsoft/Boot/bootmgfw.efi"
+          win_partuuid=""
+          while read -r dev parttype partuuid; do
+            if [ "$parttype" != "$esp_guid" ] || [ -n "$win_partuuid" ]; then
+              continue
+            fi
+            existing="$(findmnt -rno TARGET --source "$dev" | head -n1 || true)"
+            if [ -n "$existing" ]; then
+              if sudo test -f "$existing/$bootmgr"; then win_partuuid="$partuuid"; fi
+            else
+              mnt="$(mktemp -d)"
+              if sudo mount -o ro "$dev" "$mnt" 2>/dev/null; then
+                if sudo test -f "$mnt/$bootmgr"; then win_partuuid="$partuuid"; fi
+                sudo umount "$mnt"
+              fi
+              rmdir "$mnt"
+            fi
+          done < <(lsblk -rno PATH,PARTTYPE,PARTUUID)
+
+          if [ -n "$win_partuuid" ]; then
+            echo "==> Windows found on EFI partition $win_partuuid (hosts/$hwdir/dualboot.nix)"
+            cat > "$dest/hosts/$hwdir/dualboot.nix" <<EOF
+          # Written by the nixed bootstrap app: Windows' boot manager was found
+          # on this EFI partition. Replace with { } to drop the menu entry.
+          {
+            boot.loader.limine.extraEntries = '''
+              /Windows
+                protocol: efi
+                path: uuid($win_partuuid):/$bootmgr
+            ''';
+          }
+          EOF
+          else
+            echo "==> No Windows install found (hosts/$hwdir/dualboot.nix)"
+            cat > "$dest/hosts/$hwdir/dualboot.nix" <<EOF
+          # Written by the nixed bootstrap app: no Windows install was found.
+          # To add one by hand, copy the Windows entry format from modules/bootstrap.nix.
+          { }
+          EOF
+          fi
 
           me="$(id -un)"
           if grep -q 'username = "youruser";' "$dest/flake.nix"; then

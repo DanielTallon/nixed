@@ -3,12 +3,12 @@
 # Both hosts get the same system setup (`common`) and the same home-manager
 # profile (`homeManager.desktop`). What differs:
 #   - nixos:        nixos-unstable base, NVIDIA (newest driver), plus this
-#                   desktop's own hardware bits (Windows entry, NTFS drive,
-#                   CPU governor).
+#                   desktop's own hardware bits (NTFS drive, CPU governor).
 #   - nixos-stable: nixos-26.05 base with `pkgs-unstable` as a per-package
 #                   opt-in, LTS kernel, NVIDIA production driver if present.
-# Whether a machine has an NVIDIA card lives in hosts/<host>/gpu.nix, which
-# the bootstrap app (modules/bootstrap.nix) writes by detecting the GPU.
+# Whether a machine has an NVIDIA card lives in hosts/<host>/gpu.nix, and its
+# Windows boot entry (if any) in hosts/<host>/dualboot.nix. The bootstrap app
+# (modules/bootstrap.nix) writes both by detecting the hardware.
 # Adding an aspect to both hosts = one more line in `common` below.
 # Adding a new host = one more `mkHost` call plus a small host module.
 { inputs, config, username, ... }:
@@ -92,19 +92,12 @@ in
       config.flake.modules.nixos.common
       ../hosts/desktop/hardware-configuration.nix
       ../hosts/desktop/gpu.nix # hasNvidia, written by the bootstrap app
+      ../hosts/desktop/dualboot.nix # Windows entry, written by the bootstrap app
 
       {
         networking.hostName = "nixos";
         system.stateVersion = "25.11";
         powerManagement.cpuFreqGovernor = "performance";
-
-        # Windows dual-boot entry (desktop only — this disk layout is
-        # specific to this machine's EFI partition).
-        boot.loader.limine.extraEntries = ''
-          /Windows
-            protocol: efi
-            path: uuid(688b7e62-0a88-4d97-88f4-03d66ba379ab):/EFI/Microsoft/Boot/bootmgfw.efi
-        '';
 
         # Secondary NTFS drive (desktop only).
         fileSystems."/smssd" = {
@@ -122,6 +115,7 @@ in
       config.flake.modules.nixos.common
       ../hosts/nixos-stable/hardware-configuration.nix
       ../hosts/nixos-stable/gpu.nix # hasNvidia, written by the bootstrap app
+      ../hosts/nixos-stable/dualboot.nix # Windows entry, written by the bootstrap app
 
       ({ config, lib, ... }: {
         networking.hostName = "nixos-stable";

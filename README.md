@@ -11,8 +11,9 @@ This build utilizes:
 - Limine Bootloader with kernel specialization. use: kernel version to see which version each kern is currently at. I'd recommend you set your boot partition to 2-3GB with everything as is. You can do less, if you don't use the specializations.
 - One shared system setup and one shared Home Manager profile, built two ways:
   - `nixos` — rolling release (nixos-unstable). My two monitor desktop, with an RTX 4070 Super GPU and proprietary drivers
-  - `nixos-stable` — versioned release (nixos-26.05), with any individual package switchable to unstable via `pkgs-unstable`. Runs on my older laptop, which has no Nvidia GPU
-- NVIDIA auto-detection: the install command checks your PCI devices and writes `hosts/<host>/gpu.nix` (`hasNvidia = true/false`), so either flavor works with or without an Nvidia card. `nixos` uses Nvidia's newest driver; `nixos-stable` uses the more conservative production branch
+  - `nixos-stable` — versioned release (nixos-26.05), with the option to pin any individual package to rolling release via `pkgs-unstable`.
+- NVIDIA GPU auto-detection: The install command checks your PCI devices and writes `hosts/<host>/gpu.nix` (`hasNvidia = true/false`) for both installs. So either flavor works with or without an Nvidia card. `nixos` uses Nvidia's newest driver; `nixos-stable` uses the more conservative production branch
+- Windows dual-boot auto-detection: the install command also looks for Windows' boot manager on any EFI partition (its own disk or shared with Linux) and, if found, writes a Limine menu entry to `hosts/<host>/dualboot.nix`
 - Krohnkite for tiling on KDE Plasma
 - Home Manager integrated directly into the NixOS configuration, not run standalone. There's no separate `home-manager` CLI to use here and no home-manager generations to manage on their own — everything under `home-manager/` is applied as part of each `nixos-rebuild`/`nh os switch`, so your user config and system config move together as one generation
 - A kernel.nix file to switch between different kernel options. Xddxdd or Chaotic (both from CachyOS), lts if you want long term support. Zen (from Garuda) and Xanmod (very good low latency support). To check the version of each, run: "kernel version" and it will show a current list.
