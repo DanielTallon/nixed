@@ -8,6 +8,8 @@
 
     programs.home-manager.enable = true;
 
+    manual.manpages.enable = false;
+
     # --- Display: apply best resolution/refresh rate to all outputs on login ---
     xdg.configFile."autostart/max-resolution.desktop".text = ''
       [Desktop Entry]

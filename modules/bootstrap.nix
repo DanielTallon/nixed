@@ -5,12 +5,14 @@
 #   nix --extra-experimental-features 'nix-command flakes' \
 #     run github:DanielTallon/nixed -- <host>
 #
-# <host> is "nixos" (desktop, unstable) or "nixos-stable" (26.05, no NVIDIA);
-# defaults to the current hostname.
+# <host> is "nixos" (desktop, unstable) or "nixos-stable" (26.05);
+# defaults to the current hostname. Either host works with or without an
+# NVIDIA card: the GPU is detected and written to hosts/<host>/gpu.nix.
 # Run it as your normal user (not root) AFTER Calamares has installed a
 # minimal system and you've rebooted into it. It will:
 #   1. clone the repo to ~/.dotfiles (refuses if that path already exists)
-#   2. copy this machine's /etc/nixos/hardware-configuration.nix into it
+#   2. copy this machine's /etc/nixos/hardware-configuration.nix into it,
+#      and detect whether it has an NVIDIA GPU (writes hosts/<host>/gpu.nix)
 #   3. swap the placeholder username for yours (public copy only)
 #   4. build the system with nom (live dependency tree), then
 #      `nixos-rebuild boot` — then you reboot into the real config
@@ -65,6 +67,22 @@
 
           echo "==> Using this machine's hardware-configuration.nix for hosts/$hwdir"
           cp /etc/nixos/hardware-configuration.nix "$dest/hosts/$hwdir/hardware-configuration.nix"
+
+          # Look for an NVIDIA display device on the PCI bus: vendor 0x10de is
+          # NVIDIA, class 0x03xxxx is a display controller (0x0300 VGA on
+          # desktops, 0x0302 "3D controller" on most laptop dGPUs).
+          has_nvidia=false
+          for dev in /sys/bus/pci/devices/*; do
+            if [ "$(cat "$dev/vendor")" = "0x10de" ] && [[ "$(cat "$dev/class")" == 0x03* ]]; then
+              has_nvidia=true
+            fi
+          done
+          echo "==> NVIDIA GPU detected: $has_nvidia (hosts/$hwdir/gpu.nix)"
+          cat > "$dest/hosts/$hwdir/gpu.nix" <<EOF
+          # Written by the nixed bootstrap app from this machine's PCI devices.
+          # Flip it by hand if detection got it wrong. See modules/nvidia.nix.
+          { hasNvidia = $has_nvidia; }
+          EOF
 
           me="$(id -un)"
           if grep -q 'username = "youruser";' "$dest/flake.nix"; then

@@ -12,6 +12,9 @@
     import-tree.url = "github:vic/import-tree";
     systems.url = "github:nix-systems/default-linux";
 
+    # --- Determinate Nix ---
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+
     # --- Discord-Nixcord
     nixcord.url = "github:4evy/nixcord";
     ##✅nixcord.url = "github:4evy/nixcord?rev=998b3f6eac9cdbf1a496325af0ed8647d237ecb3";

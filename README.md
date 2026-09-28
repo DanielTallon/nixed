@@ -12,7 +12,7 @@ This build utilizes:
 - One shared system setup and one shared Home Manager profile, built two ways:
   - `nixos` — rolling release (nixos-unstable). My two monitor desktop, with an RTX 4070 Super GPU and proprietary drivers
   - `nixos-stable` — versioned release (nixos-26.05), with any individual package switchable to unstable via `pkgs-unstable`. Runs on my older laptop, which has no Nvidia GPU
-- A boolean "hasNvidia" set to true on `nixos` and false on `nixos-stable`
+- NVIDIA auto-detection: the install command checks your PCI devices and writes `hosts/<host>/gpu.nix` (`hasNvidia = true/false`), so either flavor works with or without an Nvidia card. `nixos` uses Nvidia's newest driver; `nixos-stable` uses the more conservative production branch
 - Krohnkite for tiling on KDE Plasma
 - Home Manager integrated directly into the NixOS configuration, not run standalone. There's no separate `home-manager` CLI to use here and no home-manager generations to manage on their own — everything under `home-manager/` is applied as part of each `nixos-rebuild`/`nh os switch`, so your user config and system config move together as one generation
 - A kernel.nix file to switch between different kernel options. Xddxdd or Chaotic (both from CachyOS), lts if you want long term support. Zen (from Garuda) and Xanmod (very good low latency support). To check the version of each, run: "kernel version" and it will show a current list.
@@ -32,7 +32,7 @@ If you would like a quick install of my gaming setup (following the rolling rele
 nix run --extra-experimental-features 'nix-command flakes' github:DanielTallon/nixed -- nixos
 ```
 
-Or if you would like the same setup on the versioned release branch, without Nvidia, run:
+Or if you would like the same setup on the versioned release branch, run:
 
 ```
 nix run --extra-experimental-features 'nix-command flakes' github:DanielTallon/nixed -- nixos-stable
@@ -60,7 +60,7 @@ This won't build or apply as-is on your machine. You'll need to:
 
 - `flake.nix` / `flake.lock` — flake inputs and outputs
 - `hosts/` — per-machine hardware configs (desktop, nixos-stable)
-- `modules/` — NixOS system modules (bootloader, kernel, graphics, users, etc.)
+- `modules/` — NixOS system modules (bootloader, kernel, nvidia, users, etc.)
 - `home-manager/` — user-level (home-manager) configs
 - `scripts/` — misc helper scripts
 

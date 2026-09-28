@@ -2,10 +2,13 @@
 #NOTE:The only file that knows about concrete machines ("nixos", "nixos-stable").
 # Both hosts get the same system setup (`common`) and the same home-manager
 # profile (`homeManager.desktop`). What differs:
-#   - nixos:        nixos-unstable base, NVIDIA, plus this desktop's own
-#                   hardware bits (Windows entry, NTFS drive, CPU governor).
+#   - nixos:        nixos-unstable base, NVIDIA (newest driver), plus this
+#                   desktop's own hardware bits (Windows entry, NTFS drive,
+#                   CPU governor).
 #   - nixos-stable: nixos-26.05 base with `pkgs-unstable` as a per-package
-#                   opt-in, `hasNvidia = false`, LTS kernel.
+#                   opt-in, LTS kernel, NVIDIA production driver if present.
+# Whether a machine has an NVIDIA card lives in hosts/<host>/gpu.nix, which
+# the bootstrap app (modules/bootstrap.nix) writes by detecting the GPU.
 # Adding an aspect to both hosts = one more line in `common` below.
 # Adding a new host = one more `mkHost` call plus a small host module.
 { inputs, config, username, ... }:
@@ -62,11 +65,11 @@ in
       config.flake.modules.nixos.chaotic
       config.flake.modules.nixos.core
       config.flake.modules.nixos.desktopEnvironment
-      config.flake.modules.nixos.graphics
       config.flake.modules.nixos.flatpak
       config.flake.modules.nixos.kernel
       config.flake.modules.nixos.multiverse
       config.flake.modules.nixos.nixCaches
+      config.flake.modules.nixos.nvidia
       config.flake.modules.nixos.packages
       config.flake.modules.nixos.zram
 
@@ -85,15 +88,15 @@ in
   #---Desktop: rolling release, NVIDIA---
   flake.modules.nixos.desktop = {
     imports = [
+      inputs.determinate.nixosModules.default
       config.flake.modules.nixos.common
       ../hosts/desktop/hardware-configuration.nix
+      ../hosts/desktop/gpu.nix # hasNvidia, written by the bootstrap app
 
       {
         networking.hostName = "nixos";
         system.stateVersion = "25.11";
         powerManagement.cpuFreqGovernor = "performance";
-
-        # hasNvidia defaults to true (see modules/graphics.nix) — no override needed here.
 
         # Windows dual-boot entry (desktop only — this disk layout is
         # specific to this machine's EFI partition).
@@ -113,19 +116,24 @@ in
     ];
   };
 
-  #---nixos-stable: versioned release, no NVIDIA (the old "laptop" host)---
+  #---nixos-stable: versioned release, NVIDIA auto-detected ---
   flake.modules.nixos.nixosStable = {
     imports = [
       config.flake.modules.nixos.common
       ../hosts/nixos-stable/hardware-configuration.nix
+      ../hosts/nixos-stable/gpu.nix # hasNvidia, written by the bootstrap app
 
-      ({ lib, ... }: {
+      ({ config, lib, ... }: {
         networking.hostName = "nixos-stable";
         # Assumed fresh install on the 26.05 stable channel — change if this
         # doesn't match what the machine was actually first installed with.
         system.stateVersion = "26.05";
 
-        hasNvidia = false; # Intel UHD only — see modules/graphics.nix
+        # Stable machines get NVIDIA's conservative production driver branch
+        # instead of the desktop's `latest`. Only takes effect when
+        # hasNvidia = true. mkForce because nvidia.nix sets the package
+        # with a plain assignment.
+        hardware.nvidia.package = lib.mkForce config.boot.kernelPackages.nvidiaPackages.production;
 
         # Uses the plain LTS kernel (always cached on the standard binary
         # cache) instead of the shared default ("xddxdd" — a custom

@@ -18,6 +18,8 @@
       "electron-40.10.5"
     ];
 
+    #documentation.nixos.enable = false;
+
     # --- Networking ---
     networking.networkmanager.enable = true;
     # Lets devices on local network find each other and their services without DNS server.
@@ -161,7 +163,9 @@
     users.users.${username} = {
       isNormalUser = true;
       group = username;
-      description = "User";
+      description =
+        lib.toUpper (builtins.substring 0 1 username)
+        + builtins.substring 1 (-1) username;
       extraGroups = [ "networkmanager" "wheel" "usbmux" "libvirtd" ];
     };
 

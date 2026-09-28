@@ -1,13 +1,14 @@
-# /.dotfiles/modules/graphics.nix
+# /.dotfiles/modules/nvidia.nix
 # NOTE:GPU/Vulkan/VA-API setup. NVIDIA-specific bits are gated behind `hasNvidia`
-# (defined here, set per-host in modules/hosts.nix) so hosts without an
-# NOTE:NVIDIA card — e.g. nixos-stable — get plain Mesa/Intel graphics instead.
+# (defined here, set per-machine in hosts/<host>/gpu.nix, which the bootstrap
+# NOTE:app writes by detecting the GPU) so hosts without an NVIDIA card get
+# plain Mesa/Intel graphics instead.
 {
-  flake.modules.nixos.graphics = { config, lib, pkgs, ... }: {
+  flake.modules.nixos.nvidia = { config, lib, pkgs, ... }: {
     options.hasNvidia = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Whether this host has an NVIDIA GPU. Gates the NVIDIA driver, kernel params, and initrd modules across graphics.nix, kernel.nix, and bootloader.nix.";
+      description = "Whether this host has an NVIDIA GPU. Gates the NVIDIA driver, kernel params, and initrd modules across nvidia.nix, kernel.nix, and bootloader.nix. Set per-machine in hosts/<host>/gpu.nix.";
     };
     config = lib.mkMerge [
       # --- Shared, GPU-vendor-agnostic ---
