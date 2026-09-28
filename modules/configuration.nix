@@ -40,26 +40,30 @@
     };
 
     # --- Locale & Time ---
-    time.timeZone = "America/New_York";
-    i18n.defaultLocale = "en_US.UTF-8";
-    i18n.extraLocaleSettings = {
-      LC_ADDRESS = "en_US.UTF-8";
-      LC_IDENTIFICATION = "en_US.UTF-8";
-      LC_MEASUREMENT = "en_US.UTF-8";
-      LC_MONETARY = "en_US.UTF-8";
-      LC_NAME = "en_US.UTF-8";
-      LC_NUMERIC = "en_US.UTF-8";
-      LC_PAPER = "en_US.UTF-8";
-      LC_TELEPHONE = "en_US.UTF-8";
-      LC_TIME = "en_US.UTF-8";
-    };
+    # Defaults only (mkDefault): hosts/<host>/locale.nix overrides them. The
+    # nixed installer writes that file from its timezone/language/keyboard
+    # review screen; otherwise it's { } and these apply.
+    time.timeZone = lib.mkDefault "America/New_York";
+    i18n.defaultLocale = lib.mkDefault "en_US.UTF-8";
+    # Every LC_* follows the default locale.
+    i18n.extraLocaleSettings = lib.genAttrs [
+      "LC_ADDRESS"
+      "LC_IDENTIFICATION"
+      "LC_MEASUREMENT"
+      "LC_MONETARY"
+      "LC_NAME"
+      "LC_NUMERIC"
+      "LC_PAPER"
+      "LC_TELEPHONE"
+      "LC_TIME"
+    ] (_: lib.mkDefault config.i18n.defaultLocale);
 
     # --- Display Server ---
     services.xserver = {
       enable = true;
       xkb = {
-        layout = "us";
-        variant = "";
+        layout = lib.mkDefault "us";
+        variant = lib.mkDefault "";
       };
     };
 

@@ -18,7 +18,8 @@
 #   4. build the system with nom (live dependency tree), then
 #      `nixos-rebuild boot` — then you reboot into the real config
 #
-# Overrides: NIXED_REPO=<git url>  NIXED_DEST=<path>
+# Overrides: NIXED_REPO=<git url>  NIXED_REF=<branch>  NIXED_DEST=<path>
+# Also stage 2 of the no-Calamares installer (modules/installer.nix).
 # See INSTALL.md for the full install walkthrough.
 {
   perSystem = { pkgs, ... }: {
@@ -31,6 +32,7 @@
         text = ''
           repo="''${NIXED_REPO:-https://github.com/DanielTallon/nixed.git}"
           dest="''${NIXED_DEST:-$HOME/.dotfiles}"
+          ref="''${NIXED_REF:-}"
           host="''${1:-$(hostname)}"
 
           case "$host" in
@@ -63,11 +65,19 @@
           sudo -v
           while kill -0 "$$" 2>/dev/null; do sudo -n true; sleep 60; done &
 
-          echo "==> Cloning $repo into $dest"
-          git clone "$repo" "$dest"
+          echo "==> Cloning $repo''${ref:+ (branch $ref)} into $dest"
+          git clone ''${ref:+--branch "$ref"} "$repo" "$dest"
 
           echo "==> Using this machine's hardware-configuration.nix for hosts/$hwdir"
           cp /etc/nixos/hardware-configuration.nix "$dest/hosts/$hwdir/hardware-configuration.nix"
+
+          # The nixed installer (modules/installer.nix) leaves the timezone,
+          # language and keyboard picked on its review screen here. Without
+          # it (e.g. after Calamares) the repo's hosts/<host>/locale.nix stays.
+          if [ -f /etc/nixos/locale.nix ]; then
+            echo "==> Using the installer's timezone/language/keyboard (hosts/$hwdir/locale.nix)"
+            cp /etc/nixos/locale.nix "$dest/hosts/$hwdir/locale.nix"
+          fi
 
           # Look for an NVIDIA display device on the PCI bus: vendor 0x10de is
           # NVIDIA, class 0x03xxxx is a display controller (0x0300 VGA on

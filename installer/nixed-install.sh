@@ -1,0 +1,290 @@
+# nixed-install: stage 1 of the nixed install. Runs on the NixOS minimal ISO.
+# Packaged by modules/installer.nix, which defines these before this text:
+#   LAYOUT          disko layout (installer/disk-layout.nix)
+#   TEMPLATES       installer/ folder (base-configuration.nix, stage2.sh)
+#   ZONEINFO        tzdata's zoneinfo dir
+#   LOCALES         list of glibc UTF-8 locales, one per line
+#   XKB_RULES       xkeyboard-config's base.lst
+#   BASE_NIXPKGS    nixpkgs used for the small base system
+#   BASE_STATE      that nixpkgs' release, used as the base's stateVersion
+#   DEFAULT_REPO    git URL stage 2 clones and builds
+#
+# Flow: questions -> review screen -> erase disk -> small base system ->
+# reboot -> stage 2 (installer/stage2.sh) builds the real config -> reboot.
+
+repo="${NIXED_REPO:-$DEFAULT_REPO}"
+ref="${NIXED_REF:-}"
+log=/tmp/nixed-install.log
+
+if [ "$(id -u)" -ne 0 ]; then
+  exec sudo --preserve-env=NIXED_REPO,NIXED_REF,NIXED_ALLOW_WINDOWS_DISK "$0" "$@"
+fi
+
+# ---------- helpers ----------
+accent=212
+title() { gum style --foreground "$accent" --bold --margin "1 0 0 0" "$*"; }
+info() { gum style --faint "$*"; }
+die() {
+  gum style --foreground 196 --bold "✗ $*" >&2
+  exit 1
+}
+step() { gum style --foreground "$accent" "==> $*"; }
+
+# ---------- preflight ----------
+clear
+gum style --border rounded --border-foreground "$accent" --padding "1 3" --margin "1 0" \
+  "nixed installer" "" \
+  "Stage 1: answer a few questions, erase one disk, install a small base system." \
+  "Stage 2: after a reboot, your real config builds by itself and reboots once more."
+
+if [ ! -d /sys/firmware/efi ]; then
+  die "Booted in legacy BIOS mode. This layout needs UEFI (on a VM: set the firmware to UEFI/OVMF)."
+fi
+
+if ! curl -fsS -o /dev/null --max-time 10 https://github.com; then
+  die "No internet. Connect with 'nmtui' first, then run nixed-install again."
+fi
+
+# ---------- detect timezone / language / keyboard ----------
+step "Detecting location (for timezone, language and keyboard)"
+geo="$(curl -fsS --max-time 10 https://ipapi.co/json/ 2>/dev/null || true)"
+tz="$(jq -r '.timezone // empty' <<<"$geo" 2>/dev/null || true)"
+country="$(jq -r '.country_code // empty' <<<"$geo" 2>/dev/null || true)"
+languages="$(jq -r '.languages // empty' <<<"$geo" 2>/dev/null || true)"
+if [ -z "$tz" ]; then
+  geo="$(curl -fsS --max-time 10 https://ipinfo.io/json 2>/dev/null || true)"
+  tz="$(jq -r '.timezone // empty' <<<"$geo" 2>/dev/null || true)"
+  country="$(jq -r '.country // empty' <<<"$geo" 2>/dev/null || true)"
+fi
+
+valid_tz() { [ -n "$1" ] && [ -f "$ZONEINFO/$1" ]; }
+valid_locale() { [ -n "$1" ] && grep -qxF "$1" "$LOCALES"; }
+valid_layout() { [ -n "$1" ] && awk '/^! layout/{f=1;next} /^!/{f=0} f{print $1}' "$XKB_RULES" | grep -qxF "$1"; }
+valid_variant() { # $1 layout, $2 variant ("" is always fine)
+  [ -z "$2" ] && return 0
+  awk '/^! variant/{f=1;next} /^!/{f=0} f{print $1, $2}' "$XKB_RULES" | grep -qxF "$2 $1:"
+}
+
+valid_tz "$tz" || tz="UTC"
+
+# Language: first entry of ipapi's "languages" with a region, e.g. "en-US" -> en_US.UTF-8
+locale=""
+IFS=',' read -r -a langs <<<"$languages"
+for l in "${langs[@]}"; do
+  cand="${l/-/_}.UTF-8"
+  if valid_locale "$cand"; then
+    locale="$cand"
+    break
+  fi
+done
+valid_locale "$locale" || locale="en_US.UTF-8"
+
+# Keyboard: countries that mostly type on a US layout get "us", the UK and
+# Ireland get "gb", everyone else their country code if xkb has that layout.
+cc="$(tr '[:upper:]' '[:lower:]' <<<"$country")"
+case "$cc" in
+  "" | us | ca | au | nz | in | ph | sg | za | my | ng | ke | hk) kb="us" ;;
+  gb | ie) kb="gb" ;;
+  *) kb="$cc" ;;
+esac
+valid_layout "$kb" || kb="us"
+kbvariant=""
+
+# ---------- questions ----------
+title "Which configuration?"
+host="$(gum choose --header "Host to install" \
+  "nixos         (desktop: nixos-unstable, newest NVIDIA driver)" \
+  "nixos-stable  (26.05 stable, LTS kernel)")"
+host="${host%% *}"
+[ -n "$host" ] || die "No host chosen."
+
+title "Your account"
+while :; do
+  user="$(gum input --prompt "Username: " --placeholder "lowercase, e.g. alex")"
+  if [[ ! "$user" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]]; then
+    info "Use lowercase letters, digits, - or _ (starting with a letter), up to 32 characters."
+  elif [[ "$user" =~ ^(root|nixos|youruser)$ ]] || getent passwd "$user" >/dev/null; then
+    info "'$user' is reserved, pick another."
+  else
+    break
+  fi
+done
+
+while :; do
+  pw1="$(gum input --password --prompt "Password: ")"
+  pw2="$(gum input --password --prompt "Again:    ")"
+  if [ -z "$pw1" ]; then
+    info "The password can't be empty."
+  elif [ "$pw1" != "$pw2" ]; then
+    info "Those didn't match, try again."
+  else
+    break
+  fi
+done
+pwhash="$(printf '%s' "$pw1" | mkpasswd -m yescrypt --stdin)"
+unset pw1 pw2
+
+# ---------- disk ----------
+iso_disk=""
+iso_src="$(findmnt -no SOURCE /iso 2>/dev/null || true)"
+if [ -n "$iso_src" ]; then iso_disk="$(lsblk -no PKNAME "$iso_src" 2>/dev/null | head -n1 || true)"; fi
+
+esp_guid="c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
+has_windows() { # $1 = /dev/disk; true if any partition is NTFS or holds bootmgfw.efi
+  local dev parttype fstype mnt found=1
+  while IFS=$'\t' read -r dev parttype fstype; do
+    if [ "$fstype" = ntfs ]; then found=0; fi
+    if [ "$parttype" = "$esp_guid" ]; then
+      mnt="$(mktemp -d)"
+      if mount -o ro "$dev" "$mnt" 2>/dev/null; then
+        [ -f "$mnt/EFI/Microsoft/Boot/bootmgfw.efi" ] && found=0
+        umount "$mnt"
+      fi
+      rmdir "$mnt"
+    fi
+  done < <(lsblk -Jpo PATH,PARTTYPE,FSTYPE "$1" |
+    jq -r '.blockdevices[0].children[]? | [.path, (.parttype // "-"), (.fstype // "-")] | @tsv')
+  return $found
+}
+
+title "Disk to erase"
+choices=()
+while read -r name size type; do
+  [ "$type" = disk ] || continue
+  case "$name" in /dev/loop* | /dev/zram* | /dev/sr* | /dev/ram*) continue ;; esac
+  [ "$(basename "$name")" = "$iso_disk" ] && continue
+  model="$(lsblk -dno MODEL "$name" | sed 's/ *$//')"
+  gib=$((size / 1024 / 1024 / 1024))
+  note=""
+  if has_windows "$name"; then note="  [has Windows/NTFS]"; fi
+  if [ "$gib" -lt 80 ]; then note="$note  [under 80 GB: first build may run out of space]"; fi
+  choices+=("$name  ${gib} GB  ${model:-unknown model}$note")
+done < <(lsblk -dbnpo NAME,SIZE,TYPE)
+[ "${#choices[@]}" -gt 0 ] || die "No usable disks found."
+
+gum style --faint "$(lsblk -o NAME,SIZE,FSTYPE,LABEL,MODEL)"
+disk_line="$(gum choose --header "Everything on this disk will be erased" "${choices[@]}")"
+disk="${disk_line%% *}"
+[ -n "$disk" ] || die "No disk chosen."
+
+if [[ "$disk_line" == *"[has Windows/NTFS]"* ]] && [ "${NIXED_ALLOW_WINDOWS_DISK:-}" != 1 ]; then
+  die "$disk has Windows/NTFS on it. Refusing to erase it. (Override: NIXED_ALLOW_WINDOWS_DISK=1 nixed-install)"
+fi
+
+# ---------- review ----------
+pick_timezone() {
+  local list
+  list="$( (cut -f3 "$ZONEINFO/zone1970.tab" 2>/dev/null || cut -f3 "$ZONEINFO/zone.tab") | grep -v '^#' | sort -u)"
+  gum filter --header "Timezone" --placeholder "type to search, e.g. New_York" --value "" <<<"UTC
+$list" || true
+}
+pick_locale() { gum filter --header "Language / locale" --placeholder "type to search, e.g. en_GB" <"$LOCALES" || true; }
+pick_layout() {
+  awk '/^! layout/{f=1;next} /^!/{f=0} f{l=$1; $1=""; printf "%-8s%s\n", l, $0}' "$XKB_RULES" |
+    gum filter --header "Keyboard layout" --placeholder "type to search, e.g. German" | awk '{print $1}' || true
+}
+pick_variant() {
+  { echo "(none)"; awk -v L="$1:" '/^! variant/{f=1;next} /^!/{f=0} f && $2==L {v=$1; $1=""; $2=""; printf "%-16s%s\n", v, $0}' "$XKB_RULES"; } |
+    gum filter --header "Variant for '$1'" | awk '{print $1}' || true
+}
+
+while :; do
+  title "Review"
+  gum style --border rounded --padding "0 2" \
+    "Host        $host" \
+    "Username    $user" \
+    "Timezone    $tz" \
+    "Language    $locale" \
+    "Keyboard    $kb${kbvariant:+ ($kbvariant)}" \
+    "Disk        $disk_line" \
+    "Repo        $repo${ref:+ (branch $ref)}"
+  action="$(gum choose --header "Anything to change?" \
+    "Looks good, continue" "Timezone" "Language" "Keyboard" "Cancel")"
+  case "$action" in
+    Timezone) new="$(pick_timezone)"; valid_tz "$new" && tz="$new" ;;
+    Language) new="$(pick_locale)"; valid_locale "$new" && locale="$new" ;;
+    Keyboard)
+      new="$(pick_layout)"
+      if valid_layout "$new"; then
+        kb="$new"
+        kbvariant="$(pick_variant "$kb")"
+        [ "$kbvariant" = "(none)" ] && kbvariant=""
+        valid_variant "$kb" "$kbvariant" || kbvariant=""
+      fi
+      ;;
+    "Looks good, continue") break ;;
+    *) die "Cancelled. Nothing was changed." ;;
+  esac
+done
+
+title "Last chance"
+typed="$(gum input --prompt "Type $(basename "$disk") to erase it and install: ")"
+[ "$typed" = "$(basename "$disk")" ] || die "Didn't match. Cancelled, nothing was changed."
+
+# ---------- install (logged from here on) ----------
+exec > >(tee -a "$log") 2>&1
+set -x
+
+step "Partitioning $disk with disko (3G FAT32 /boot + btrfs /)"
+umount -R /mnt 2>/dev/null || true
+disko --mode destroy,format,mount --yes-wipe-all-disks --argstr device "$disk" "$LAYOUT"
+
+step "Generating hardware-configuration.nix"
+nixos-generate-config --root /mnt
+# nixos-generate-config doesn't record mount options; keep the layout's btrfs ones.
+sed -i 's|fsType = "btrfs";|fsType = "btrfs";\n      options = [ "compress=zstd" "noatime" ];|' \
+  /mnt/etc/nixos/hardware-configuration.nix
+rm -f /mnt/etc/nixos/configuration.nix
+
+step "Writing the base system"
+cat >/mnt/etc/nixos/locale.nix <<EOF
+# Written by nixed-install from the choices on its review screen.
+# Stage 2 copies this into the repo as hosts/<host>/locale.nix.
+{
+  time.timeZone = "$tz";
+  i18n.defaultLocale = "$locale";
+  services.xserver.xkb = {
+    layout = "$kb";
+    variant = "$kbvariant";
+  };
+  console.useXkbConfig = true;
+}
+EOF
+sed -e "s|@HOST@|$host|g" -e "s|@USER@|$user|g" -e "s|@STATEVERSION@|$BASE_STATE|g" \
+  "$TEMPLATES/base-configuration.nix" >/mnt/etc/nixos/configuration.nix
+sed -e "s|@HOST@|$host|g" -e "s|@REPO@|$repo|g" -e "s|@REF@|$ref|g" \
+  "$TEMPLATES/stage2.sh" >/mnt/etc/nixos/nixed-stage2.sh
+chmod 644 /mnt/etc/nixos/*.nix /mnt/etc/nixos/nixed-stage2.sh
+
+# Bring Wi-Fi connections made with nmtui over to the installed system.
+if [ -d /etc/NetworkManager/system-connections ] && [ -n "$(ls -A /etc/NetworkManager/system-connections)" ]; then
+  mkdir -p /mnt/etc/NetworkManager/system-connections
+  cp -a /etc/NetworkManager/system-connections/. /mnt/etc/NetworkManager/system-connections/
+  chmod 600 /mnt/etc/NetworkManager/system-connections/*
+fi
+
+step "Installing the base system (small; the real config builds after the reboot)"
+nixos-install --root /mnt --no-root-passwd --no-channel-copy -I "nixpkgs=$BASE_NIXPKGS"
+
+step "Setting $user's password"
+{ set +x; } 2>/dev/null
+install -m 600 /dev/null /mnt/root/.nixed-pw
+printf '%s:%s\n' "$user" "$pwhash" >/mnt/root/.nixed-pw
+nixos-enter --root /mnt -c 'chpasswd -e < /root/.nixed-pw'
+rm -f /mnt/root/.nixed-pw
+set -x
+
+mkdir -p /mnt/var/lib/nixed
+date >/mnt/var/lib/nixed/stage2
+cp "$log" /mnt/var/log/nixed-install.log || true
+
+{ set +x; } 2>/dev/null
+gum style --border rounded --border-foreground "$accent" --padding "1 3" --margin "1 0" \
+  "Stage 1 done." "" \
+  "Remove the install media, then reboot." \
+  "Stage 2 starts by itself on the first boot (tty1), builds '$host'," \
+  "and reboots into it when it's finished."
+if gum confirm "Reboot now?"; then
+  umount -R /mnt || true
+  systemctl reboot
+fi

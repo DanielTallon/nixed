@@ -8,7 +8,9 @@
 #                   opt-in, LTS kernel, NVIDIA production driver if present.
 # Whether a machine has an NVIDIA card lives in hosts/<host>/gpu.nix, and its
 # Windows boot entry (if any) in hosts/<host>/dualboot.nix. The bootstrap app
-# (modules/bootstrap.nix) writes both by detecting the hardware.
+# (modules/bootstrap.nix) writes both by detecting the hardware. Timezone,
+# language and keyboard overrides live in hosts/<host>/locale.nix (written
+# by the nixed installer, modules/installer.nix; { } otherwise).
 # Adding an aspect to both hosts = one more line in `common` below.
 # Adding a new host = one more `mkHost` call plus a small host module.
 { inputs, config, username, ... }:
@@ -93,6 +95,7 @@ in
       ../hosts/desktop/hardware-configuration.nix
       ../hosts/desktop/gpu.nix # hasNvidia, written by the bootstrap app
       ../hosts/desktop/dualboot.nix # Windows entry, written by the bootstrap app
+      ../hosts/desktop/locale.nix # timezone/language/keyboard, from the nixed installer
 
       {
         networking.hostName = "nixos";
@@ -116,6 +119,7 @@ in
       ../hosts/nixos-stable/hardware-configuration.nix
       ../hosts/nixos-stable/gpu.nix # hasNvidia, written by the bootstrap app
       ../hosts/nixos-stable/dualboot.nix # Windows entry, written by the bootstrap app
+      ../hosts/nixos-stable/locale.nix # timezone/language/keyboard, from the nixed installer
 
       ({ config, lib, ... }: {
         networking.hostName = "nixos-stable";

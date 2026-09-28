@@ -1,7 +1,57 @@
 # Fresh Install
 
-Three steps: partition by hand in the graphical installer, install a minimal
-system, then one `nix run` pulls this repo and builds the real config.
+Two ways in:
+
+- **Quick install (experimental):** boot the NixOS *minimal* ISO, get
+  online, run one command, answer a few questions. It erases one disk and
+  does everything else, with two reboots. See "Quick install" below.
+- **Manual:** partition by hand in the graphical installer, install a
+  minimal system, then one `nix run` pulls this repo and builds the real
+  config. Sections 1 to 4.
+
+## Quick install (no Calamares)
+
+Needs UEFI firmware, a disk you're happy to erase (80 GB+, see "Disk
+space"), and internet.
+
+1. Boot the NixOS **minimal** ISO (or the custom one: `nix build
+   .#installer-iso`, which has `nixed-install` built in).
+2. Wi-Fi only: run `nmtui` and connect. Wired just works.
+3. Run:
+
+   ```
+   nix --extra-experimental-features 'nix-command flakes' \
+     run github:DanielTallon/nixed#install
+   ```
+
+   (`nixed-install` on the custom ISO.)
+4. Answer the questions: host (`nixos` or `nixos-stable`), username,
+   password. Timezone, language and keyboard are guessed from your IP and
+   shown on a review screen where you can change any of them.
+5. Pick the disk. The ISO's own disk isn't offered, and a disk with Windows
+   or NTFS on it is refused. Type the disk's name to confirm.
+6. It erases the disk with disko (3 GB FAT32 `/boot`, btrfs `/` with
+   zstd compression), installs a small base system, and asks to reboot.
+   Remove the ISO.
+7. **Stage 2 runs by itself** on the first boot (auto-login on tty1): it
+   runs the same bootstrap as the manual path below (clone to
+   `~/.dotfiles`, hardware config, NVIDIA and Windows detection, your
+   timezone/language/keyboard into `hosts/<host>/locale.nix`,
+   `nixos-rebuild boot`), then reboots into the real config.
+
+If stage 2 fails, fix the cause and run `bash /etc/nixos/nixed-stage2.sh`
+(it also retries at the next tty1 login). Logs: `/var/log/nixed-install.log`
+for stage 1; stage 2 prints to the screen.
+
+The base system's tty1 auto-login and passwordless sudo exist only so
+stage 2 can run unattended. Neither is in the real config.
+
+Testing a branch or a fork: `NIXED_REF=<branch>` (and `NIXED_REPO=<git
+url>` for a fork) before the command, and run that branch's installer, e.g.
+`NIXED_REF=installer nix run 'github:DanielTallon/nixed/installer#install'`.
+Stage 2 builds whatever those point at.
+
+The rest of this file is the manual path.
 
 ## 1. Before you start
 
