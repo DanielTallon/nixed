@@ -25,6 +25,10 @@ This build utilizes:
 
 ## Quick install
 
+Two ways in: after a normal Calamares install, or straight from the NixOS minimal ISO with no graphical installer at all.
+
+### After Calamares
+
 On a fresh NixOS install (partitioned by hand, installed with Calamares), log in as your normal user.
 
 If you would like a quick install of my gaming setup (following the rolling release branch), run:
@@ -40,6 +44,16 @@ nix run --extra-experimental-features 'nix-command flakes' github:DanielTallon/n
 ```
 
 Either one clones this repo to `~/.dotfiles`, drops in your machine's hardware config, sets your username, and rebuilds. Reboot when it finishes. The full walkthrough, including disk sizes and my partition layout, is in [INSTALL.md](INSTALL.md).
+
+### From the minimal ISO (experimental)
+
+Boot the NixOS **minimal** ISO (UEFI), connect with `nmtui` if you're on Wi-Fi, then run:
+
+```
+nix run --extra-experimental-features 'nix-command flakes' github:DanielTallon/nixed#install
+```
+
+It asks which host you want, your username and password, and shows the timezone, language and keyboard it detected so you can change them. Then you pick a disk and **it erases that disk** (3 GB FAT32 `/boot` + btrfs `/`, via disko) and installs a small base system. After a reboot, the command above runs by itself, and one more reboot lands you in the finished setup. Details in [INSTALL.md](INSTALL.md#quick-install-no-calamares).
 
 ## Before you use this
 

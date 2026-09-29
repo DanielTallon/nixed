@@ -93,10 +93,11 @@ kbvariant=""
 # ---------- questions ----------
 title "Which configuration?"
 host="$(gum choose --header "Host to install" \
-  "nixos         (desktop: nixos-unstable, newest NVIDIA driver)" \
-  "nixos-stable  (26.05 stable, LTS kernel)")"
+  "nixos         (unstable: rolling release, newest NVIDIA driver)" \
+  "nixos-stable  (stable: 26.05 release, LTS kernel, production NVIDIA driver)")"
 host="${host%% *}"
 [ -n "$host" ] || die "No host chosen."
+info "Host: $host"
 
 title "Your account"
 while :; do
@@ -109,10 +110,11 @@ while :; do
     break
   fi
 done
+info "Username: $user"
 
 while :; do
-  pw1="$(gum input --password --prompt "Password: ")"
-  pw2="$(gum input --password --prompt "Again:    ")"
+  pw1="$(gum input --password --prompt "Password for $user: ")"
+  pw2="$(gum input --password --prompt "Confirm password: ")"
   if [ -z "$pw1" ]; then
     info "The password can't be empty."
   elif [ "$pw1" != "$pw2" ]; then
@@ -123,6 +125,7 @@ while :; do
 done
 pwhash="$(printf '%s' "$pw1" | mkpasswd -m yescrypt --stdin)"
 unset pw1 pw2
+info "Password: set"
 
 # ---------- disk ----------
 iso_disk=""
@@ -223,7 +226,6 @@ typed="$(gum input --prompt "Type $(basename "$disk") to erase it and install: "
 
 # ---------- install (logged from here on) ----------
 exec > >(tee -a "$log") 2>&1
-set -x
 
 step "Partitioning $disk with disko (3G FAT32 /boot + btrfs /)"
 umount -R /mnt 2>/dev/null || true
@@ -267,18 +269,15 @@ step "Installing the base system (small; the real config builds after the reboot
 nixos-install --root /mnt --no-root-passwd --no-channel-copy -I "nixpkgs=$BASE_NIXPKGS"
 
 step "Setting $user's password"
-{ set +x; } 2>/dev/null
 install -m 600 /dev/null /mnt/root/.nixed-pw
 printf '%s:%s\n' "$user" "$pwhash" >/mnt/root/.nixed-pw
 nixos-enter --root /mnt -c 'chpasswd -e < /root/.nixed-pw'
 rm -f /mnt/root/.nixed-pw
-set -x
 
 mkdir -p /mnt/var/lib/nixed
 date >/mnt/var/lib/nixed/stage2
 cp "$log" /mnt/var/log/nixed-install.log || true
 
-{ set +x; } 2>/dev/null
 gum style --border rounded --border-foreground "$accent" --padding "1 3" --margin "1 0" \
   "Stage 1 done." "" \
   "Remove the install media, then reboot." \

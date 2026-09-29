@@ -7,7 +7,8 @@
 #   2. runs the nixed bootstrap app (modules/bootstrap.nix): clone the repo
 #      to ~/.dotfiles, carry over hardware/locale/GPU/Windows detection,
 #      build the real host, `nixos-rebuild boot`
-#   3. removes the marker and reboots into the real config
+#   3. deletes the base system's generation (so Limine can't boot back into
+#      it), removes the marker and reboots into the real config
 #
 # To retry by hand after a failure:  bash /etc/nixos/nixed-stage2.sh
 set -uo pipefail
@@ -53,6 +54,12 @@ fi
 
 if NIXED_REPO="$repo" NIXED_REF="$ref" \
   nix --extra-experimental-features 'nix-command flakes' run "$flake" -- "$host"; then
+  # Drop this throwaway base system's boot entry. Otherwise Limine's
+  # remember_last_entry (in the real config) boots straight back into it,
+  # since it was the entry used last.
+  echo "==> Removing the base system's boot entry"
+  sudo nix-env -p /nix/var/nix/profiles/system --delete-generations old
+  sudo /nix/var/nix/profiles/system/bin/switch-to-configuration boot
   sudo rm -f "$marker"
   echo
   echo "Stage 2 finished. Rebooting into the real config in 15 seconds."
