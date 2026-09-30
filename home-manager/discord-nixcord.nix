@@ -3,15 +3,15 @@
 { inputs, ... }:
 {
   flake.modules.homeManager.discord = { pkgs, ... }:
-  let
-    # Workaround for nixcord#247: current nixpkgs' discord no longer accepts
-    # the `source` arg nixcord passes. Build Discord from a known-good nixpkgs
-    # pin until nixcord catches up, then delete this + the nixpkgs-discord input.
-    oldPkgs = import inputs.nixpkgs-discord {
-      system = pkgs.stdenv.hostPlatform.system;
-      config.allowUnfree = true;
-    };
-  in
+    # IN CASE IT BREAKS AGAIN (nixcord#247-style): uncomment this `let` block,
+    # the `package` line below, and the nixpkgs-discord input in flake.nix.
+    # let
+    #   oldPkgs = import inputs.nixpkgs-discord {
+    #     system = pkgs.stdenv.hostPlatform.system;
+    #     config.allowUnfree = true;
+    #   };
+    # in
+
   {
     imports = [ inputs.nixcord.homeModules.nixcord ];
 
@@ -19,7 +19,8 @@
       enable = true;
       vesktop.enable = true;
       discord = {
-        package = oldPkgs.callPackage "${inputs.nixcord}/pkgs/discord" { };
+#         IN CASE IT BREAKS AGAIN:
+#         package = oldPkgs.callPackage "${inputs.nixcord}/pkgs/discord" { };
         vencord.enable = true;
         krisp.enable = true;
       };

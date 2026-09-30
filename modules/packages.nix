@@ -9,7 +9,7 @@
   let
     system = pkgs.stdenv.hostPlatform.system;
     nix-packages = inputs.nix-packages.packages.${system};
-    zen-browser = inputs.zen-browser.packages.${system}.default;
+    #zen-browser = inputs.zen-browser.packages.${system}.default;
   in
   {
     nixpkgs.config.allowUnfree = true;
@@ -23,7 +23,7 @@
       # --- Browsers ---
       brave
       librewolf
-      zen-browser
+      #zen-browser
 
       # --- General ---
       #pkgs-unstable is default for desktop
@@ -79,12 +79,13 @@
 
       # --- Music, Audio, Video ---
       audacity
-      pkgs-stable.davinci-resolve
+      deno # Required for spotdl: nix-shell -p spotdl URL
+      #pkgs-stable.davinci-resolve #Vdeo Editing
+      #pkgs-stable.openshot-qt #Video Editing
       parabolic
       pkgs-stable.obs-studio
       pkgs-stable.vlc
       tauon #Music Player
-      deno # Required for spotdl: nix-shell -p spotdl URL
       unimatrix
 
       # --- Utilities ---
@@ -120,7 +121,6 @@
 
       # --- Notes & Recording ---
       obsidian
-      openshot-qt
 
       # --- Stable-pinned packages ---
       pkgs-stable.bottles
@@ -199,6 +199,7 @@
       dedicatedServer.openFirewall = true;
       extraCompatPackages = with pkgs; [
         proton-ge-bin
+        proton-ge-bin nix-packages.proton-ge-w3rt
         #inputs.nix-proton-cachyos.packages.${pkgs.stdenv.hostPlatform.system}.proton-cachyos
         #run: nix flake update nix-proton-cachyos, first before uncommenting out the line above.
       ];

@@ -22,8 +22,9 @@
     };
 
     # --- Discord-Nixcord
-    nixpkgs-discord.url = "github:NixOS/nixpkgs/e158d9ed9b51c98974c5e66e1ba1c9e0255fecaa";
-    nixcord.url = "github:4evy/nixcord?rev=91592e9f2abda5f8f06cb2834d533f1a385d45b7";
+    nixcord.url = "github:4evy/nixcord";
+    #nixpkgs-discord.url = "github:NixOS/nixpkgs/e158d9ed9b51c98974c5e66e1ba1c9e0255fecaa";
+    ##✅nixcord.url = "github:4evy/nixcord?rev=91592e9f2abda5f8f06cb2834d533f1a385d45b7";
     ##✅nixcord.url = "github:4evy/nixcord?rev=998b3f6eac9cdbf1a496325af0ed8647d237ecb3";
 
     # --- Home Manager (follows unstable) ---
@@ -66,7 +67,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     # --- Zen Browser ---
-    zen-browser.url = "github:0xc000022070/zen-browser-flake";
+    #zen-browser.url = "github:0xc000022070/zen-browser-flake";
   };
 
   # The only file in this repo that isn't a flake-parts module.
