@@ -66,6 +66,8 @@
       xxd
       zenity
 
+      usbimager
+
 
       # --- KDE ---
       kdePackages.konsole

@@ -39,6 +39,10 @@
     fi
   '';
 
+  # Compressed swap in RAM, so a big stage 2 build slows down instead of
+  # running out of memory and hanging (the base system has no swap otherwise).
+  zramSwap.enable = true;
+
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   environment.systemPackages = [ pkgs.git pkgs.curl ];
 

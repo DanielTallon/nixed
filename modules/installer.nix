@@ -15,9 +15,9 @@
 #   - disko erases it: 3G FAT32 /boot + btrfs / (installer/disk-layout.nix)
 #   - installs a small base system: your user, NetworkManager, Limine,
 #     flakes, and a first-boot hook (installer/base-configuration.nix)
-# Reboot. Stage 2 (installer/stage2.sh) runs by itself on tty1: it runs the
-# normal bootstrap app (modules/bootstrap.nix), which clones this repo to
-# ~/.dotfiles, carries over hardware/locale/GPU/Windows detection and runs
+# Shut down, remove the media, power on. Stage 2 (installer/stage2.sh) runs
+# by itself on tty1: it runs the normal bootstrap app (modules/bootstrap.nix),
+# which clones this repo to ~/.dotfiles, carries over hardware/locale/GPU/Windows detection and runs
 # `nixos-rebuild boot`. Then it reboots into the real config.
 #
 # The heavy build happens in stage 2 on the real disk, not in the live

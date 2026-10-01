@@ -10,7 +10,8 @@
 #   DEFAULT_REPO    git URL stage 2 clones and builds
 #
 # Flow: questions -> review screen -> erase disk -> small base system ->
-# reboot -> stage 2 (installer/stage2.sh) builds the real config -> reboot.
+# shut down, remove media, power on -> stage 2 (installer/stage2.sh)
+# builds the real config -> reboot.
 
 repo="${NIXED_REPO:-$DEFAULT_REPO}"
 ref="${NIXED_REF:-}"
@@ -35,7 +36,7 @@ clear
 gum style --border rounded --border-foreground "$accent" --padding "1 3" --margin "1 0" \
   "nixed installer" "" \
   "Stage 1: answer a few questions, erase one disk, install a small base system." \
-  "Stage 2: after a reboot, your real config builds by itself and reboots once more."
+  "Stage 2: after a shutdown and restart, your real config builds by itself and reboots once more."
 
 if [ ! -d /sys/firmware/efi ]; then
   die "Booted in legacy BIOS mode. This layout needs UEFI (on a VM: set the firmware to UEFI/OVMF)."
@@ -278,12 +279,17 @@ mkdir -p /mnt/var/lib/nixed
 date >/mnt/var/lib/nixed/stage2
 cp "$log" /mnt/var/log/nixed-install.log || true
 
+sync
+umount -R /mnt || true
+
 gum style --border rounded --border-foreground "$accent" --padding "1 3" --margin "1 0" \
-  "Stage 1 done." "" \
-  "Remove the install media, then reboot." \
-  "Stage 2 starts by itself on the first boot (tty1), builds '$host'," \
-  "and reboots into it when it's finished."
-if gum confirm "Reboot now?"; then
-  umount -R /mnt || true
-  systemctl reboot
+  "The initial NixOS install is complete." "" \
+  "Press Enter to shut down. While your computer is off, remove" \
+  "your ISO media, then turn your computer back on so the next" \
+  "phase of the install can continue." "" \
+  "(Don't remove the media before it's fully off.)"
+if gum confirm --affirmative "Shut down" --negative "Stay here" "Shut down now?"; then
+  systemctl poweroff
+else
+  info "Run 'poweroff' when you're ready, then remove the media before turning it back on."
 fi

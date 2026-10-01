@@ -11,12 +11,32 @@
 #      it), removes the marker and reboots into the real config
 #
 # To retry by hand after a failure:  bash /etc/nixos/nixed-stage2.sh
+# Output is also saved to /var/log/nixed-stage2.log, with a once-a-minute
+# time/memory heartbeat in /var/log/nixed-stage2-mem.log.
 set -uo pipefail
 
 host="@HOST@"
 repo="@REPO@"
 ref="@REF@"
 marker=/var/lib/nixed/stage2
+log=/var/log/nixed-stage2.log
+memlog=/var/log/nixed-stage2-mem.log
+
+# Keep a copy of everything below in $log, so a hang or failure leaves a
+# record even after a power cycle. Appends, so retries add to the same file.
+sudo touch "$log" "$memlog"
+sudo chown "$(id -un)" "$log" "$memlog"
+exec > >(tee -a "$log") 2>&1
+echo "---------- stage 2 started $(date) ----------"
+
+# Heartbeat: time + memory/swap once a minute, in its own file. If the
+# machine hangs, the last line shows when, and whether RAM was running out.
+(
+  while kill -0 "$$" 2>/dev/null; do
+    { date '+%F %T'; free -m | tail -n 2; } >>"$memlog"
+    sleep 60
+  done
+) &
 
 flake="git+$repo"
 if [ -n "$ref" ]; then flake="$flake?ref=$ref"; fi
@@ -52,7 +72,17 @@ if [ -e "$HOME/.dotfiles" ]; then
   mv "$HOME/.dotfiles" "$old"
 fi
 
-if NIXED_REPO="$repo" NIXED_REF="$ref" \
+# Don't let the laptop sleep (lid closed, power key, idle) mid-build. If the
+# inhibitor can't be taken for some reason, build anyway rather than fail.
+inhibit=()
+if systemd-inhibit --what=sleep:idle:handle-lid-switch --who=nixed --why=check true 2>/dev/null; then
+  inhibit=(systemd-inhibit --what=sleep:idle:handle-lid-switch
+    --who="nixed stage 2" --why="Building the real config")
+else
+  echo "(Couldn't block sleep; keep the lid open until this finishes.)"
+fi
+
+if NIXED_REPO="$repo" NIXED_REF="$ref" "${inhibit[@]}" \
   nix --extra-experimental-features 'nix-command flakes' run "$flake" -- "$host"; then
   # Drop this throwaway base system's boot entry. Otherwise Limine's
   # remember_last_entry (in the real config) boots straight back into it,
@@ -62,12 +92,14 @@ if NIXED_REPO="$repo" NIXED_REF="$ref" \
   sudo /nix/var/nix/profiles/system/bin/switch-to-configuration boot
   sudo rm -f "$marker"
   echo
+  echo "---------- stage 2 finished $(date) ----------"
   echo "Stage 2 finished. Rebooting into the real config in 15 seconds."
   echo "(Ctrl+C to stay here; reboot later with 'sudo reboot'.)"
   sleep 15 && sudo systemctl reboot
 else
   echo
-  echo "Stage 2 failed (see the output above). Fix the problem, then retry with:"
+  echo "---------- stage 2 failed $(date) ----------"
+  echo "Stage 2 failed (see the output above, or $log). Fix the problem, then retry with:"
   echo "  bash /etc/nixos/nixed-stage2.sh"
   echo "It also runs again on its own the next time you log in on tty1."
   exit 1
