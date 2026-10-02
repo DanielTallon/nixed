@@ -49,6 +49,7 @@ let
         curl
         mkpasswd
         util-linux
+        kbd # setfont
         gawk
         gnused
         gnugrep
@@ -64,6 +65,7 @@ let
         BASE_NIXPKGS=${stable}
         BASE_STATE=${lib.versions.majorMinor stable.lib.version}
         DEFAULT_REPO=https://github.com/DanielTallon/nixed.git
+        CONSOLEFONTS=${pkgs.terminus_font}/share/consolefonts
       '' + builtins.readFile ../installer/nixed-install.sh;
     };
 in

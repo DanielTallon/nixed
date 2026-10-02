@@ -18,18 +18,62 @@ ref="${NIXED_REF:-}"
 log=/tmp/nixed-install.log
 
 if [ "$(id -u)" -ne 0 ]; then
-  exec sudo --preserve-env=NIXED_REPO,NIXED_REF,NIXED_ALLOW_WINDOWS_DISK "$0" "$@"
+  exec sudo --preserve-env=NIXED_REPO,NIXED_REF,NIXED_ALLOW_WINDOWS_DISK,NIXED_FONT "$0" "$@"
 fi
 
 # ---------- helpers ----------
-accent=212
+# Basic 16-color codes only: the Linux console can't show 256 colors, and
+# gum's old pink (212) came out as an alarming red there.
+accent=10 # bright green: headings, borders, "==>" steps
+sel=12    # bright blue: whatever is selected or under the cursor
+text=15   # bright white: normal text
+export GUM_CHOOSE_CURSOR_FOREGROUND=$sel GUM_CHOOSE_SELECTED_FOREGROUND=$sel \
+  GUM_CHOOSE_HEADER_FOREGROUND=$accent GUM_CHOOSE_ITEM_FOREGROUND=$text
+export GUM_INPUT_PROMPT_FOREGROUND=$accent GUM_INPUT_CURSOR_FOREGROUND=$sel \
+  GUM_INPUT_HEADER_FOREGROUND=$accent GUM_INPUT_PLACEHOLDER_FOREGROUND=7
+export GUM_FILTER_HEADER_FOREGROUND=$accent GUM_FILTER_PROMPT_FOREGROUND=$accent \
+  GUM_FILTER_TEXT_FOREGROUND=$text GUM_FILTER_PLACEHOLDER_FOREGROUND=7 \
+  GUM_FILTER_INDICATOR_FOREGROUND=$sel GUM_FILTER_CURSOR_TEXT_FOREGROUND=$sel \
+  GUM_FILTER_MATCH_FOREGROUND=$sel GUM_FILTER_SELECTED_PREFIX_FOREGROUND=$sel
+export GUM_CONFIRM_PROMPT_FOREGROUND=$text \
+  GUM_CONFIRM_SELECTED_FOREGROUND=15 GUM_CONFIRM_SELECTED_BACKGROUND=4 \
+  GUM_CONFIRM_UNSELECTED_FOREGROUND=7 GUM_CONFIRM_UNSELECTED_BACKGROUND=0
+
 title() { gum style --foreground "$accent" --bold --margin "1 0 0 0" "$*"; }
-info() { gum style --faint "$*"; }
+info() { gum style --foreground "$text" "$*"; }
 die() {
-  gum style --foreground 196 --bold "✗ $*" >&2
+  gum style --foreground 9 --bold "✗ $*" >&2
   exit 1
 }
 step() { gum style --foreground "$accent" "==> $*"; }
+
+# ---------- console font ----------
+# The stock console font is tiny on modern screens. On a real console (not
+# SSH or a terminal window), switch to Terminus, sized for about 38 rows.
+# NIXED_FONT=ter-v24b picks one by hand; NIXED_FONT=none keeps the default.
+# Stage 2 uses the same font (written into the base config below).
+pick_font() {
+  local h size
+  read -r _ h < <(tr ',' ' ' </sys/class/graphics/fb0/virtual_size 2>/dev/null) || return 0
+  [ -n "${h:-}" ] || return 0
+  for size in 32 28 24 22 20 18 16; do
+    if [ $((h / size)) -ge 38 ]; then
+      echo "ter-v${size}b"
+      return 0
+    fi
+  done
+  echo ter-v16b
+}
+font=""
+case "$(tty 2>/dev/null || true)" in
+  /dev/tty[0-9]*)
+    font="${NIXED_FONT:-$(pick_font)}"
+    if [ "$font" = none ] || [ ! -f "$CONSOLEFONTS/$font.psf.gz" ] ||
+      ! setfont "$CONSOLEFONTS/$font.psf.gz" 2>/dev/null; then
+      font=""
+    fi
+    ;;
+esac
 
 # ---------- preflight ----------
 clear
@@ -254,6 +298,7 @@ cat >/mnt/etc/nixos/locale.nix <<EOF
 }
 EOF
 sed -e "s|@HOST@|$host|g" -e "s|@USER@|$user|g" -e "s|@STATEVERSION@|$BASE_STATE|g" \
+  -e "s|@FONT@|$font|g" \
   "$TEMPLATES/base-configuration.nix" >/mnt/etc/nixos/configuration.nix
 sed -e "s|@HOST@|$host|g" -e "s|@REPO@|$repo|g" -e "s|@REF@|$ref|g" \
   "$TEMPLATES/stage2.sh" >/mnt/etc/nixos/nixed-stage2.sh

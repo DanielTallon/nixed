@@ -49,16 +49,24 @@ echo " This takes a while. It reboots on its own when it's done."
 echo "============================================================"
 echo
 
-echo "==> Waiting for the network"
+# Wi-Fi usually needs a few seconds after boot to connect, so failed tries
+# here are normal; only say something every ~10 seconds.
+echo "==> Waiting for the network (Wi-Fi can take a few seconds to connect)"
 online=false
-for _ in $(seq 1 60); do
-  if curl -fsS -o /dev/null --max-time 5 https://github.com; then
+start=$SECONDS
+for i in $(seq 1 60); do
+  if curl -fs -o /dev/null --max-time 5 https://github.com; then
     online=true
     break
   fi
+  if [ $((i % 5)) -eq 0 ]; then
+    echo "    still waiting ($((SECONDS - start))s)..."
+  fi
   sleep 2
 done
-if [ "$online" != true ]; then
+if [ "$online" = true ]; then
+  echo "    online."
+else
   echo "No network after 2 minutes. Connect with 'nmtui', then run:"
   echo "  bash /etc/nixos/nixed-stage2.sh"
   exit 1

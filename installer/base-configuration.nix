@@ -7,7 +7,7 @@
 #
 # The two "stage 2 only" settings below (tty1 autologin, passwordless sudo)
 # are why stage 2 can run unattended. They disappear with the real config.
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -38,6 +38,11 @@
       bash /etc/nixos/nixed-stage2.sh
     fi
   '';
+
+  # Same console font the installer picked for this screen (empty = default),
+  # so stage 2 is as readable as stage 1 was.
+  console.font = lib.mkIf ("@FONT@" != "") "@FONT@";
+  console.packages = lib.mkIf ("@FONT@" != "") [ pkgs.terminus_font ];
 
   # Compressed swap in RAM, so a big stage 2 build slows down instead of
   # running out of memory and hanging (the base system has no swap otherwise).
