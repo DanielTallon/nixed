@@ -20,7 +20,7 @@
   };
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "@HOST@";
+  networking.hostName = "nixos";
   networking.networkmanager.enable = true;
 
   users.users."@USER@" = {

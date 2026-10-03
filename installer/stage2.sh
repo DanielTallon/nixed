@@ -38,6 +38,14 @@ echo "---------- stage 2 started $(date) ----------"
   done
 ) &
 
+# Same console font stage 1 picked. The base config already loads the font
+# at boot (console.font) but can't double it, so redo it here with -d.
+font="@FONT@"
+font_double="@FONTDOUBLE@"
+if [ -n "$font" ] && [[ "$(tty)" == /dev/tty[0-9]* ]]; then
+  sudo setfont -C "$(tty)" ${font_double:+"$font_double"} "/etc/kbd/consolefonts/$font.psf.gz" || true
+fi
+
 flake="git+$repo"
 if [ -n "$ref" ]; then flake="$flake?ref=$ref"; fi
 

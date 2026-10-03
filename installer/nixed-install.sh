@@ -49,38 +49,47 @@ step() { gum style --foreground "$accent" "==> $*"; }
 
 # ---------- console font ----------
 # The stock console font is tiny on modern screens. On a real console (not
-# SSH or a terminal window), switch to Terminus, sized for about 38 rows.
-# NIXED_FONT=ter-v24b picks one by hand; NIXED_FONT=none keeps the default.
-# Stage 2 uses the same font (written into the base config below).
-pick_font() {
-  local h size
-  read -r _ h < <(tr ',' ' ' </sys/class/graphics/fb0/virtual_size 2>/dev/null) || return 0
-  [ -n "${h:-}" ] || return 0
-  for size in 32 28 24 22 20 18 16; do
-    if [ $((h / size)) -ge 38 ]; then
-      echo "ter-v${size}b"
-      return 0
-    fi
-  done
-  echo ter-v16b
+# SSH or a terminal window), try Terminus fonts from biggest to smallest and
+# keep the first that still leaves NIXED_COLS columns (default 80, so no
+# screen here wraps) and 20 rows. Above 32px tall, setfont -d doubles a
+# smaller font. On a 1080p screen that lands on ter-v24b doubled (24x48),
+# 80x22, about twice the old size.
+# NIXED_FONT=ter-v28b (or "ter-v20b -d") picks one by hand; NIXED_FONT=none
+# keeps the default. Stage 2 uses the same font (passed on below).
+set_font() { # $1 font name, $2 "-d" to double or empty
+  setfont ${2:+"$2"} "$CONSOLEFONTS/$1.psf.gz" 2>/dev/null
 }
 font=""
+font_double=""
 case "$(tty 2>/dev/null || true)" in
   /dev/tty[0-9]*)
-    font="${NIXED_FONT:-$(pick_font)}"
-    if [ "$font" = none ] || [ ! -f "$CONSOLEFONTS/$font.psf.gz" ] ||
-      ! setfont "$CONSOLEFONTS/$font.psf.gz" 2>/dev/null; then
-      font=""
+    if [ -n "${NIXED_FONT:-}" ]; then
+      if [ "$NIXED_FONT" != none ]; then
+        read -r f d <<<"$NIXED_FONT"
+        if set_font "$f" "${d:-}"; then font="$f" font_double="${d:-}"; fi
+      fi
+    else
+      want_cols="${NIXED_COLS:-80}"
+      for cand in "ter-v32b -d" "ter-v28b -d" "ter-v24b -d" "ter-v22b -d" "ter-v20b -d" \
+        "ter-v18b -d" ter-v32b ter-v28b ter-v24b ter-v22b ter-v20b ter-v18b ter-v16b; do
+        read -r f d <<<"$cand"
+        set_font "$f" "${d:-}" || continue
+        font="$f" font_double="${d:-}" # smallest tried so far, kept if none fit
+        if read -r rows cols < <(stty size) &&
+          [ "$cols" -ge "$want_cols" ] && [ "$rows" -ge 20 ]; then
+          break
+        fi
+      done
     fi
     ;;
 esac
 
 # ---------- preflight ----------
 clear
-gum style --border rounded --border-foreground "$accent" --padding "1 3" --margin "1 0" \
+gum style --border rounded --border-foreground "$accent" --padding "1 2" --margin "1 0" \
   "nixed installer" "" \
-  "Stage 1: answer a few questions, erase one disk, install a small base system." \
-  "Stage 2: after a shutdown and restart, your real config builds by itself and reboots once more."
+  "Stage 1: a few questions, erase one disk, install a small base system." \
+  "Stage 2: after a restart, your real config builds itself and reboots."
 
 if [ ! -d /sys/firmware/efi ]; then
   die "Booted in legacy BIOS mode. This layout needs UEFI (on a VM: set the firmware to UEFI/OVMF)."
@@ -139,7 +148,7 @@ kbvariant=""
 title "Which configuration?"
 host="$(gum choose --header "Host to install" \
   "nixos         (unstable: rolling release, newest NVIDIA driver)" \
-  "nixos-stable  (stable: 26.05 release, LTS kernel, production NVIDIA driver)")"
+  "nixos-stable  (stable: 26.05, LTS kernel, production NVIDIA driver)")"
 host="${host%% *}"
 [ -n "$host" ] || die "No host chosen."
 info "Host: $host"
@@ -301,6 +310,7 @@ sed -e "s|@HOST@|$host|g" -e "s|@USER@|$user|g" -e "s|@STATEVERSION@|$BASE_STATE
   -e "s|@FONT@|$font|g" \
   "$TEMPLATES/base-configuration.nix" >/mnt/etc/nixos/configuration.nix
 sed -e "s|@HOST@|$host|g" -e "s|@REPO@|$repo|g" -e "s|@REF@|$ref|g" \
+  -e "s|@FONT@|$font|g" -e "s|@FONTDOUBLE@|$font_double|g" \
   "$TEMPLATES/stage2.sh" >/mnt/etc/nixos/nixed-stage2.sh
 chmod 644 /mnt/etc/nixos/*.nix /mnt/etc/nixos/nixed-stage2.sh
 
@@ -327,7 +337,7 @@ cp "$log" /mnt/var/log/nixed-install.log || true
 sync
 umount -R /mnt || true
 
-gum style --border rounded --border-foreground "$accent" --padding "1 3" --margin "1 0" \
+gum style --border rounded --border-foreground "$accent" --padding "1 2" --margin "1 0" \
   "The initial NixOS install is complete." "" \
   "Press Enter to shut down. While your computer is off, remove" \
   "your ISO media, then turn your computer back on so the next" \

@@ -86,8 +86,8 @@ See "Disk space" above for why 3 GB.
 
 - Pick the lightest or no desktop environment. The real one comes from
   the rebuild.
-- Set the hostname to `nixos` (desktop) or `nixos-stable` so the next step
-  finds the right config on its own.
+- Set the hostname to `nixos` (both configs use it; the next step's
+  argument picks stable or unstable).
 - Create your user with the username you want to keep.
 
 Finish, reboot, and remove the ISO.

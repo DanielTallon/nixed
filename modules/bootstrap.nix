@@ -4,8 +4,10 @@
 #
 #   nix run --extra-experimental-features 'nix-command flakes' github:DanielTallon/nixed -- <host>
 #
-# <host> is "nixos" (desktop, unstable) or "nixos-stable" (26.05);
-# defaults to the current hostname. Either host works with or without an
+# <host> is "nixos" (unstable) or "nixos-stable" (26.05); defaults to
+# /etc/nixed-host if a nixed system already wrote one, else "nixos". Both
+# hosts' hostname is "nixos", so pass nixos-stable explicitly on a fresh
+# Calamares install. Either host works with or without an
 # NVIDIA card: the GPU is detected and written to hosts/<host>/gpu.nix.
 # Run it as your normal user (not root) AFTER Calamares has installed a
 # minimal system and you've rebooted into it. It will:
@@ -33,7 +35,7 @@
           repo="''${NIXED_REPO:-https://github.com/DanielTallon/nixed.git}"
           dest="''${NIXED_DEST:-$HOME/.dotfiles}"
           ref="''${NIXED_REF:-}"
-          host="''${1:-$(hostname)}"
+          host="''${1:-$(cat /etc/nixed-host 2>/dev/null || hostname)}"
 
           case "$host" in
             nixos | desktop)       host="nixos";        hwdir="desktop"      ;;

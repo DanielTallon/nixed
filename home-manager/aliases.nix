@@ -9,10 +9,13 @@
       # --- Aliases ---
       # `nhs` / `nhs switch`: stages new files (git add -A) before rebuilding,
       # since flakes only see tracked/staged files. Run from the flake root.
+      # Builds this machine's config (/etc/nixed-host), since both hosts
+      # share the hostname "nixos".
       (writeShellScriptBin "nhs" ''
         set -euo pipefail
         git add -A
-        exec nh os "''${1:-test}" .
+        host="$(cat /etc/nixed-host 2>/dev/null || hostname)"
+        exec nh os "''${1:-test}" ".#$host"
       '')
 
       # `kernel version`: prints the resolved kernel version for each

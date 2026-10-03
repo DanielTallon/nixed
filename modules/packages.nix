@@ -201,7 +201,8 @@
       dedicatedServer.openFirewall = true;
       extraCompatPackages = with pkgs; [
         proton-ge-bin
-        proton-ge-bin nix-packages.proton-ge-w3rt
+#         proton-ge-bin nix-packages.proton-ge-w3rt
+        nix-packages.proton-wineland
         #inputs.nix-proton-cachyos.packages.${pkgs.stdenv.hostPlatform.system}.proton-cachyos
         #run: nix flake update nix-proton-cachyos, first before uncommenting out the line above.
       ];

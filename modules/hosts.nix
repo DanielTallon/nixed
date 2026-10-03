@@ -1,5 +1,6 @@
 # /.dotfiles/modules/hosts.nix
 #NOTE:The only file that knows about concrete machines ("nixos", "nixos-stable").
+# Those are the flake's configuration names; both machines' hostname is "nixos".
 # Both hosts get the same system setup (`common`) and the same home-manager
 # profile (`homeManager.desktop`). What differs:
 #   - nixos:        nixos-unstable base, NVIDIA (newest driver), plus this
@@ -37,12 +38,22 @@ let
 
   # Everything both hosts share outside their own host module: the
   # home-manager wiring and the specialArgs. `nixpkgs` picks the base channel.
-  mkHost = { nixpkgs, hostModule, extraArgs ? { } }:
+  #
+  # Both hosts use the hostname "nixos", so the hostname can't tell nh (or
+  # the bootstrap app) which nixosConfigurations entry this machine is.
+  # `name` is that entry; it's written to /etc/nixed-host and NH_OS_FLAKE
+  # points nh at it, so a plain `nh os switch` builds the right one.
+  mkHost = { name, nixpkgs, hostModule, extraArgs ? { } }:
     let args = { inherit inputs pkgs-stable username; } // extraArgs;
     in nixpkgs.lib.nixosSystem {
       specialArgs = args;
       modules = [
         { nixpkgs.hostPlatform = system; }
+        {
+          networking.hostName = "nixos";
+          environment.etc."nixed-host".text = name;
+          environment.sessionVariables.NH_OS_FLAKE = "/home/${username}/.dotfiles#${name}";
+        }
         inputs.home-manager.nixosModules.home-manager
         hostModule
         {
@@ -98,7 +109,6 @@ in
       ../hosts/desktop/locale.nix # timezone/language/keyboard, from the nixed installer
 
       {
-        networking.hostName = "nixos";
         system.stateVersion = "25.11";
         powerManagement.cpuFreqGovernor = "performance";
 
@@ -122,7 +132,6 @@ in
       ../hosts/nixos-stable/locale.nix # timezone/language/keyboard, from the nixed installer
 
       ({ config, lib, ... }: {
-        networking.hostName = "nixos-stable";
         # Assumed fresh install on the 26.05 stable channel — change if this
         # doesn't match what the machine was actually first installed with.
         system.stateVersion = "26.05";
@@ -184,11 +193,13 @@ in
     };
 
   flake.nixosConfigurations.nixos = mkHost {
+    name = "nixos";
     nixpkgs = inputs.nixpkgs;
     hostModule = config.flake.modules.nixos.desktop;
   };
 
   flake.nixosConfigurations.nixos-stable = mkHost {
+    name = "nixos-stable";
     nixpkgs = inputs.nixpkgs-stable;
     hostModule = config.flake.modules.nixos.nixosStable;
     extraArgs = { inherit pkgs-unstable; };

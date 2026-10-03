@@ -136,13 +136,23 @@
           STEAM_THREADS=4
         fi
 
-        # Standard Steam
-        mkdir -p ~/.local/share/Steam
-        echo "unShaderBackgroundProcessingThreads $STEAM_THREADS" > ~/.local/share/Steam/steam_dev.cfg
+        # Steam's real data dir. ~/.steam/steam is a symlink to it that Steam
+        # makes on its first run, so only write here and never create
+        # ~/.steam/steam ourselves: if it already exists as a plain folder,
+        # Steam can't make its link and stops with "Couldn't set up Steam
+        # data". (An older version of this service did exactly that.)
+        steam_root="$HOME/.local/share/Steam"
+        mkdir -p "$steam_root"
+        echo "unShaderBackgroundProcessingThreads $STEAM_THREADS" > "$steam_root/steam_dev.cfg"
 
-        # Symlink location (often used by Steam)
-        mkdir -p ~/.steam/steam
-        echo "unShaderBackgroundProcessingThreads $STEAM_THREADS" > ~/.steam/steam/steam_dev.cfg
+        # Repair: ~/.steam/steam is a plain folder. Move its contents into
+        # the real data dir (keeping what's already there), replace it with
+        # the link Steam expects, and drop ~/.steam/bin so Steam rebuilds it.
+        if [ -d "$HOME/.steam/steam" ] && [ ! -L "$HOME/.steam/steam" ]; then
+          cp -a --update=none "$HOME/.steam/steam/." "$steam_root/"
+          rm -rf "$HOME/.steam/steam" "$HOME/.steam/bin"
+          ln -s ../.local/share/Steam "$HOME/.steam/steam"
+        fi
       '';
     };
 
