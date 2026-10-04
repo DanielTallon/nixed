@@ -103,7 +103,7 @@ in
   #---Desktop: rolling release, NVIDIA---
   flake.modules.nixos.desktop = {
     imports = [
-      inputs.determinate.nixosModules.default
+#       inputs.determinate.nixosModules.default
       config.flake.modules.nixos.common
       ../hosts/desktop/hardware-configuration.nix
       ../hosts/desktop/gpu.nix # hasNvidia, written by the bootstrap app

@@ -152,7 +152,7 @@
           # Flakes only see git-tracked files.
           git -C "$dest" add -A
 
-          # Fresh installs don't have flakes or the extra binary caches enabled
+                    # Fresh installs don't have flakes or the extra binary caches enabled
           # yet; pass both for this first build (root is a trusted user).
           # warn-dirty: the hardware config and username edits are
           # intentionally left uncommitted, so skip the "Git tree is dirty" noise.
@@ -163,12 +163,12 @@
           #   nix-gaming     gaming packages
           #   lantian        the "xddxdd" CachyOS kernel (default on `nixos`),
           #                  which otherwise compiles from source
-          #   determinate    Determinate Nix (on `nixos`), per its install docs;
-          #                  otherwise Nix itself compiles and runs its test suite
           nixconf="experimental-features = nix-command flakes
-          extra-substituters = https://nix-community.cachix.org https://nix-gaming.cachix.org https://attic.xuyh0120.win/lantian https://install.determinate.systems
-          extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svXaZF/Ees8vCUUs4= lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc= cache.flakehub.com-3:hJuILl5sVK4iKm86JzgdXW12Y2Hwd5G07qKtHTOcDCM=
+          extra-substituters = https://nix-community.cachix.org https://nix-gaming.cachix.org https://attic.xuyh0120.win/lantian
+          extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svXaZF/Ees8vCUUs4= lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc=
           warn-dirty = false"
+
+
 
           # `boot`, not `switch`: the real kernel/NVIDIA setup differs from
           # Calamares' defaults, so don't activate it in the live session.

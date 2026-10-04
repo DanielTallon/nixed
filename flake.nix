@@ -13,7 +13,7 @@
     systems.url = "github:nix-systems/default-linux";
 
     # --- Determinate Nix ---
-    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+#     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
 
     # --- Disko (partitioning for the nixed-install installer) ---
     disko = {
