@@ -18,7 +18,7 @@ ref="${NIXED_REF:-}"
 log=/tmp/nixed-install.log
 
 if [ "$(id -u)" -ne 0 ]; then
-  exec sudo --preserve-env=NIXED_REPO,NIXED_REF,NIXED_ALLOW_WINDOWS_DISK,NIXED_FONT "$0" "$@"
+  exec sudo --preserve-env=NIXED_REPO,NIXED_REF,NIXED_ALLOW_WINDOWS_DISK,NIXED_FONT,NIXED_COLS "$0" "$@"
 fi
 
 # ---------- helpers ----------
@@ -56,33 +56,46 @@ step() { gum style --foreground "$accent" "==> $*"; }
 # 80x22, about twice the old size.
 # NIXED_FONT=ter-v28b (or "ter-v20b -d") picks one by hand; NIXED_FONT=none
 # keeps the default. Stage 2 uses the same font (passed on below).
-set_font() { # $1 font name, $2 "-d" to double or empty
-  setfont ${2:+"$2"} "$CONSOLEFONTS/$1.psf.gz" 2>/dev/null
-}
+#
+# This runs as root after the sudo re-exec above, and sudo puts us in a
+# pseudo-terminal (/dev/pts/N), so `tty` can't tell whether we're on a real
+# console. Instead: TERM=linux means the Linux console (sudo keeps TERM; SSH
+# and terminal windows set something else), and the console showing on
+# screen is /sys/class/tty/tty0/active. Fonts are set on that VT with -C and
+# its size is read straight from it, not from our pseudo-terminal.
 font=""
 font_double=""
-case "$(tty 2>/dev/null || true)" in
-  /dev/tty[0-9]*)
-    if [ -n "${NIXED_FONT:-}" ]; then
-      if [ "$NIXED_FONT" != none ]; then
-        read -r f d <<<"$NIXED_FONT"
-        if set_font "$f" "${d:-}"; then font="$f" font_double="${d:-}"; fi
+vt=""
+if [ "${TERM:-}" = linux ] && [ "${NIXED_FONT:-}" != none ]; then
+  vt="$(cat /sys/class/tty/tty0/active 2>/dev/null || true)"
+  [[ "$vt" == tty[0-9]* ]] || vt=""
+fi
+set_font() { # $1 font name, $2 "-d" to double or empty
+  setfont -C "/dev/$vt" ${2:+"$2"} "$CONSOLEFONTS/$1.psf.gz" 2>/dev/null
+}
+if [ -n "$vt" ]; then
+  if [ -n "${NIXED_FONT:-}" ]; then
+    read -r f d <<<"$NIXED_FONT"
+    if set_font "$f" "${d:-}"; then font="$f" font_double="${d:-}"; fi
+  else
+    want_cols="${NIXED_COLS:-80}"
+    for cand in "ter-v32b -d" "ter-v28b -d" "ter-v24b -d" "ter-v22b -d" "ter-v20b -d" \
+      "ter-v18b -d" ter-v32b ter-v28b ter-v24b ter-v22b ter-v20b ter-v18b ter-v16b; do
+      read -r f d <<<"$cand"
+      set_font "$f" "${d:-}" || continue
+      font="$f" font_double="${d:-}" # smallest tried so far, kept if none fit
+      if read -r rows cols < <(stty -F "/dev/$vt" size) &&
+        [ "$cols" -ge "$want_cols" ] && [ "$rows" -ge 20 ]; then
+        break
       fi
-    else
-      want_cols="${NIXED_COLS:-80}"
-      for cand in "ter-v32b -d" "ter-v28b -d" "ter-v24b -d" "ter-v22b -d" "ter-v20b -d" \
-        "ter-v18b -d" ter-v32b ter-v28b ter-v24b ter-v22b ter-v20b ter-v18b ter-v16b; do
-        read -r f d <<<"$cand"
-        set_font "$f" "${d:-}" || continue
-        font="$f" font_double="${d:-}" # smallest tried so far, kept if none fit
-        if read -r rows cols < <(stty size) &&
-          [ "$cols" -ge "$want_cols" ] && [ "$rows" -ge 20 ]; then
-          break
-        fi
-      done
-    fi
-    ;;
-esac
+    done
+  fi
+  # sudo's pseudo-terminal only learns the new size from a SIGWINCH, which
+  # can lag; copy it over now so gum lays out for the size actually showing.
+  if read -r rows cols < <(stty -F "/dev/$vt" size); then
+    stty rows "$rows" cols "$cols" 2>/dev/null || true
+  fi
+fi
 
 # ---------- preflight ----------
 clear

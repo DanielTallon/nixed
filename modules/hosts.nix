@@ -29,8 +29,10 @@ let
 
   # nixos-stable's base `pkgs` is nixpkgs-stable instead; this is the
   # nixos-unstable channel, exposed there as an opt-in secondary
-  # (`pkgs-unstable.somePackage` in packages.nix). Not passed to the
-  # desktop, where packages.nix falls back to `pkgs` (already unstable).
+  # (`pkgs-unstable.somePackage` in packages.nix).
+  # nixos-unstable as a secondary package set, passed to both hosts. On
+  # nixos-stable it's the opt-in (`pkgs-unstable.somePackage` in
+  # packages.nix); on the desktop it's the same nixpkgs as the base `pkgs`.
   pkgs-unstable = import inputs.nixpkgs {
     inherit system;
     config.allowUnfree = true;
@@ -44,7 +46,7 @@ let
   # `name` is that entry; it's written to /etc/nixed-host and NH_OS_FLAKE
   # points nh at it, so a plain `nh os switch` builds the right one.
   mkHost = { name, nixpkgs, hostModule, extraArgs ? { } }:
-    let args = { inherit inputs pkgs-stable username; } // extraArgs;
+    let args = { inherit inputs pkgs-stable pkgs-unstable username; } // extraArgs;
     in nixpkgs.lib.nixosSystem {
       specialArgs = args;
       modules = [
@@ -202,6 +204,6 @@ in
     name = "nixos-stable";
     nixpkgs = inputs.nixpkgs-stable;
     hostModule = config.flake.modules.nixos.nixosStable;
-    extraArgs = { inherit pkgs-unstable; };
+
   };
 }
