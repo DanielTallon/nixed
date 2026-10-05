@@ -18,7 +18,7 @@ ref="${NIXED_REF:-}"
 log=/tmp/nixed-install.log
 
 if [ "$(id -u)" -ne 0 ]; then
-  exec sudo --preserve-env=NIXED_REPO,NIXED_REF,NIXED_ALLOW_WINDOWS_DISK,NIXED_FONT,NIXED_COLS,NIXED_STAGE2_COLS "$0" "$@"
+  exec sudo --preserve-env=NIXED_REPO,NIXED_REF,NIXED_ALLOW_WINDOWS_DISK,NIXED_FONT,NIXED_COLS,NIXED_ROWS,NIXED_STAGE2_COLS "$0" "$@"
 fi
 
 # ---------- helpers ----------
@@ -79,13 +79,14 @@ if [ -n "$vt" ]; then
     if set_font "$f" "${d:-}"; then font="$f"; fi
   else
     want_cols="${NIXED_COLS:-80}"
+    want_rows="${NIXED_ROWS:-24}"
     for cand in "ter-v32b -d" "ter-v28b -d" "ter-v24b -d" "ter-v22b -d" "ter-v20b -d" \
       "ter-v18b -d" ter-v32b ter-v28b ter-v24b ter-v22b ter-v20b ter-v18b ter-v16b; do
       read -r f d <<<"$cand"
       set_font "$f" "${d:-}" || continue
       font="$f" # smallest tried so far, kept if none fit
       if read -r rows cols < <(stty -F "/dev/$vt" size) &&
-        [ "$cols" -ge "$want_cols" ] && [ "$rows" -ge 20 ]; then
+        [ "$cols" -ge "$want_cols" ] && [ "$rows" -ge "$want_rows" ]; then
         break
       fi
     done
