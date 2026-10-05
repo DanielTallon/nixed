@@ -24,7 +24,7 @@
       brave
       librewolf
       #zen-browser
-      brave-origin
+      pkgs-unstable.brave-origin
 
       # --- General ---
       #pkgs-unstable is default for desktop

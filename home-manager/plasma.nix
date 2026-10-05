@@ -4,6 +4,18 @@
     # --- Plasma ---
     programs.plasma = {
       enable = true;
+
+    # Kickoff icon: "nix-snowflake" (blue) or "nix-snowflake-white"
+      startup.desktopScript."kickoff-nix-icon" = {
+        text = ''
+          panels().forEach(p =>
+            p.widgets("org.kde.plasma.kickoff").forEach(w => {
+              w.currentConfigGroup = ["General"];
+              w.writeConfig("icon", "nix-snowflake"); // or "nix-snowflake-white"
+            })
+          );
+        '';
+      };
       kwin = {
         effects = {
           hideCursor = {
