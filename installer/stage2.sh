@@ -51,7 +51,7 @@ if [ -n "$font" ] && [[ "$console" == /dev/tty[0-9]* ]]; then
     read -r f d <<<"$cand"
     sudo setfont -C "$console" ${d:+"$d"} "/etc/kbd/consolefonts/$f.psf.gz" 2>/dev/null || continue
     if read -r rows cols < <(stty -F "$console" size) &&
-      [ "$cols" -ge @STAGE2COLS@ ] && [ "$rows" -ge 20 ]; then
+      [ "$cols" -ge @STAGE2COLS@ ] && [ "$rows" -ge @STAGE2ROWS@ ]; then
       break
     fi
   done

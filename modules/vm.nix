@@ -87,9 +87,14 @@
           systemd.tmpfiles.rules = [
             "d  /usr/share/OVMF 0755 root root -"
             "L+ /usr/share/OVMF/OVMF_CODE_4M.fd         - - - - ${ovmf}/FV/OVMF_CODE.fd"
-            "L+ /usr/share/OVMF/OVMF_VARS_4M.fd         - - - - ${ovmf}/FV/OVMF_VARS.fd"
             "L+ /usr/share/OVMF/OVMF_CODE_4M.secboot.fd - - - - ${ovmf}/FV/OVMF_CODE.fd"
-            "L+ /usr/share/OVMF/OVMF_VARS_4M.ms.fd      - - - - ${ovmf}/FV/OVMF_VARS.ms.fd"
+            # VARS are templates VM Curator copies into each VM, and the copy
+            # keeps the source's mode. Store files are 0444, so use real 0644
+            # copies here or every new UEFI VM gets an unwritable OVMF_VARS.fd.
+            "C+ /usr/share/OVMF/OVMF_VARS_4M.fd         - - - - ${ovmf}/FV/OVMF_VARS.fd"
+            "z  /usr/share/OVMF/OVMF_VARS_4M.fd         0644 root root -"
+            "C+ /usr/share/OVMF/OVMF_VARS_4M.ms.fd      - - - - ${ovmf}/FV/OVMF_VARS.ms.fd"
+            "z  /usr/share/OVMF/OVMF_VARS_4M.ms.fd      0644 root root -"
           ];
 
           # Lists merge with the user block in configuration.nix

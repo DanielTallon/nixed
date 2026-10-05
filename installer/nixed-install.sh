@@ -18,7 +18,7 @@ ref="${NIXED_REF:-}"
 log=/tmp/nixed-install.log
 
 if [ "$(id -u)" -ne 0 ]; then
-  exec sudo --preserve-env=NIXED_REPO,NIXED_REF,NIXED_ALLOW_WINDOWS_DISK,NIXED_FONT,NIXED_COLS,NIXED_ROWS,NIXED_STAGE2_COLS "$0" "$@"
+  exec sudo --preserve-env=NIXED_REPO,NIXED_REF,NIXED_ALLOW_WINDOWS_DISK,NIXED_FONT,NIXED_COLS,NIXED_ROWS,NIXED_STAGE2_COLS,NIXED_STAGE2_ROWS "$0" "$@"
 fi
 
 # ---------- helpers ----------
@@ -100,6 +100,8 @@ fi
 
 stage2_cols="${NIXED_STAGE2_COLS:-120}"
 [[ "$stage2_cols" =~ ^[0-9]+$ ]] || stage2_cols=120
+stage2_rows="${NIXED_STAGE2_ROWS:-36}"
+[[ "$stage2_rows" =~ ^[0-9]+$ ]] || stage2_rows=36
 
 # ---------- preflight ----------
 clear
@@ -327,7 +329,7 @@ sed -e "s|@HOST@|$host|g" -e "s|@USER@|$user|g" -e "s|@STATEVERSION@|$BASE_STATE
   -e "s|@FONT@|$font|g" \
   "$TEMPLATES/base-configuration.nix" >/mnt/etc/nixos/configuration.nix
 sed -e "s|@HOST@|$host|g" -e "s|@REPO@|$repo|g" -e "s|@REF@|$ref|g" \
-  -e "s|@FONT@|$font|g" -e "s|@STAGE2COLS@|$stage2_cols|g" \
+  -e "s|@FONT@|$font|g" -e "s|@STAGE2COLS@|$stage2_cols|g" -e "s|@STAGE2ROWS@|$stage2_rows|g" \
   "$TEMPLATES/stage2.sh" >/mnt/etc/nixos/nixed-stage2.sh
 chmod 644 /mnt/etc/nixos/*.nix /mnt/etc/nixos/nixed-stage2.sh
 
