@@ -15,12 +15,6 @@
     # --- Determinate Nix ---
 #     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
 
-    # --- Disko (partitioning for the nixed-install installer) ---
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # --- Discord-Nixcord
     nixcord.url = "github:4evy/nixcord";
     #nixpkgs-discord.url = "github:NixOS/nixpkgs/e158d9ed9b51c98974c5e66e1ba1c9e0255fecaa";

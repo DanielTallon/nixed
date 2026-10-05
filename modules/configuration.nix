@@ -156,23 +156,6 @@
       '';
     };
 
-    # --- Virtual Machine ---
-    # Enable libvirtd and QEMU/KVM
-    virtualisation.libvirtd = {
-      enable = true;
-      qemu = {
-        package = pkgs.qemu_kvm;
-        # swtpm.enable = true;
-      };
-    };
-
-    # Enable the Virt-manager GUI
-    programs.virt-manager.enable = true;
-
-    # Enable USB redirection and SPICE
-    virtualisation.spiceUSBRedirection.enable = true;
-    users.groups.usbmux = { };
-
     # --- User ---
     users.users.${username} = {
       isNormalUser = true;
@@ -180,7 +163,7 @@
       description =
         lib.toUpper (builtins.substring 0 1 username)
         + builtins.substring 1 (-1) username;
-      extraGroups = [ "networkmanager" "wheel" "usbmux" "libvirtd" ];
+      extraGroups = [ "networkmanager" "wheel" "usbmux" ];
     };
 
     users.groups.${username} = { };

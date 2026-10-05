@@ -24,6 +24,7 @@
       brave
       librewolf
       #zen-browser
+      brave-origin
 
       # --- General ---
       #pkgs-unstable is default for desktop
@@ -34,12 +35,9 @@
       ffmpeg
       fish
       flatpak
+      fzf
       gh
       git
-
-      fzf
-      pdfarranger
-
       gimp
       gpu-screen-recorder-gtk
       headsetcontrol
@@ -54,20 +52,19 @@
       onlyoffice-desktopeditors
       pkgs-stable.inetutils #Watch Star Wars with telnet towel.blinkenlights.nl
       pass
+      pdfarranger
       py7zr
       spotdl
       superfile
       tealdeer
       tree
+      usbimager #Used for flashing new ISOs on a USB
       usbutils
       wget
       xsettingsd
       xrdb
       xxd
       zenity
-
-      usbimager
-
 
       # --- KDE ---
       kdePackages.konsole

@@ -27,7 +27,6 @@ let
     config.allowUnfree = true;
   };
 
-  # nixos-stable's base `pkgs` is nixpkgs-stable instead; this is the
   # nixos-unstable channel, exposed there as an opt-in secondary
   # (`pkgs-unstable.somePackage` in packages.nix).
   # nixos-unstable as a secondary package set, passed to both hosts. On
@@ -86,6 +85,7 @@ in
       config.flake.modules.nixos.nixCaches
       config.flake.modules.nixos.nvidia
       config.flake.modules.nixos.packages
+      config.flake.modules.nixos.vm
       config.flake.modules.nixos.zram
 
       {
@@ -100,7 +100,7 @@ in
     ];
   };
 
-  #---Desktop: rolling release, NVIDIA---
+  #--- Rolling release, NVIDIA ---
   flake.modules.nixos.desktop = {
     imports = [
 #       inputs.determinate.nixosModules.default
@@ -113,6 +113,7 @@ in
       {
         system.stateVersion = "25.11";
         powerManagement.cpuFreqGovernor = "performance";
+        custom.vm.gpuPassthrough.enable = true;
 
         # Secondary NTFS drive (desktop only).
         fileSystems."/smssd" = {
@@ -124,7 +125,7 @@ in
     ];
   };
 
-  #---nixos-stable: versioned release, NVIDIA auto-detected ---
+  #--- Versioned release, NVIDIA auto-detected ---
   flake.modules.nixos.nixosStable = {
     imports = [
       config.flake.modules.nixos.common

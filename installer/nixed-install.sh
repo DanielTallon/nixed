@@ -18,7 +18,7 @@ ref="${NIXED_REF:-}"
 log=/tmp/nixed-install.log
 
 if [ "$(id -u)" -ne 0 ]; then
-  exec sudo --preserve-env=NIXED_REPO,NIXED_REF,NIXED_ALLOW_WINDOWS_DISK,NIXED_FONT,NIXED_COLS "$0" "$@"
+  exec sudo --preserve-env=NIXED_REPO,NIXED_REF,NIXED_ALLOW_WINDOWS_DISK,NIXED_FONT,NIXED_COLS,NIXED_STAGE2_COLS "$0" "$@"
 fi
 
 # ---------- helpers ----------
@@ -55,7 +55,8 @@ step() { gum style --foreground "$accent" "==> $*"; }
 # smaller font. On a 1080p screen that lands on ter-v24b doubled (24x48),
 # 80x22, about twice the old size.
 # NIXED_FONT=ter-v28b (or "ter-v20b -d") picks one by hand; NIXED_FONT=none
-# keeps the default. Stage 2 uses the same font (passed on below).
+# keeps the default. Stage 2 picks a smaller one for NIXED_STAGE2_COLS
+# columns (default 120), since the build output needs the width.
 #
 # This runs as root after the sudo re-exec above, and sudo puts us in a
 # pseudo-terminal (/dev/pts/N), so `tty` can't tell whether we're on a real
@@ -64,7 +65,6 @@ step() { gum style --foreground "$accent" "==> $*"; }
 # screen is /sys/class/tty/tty0/active. Fonts are set on that VT with -C and
 # its size is read straight from it, not from our pseudo-terminal.
 font=""
-font_double=""
 vt=""
 if [ "${TERM:-}" = linux ] && [ "${NIXED_FONT:-}" != none ]; then
   vt="$(cat /sys/class/tty/tty0/active 2>/dev/null || true)"
@@ -76,14 +76,14 @@ set_font() { # $1 font name, $2 "-d" to double or empty
 if [ -n "$vt" ]; then
   if [ -n "${NIXED_FONT:-}" ]; then
     read -r f d <<<"$NIXED_FONT"
-    if set_font "$f" "${d:-}"; then font="$f" font_double="${d:-}"; fi
+    if set_font "$f" "${d:-}"; then font="$f"; fi
   else
     want_cols="${NIXED_COLS:-80}"
     for cand in "ter-v32b -d" "ter-v28b -d" "ter-v24b -d" "ter-v22b -d" "ter-v20b -d" \
       "ter-v18b -d" ter-v32b ter-v28b ter-v24b ter-v22b ter-v20b ter-v18b ter-v16b; do
       read -r f d <<<"$cand"
       set_font "$f" "${d:-}" || continue
-      font="$f" font_double="${d:-}" # smallest tried so far, kept if none fit
+      font="$f" # smallest tried so far, kept if none fit
       if read -r rows cols < <(stty -F "/dev/$vt" size) &&
         [ "$cols" -ge "$want_cols" ] && [ "$rows" -ge 20 ]; then
         break
@@ -96,6 +96,9 @@ if [ -n "$vt" ]; then
     stty rows "$rows" cols "$cols" 2>/dev/null || true
   fi
 fi
+
+stage2_cols="${NIXED_STAGE2_COLS:-120}"
+[[ "$stage2_cols" =~ ^[0-9]+$ ]] || stage2_cols=120
 
 # ---------- preflight ----------
 clear
@@ -323,7 +326,7 @@ sed -e "s|@HOST@|$host|g" -e "s|@USER@|$user|g" -e "s|@STATEVERSION@|$BASE_STATE
   -e "s|@FONT@|$font|g" \
   "$TEMPLATES/base-configuration.nix" >/mnt/etc/nixos/configuration.nix
 sed -e "s|@HOST@|$host|g" -e "s|@REPO@|$repo|g" -e "s|@REF@|$ref|g" \
-  -e "s|@FONT@|$font|g" -e "s|@FONTDOUBLE@|$font_double|g" \
+  -e "s|@FONT@|$font|g" -e "s|@STAGE2COLS@|$stage2_cols|g" \
   "$TEMPLATES/stage2.sh" >/mnt/etc/nixos/nixed-stage2.sh
 chmod 644 /mnt/etc/nixos/*.nix /mnt/etc/nixos/nixed-stage2.sh
 

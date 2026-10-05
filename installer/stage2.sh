@@ -38,12 +38,23 @@ echo "---------- stage 2 started $(date) ----------"
   done
 ) &
 
-# Same console font stage 1 picked. The base config already loads the font
-# at boot (console.font) but can't double it, so redo it here with -d.
+# Console font. Stage 1 sizes for about 80 columns, which suits its menus
+# but is too big for the build's progress tree, so stage 2 picks again for
+# about @STAGE2COLS@ columns: the biggest Terminus that still fits, doubled
+# (-d) above 32px. On 1080p that's ter-v32b, 120x33. Skipped when stage 1
+# didn't set a font (not on a console, or NIXED_FONT=none).
 font="@FONT@"
-font_double="@FONTDOUBLE@"
-if [ -n "$font" ] && [[ "$(tty)" == /dev/tty[0-9]* ]]; then
-  sudo setfont -C "$(tty)" ${font_double:+"$font_double"} "/etc/kbd/consolefonts/$font.psf.gz" || true
+console="$(tty 2>/dev/null || true)"
+if [ -n "$font" ] && [[ "$console" == /dev/tty[0-9]* ]]; then
+  for cand in "ter-v32b -d" "ter-v28b -d" "ter-v24b -d" "ter-v22b -d" "ter-v20b -d" \
+    "ter-v18b -d" ter-v32b ter-v28b ter-v24b ter-v22b ter-v20b ter-v18b ter-v16b; do
+    read -r f d <<<"$cand"
+    sudo setfont -C "$console" ${d:+"$d"} "/etc/kbd/consolefonts/$f.psf.gz" 2>/dev/null || continue
+    if read -r rows cols < <(stty -F "$console" size) &&
+      [ "$cols" -ge @STAGE2COLS@ ] && [ "$rows" -ge 20 ]; then
+      break
+    fi
+  done
 fi
 
 flake="git+$repo"

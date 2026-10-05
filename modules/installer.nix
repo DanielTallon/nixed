@@ -54,7 +54,7 @@ let
         gnused
         gnugrep
         nixos-install-tools
-        inputs.disko.packages.${pkgs.stdenv.hostPlatform.system}.disko
+        disko # nixpkgs' build; the flake input's package.nix still uses stdenv.isDarwin
       ];
       text = ''
         LAYOUT=${../installer/disk-layout.nix}
