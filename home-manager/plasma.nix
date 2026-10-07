@@ -1,6 +1,16 @@
 # /.dotfiles/home-manager/plasma.nix
 {
-  flake.modules.homeManager.plasma = { config, pkgs, lib, ... }: {
+  flake.modules.homeManager.plasma = { config, pkgs, lib, ... }:
+  let
+    # Folders Baloo (file search indexer) should skip.
+    # Trailing slash required; $HOME is expanded via shellExpand below.
+    balooExcludes = [
+      "$HOME/iphone-backup/"
+      "$HOME/Games/"
+      "$HOME/Develop/"
+    ];
+  in
+  {
     # --- Plasma ---
     programs.plasma = {
       enable = true;
@@ -101,6 +111,13 @@
           ShadowSize = "ShadowMedium";
           ShadowStrength = 255;
           ShadowColor = "0,170,255";
+        };
+
+        # Baloo file indexing: exclusions (this list owns the setting;
+        # GUI changes in System Settings > Search will be overwritten)
+        "baloofilerc".General."exclude folders" = {
+          value = lib.concatStringsSep "," balooExcludes;
+          shellExpand = true;
         };
       };
 

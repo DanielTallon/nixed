@@ -80,6 +80,7 @@ in
       config.flake.modules.nixos.core
       config.flake.modules.nixos.desktopEnvironment
       config.flake.modules.nixos.flatpak
+      config.flake.modules.nixos.iphoneMusic
       config.flake.modules.nixos.kernel
       config.flake.modules.nixos.multiverse
       config.flake.modules.nixos.nixCaches
@@ -179,6 +180,7 @@ in
       config.flake.modules.homeManager.plasma
       config.flake.modules.homeManager.protonDpi
       config.flake.modules.homeManager.xdgUserDirs
+      config.flake.modules.homeManager.librewolf
         {
           custom.protonDpi."2105600" = 192; # Larger loading window for RPG Stories
           #custom.protonDpi."2105600" = 96; # Default setting

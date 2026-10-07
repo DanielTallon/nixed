@@ -26,7 +26,7 @@
       };
 
       quickCss = ''
-        /* Add your custom CSS here */
+        @import url("https://ridge.codeberg.page/Discord-Adblock/discord-adblock.css");
       '';
 
       config = {

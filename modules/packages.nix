@@ -22,9 +22,11 @@
     environment.systemPackages = with pkgs; [
       # --- Browsers ---
       brave
-      librewolf
+      #librewolf
+
+
       #zen-browser
-      pkgs-unstable.brave-origin
+#       pkgs-unstable.brave-origin
 
       # --- General ---
       #pkgs-unstable is default for desktop
@@ -47,7 +49,8 @@
       lact
       lazygit
       localsend
-      mcp-nixos
+
+
       nixd
       onlyoffice-desktopeditors
       pkgs-stable.inetutils #Watch Star Wars with telnet towel.blinkenlights.nl
@@ -115,7 +118,19 @@
 
       # --- iPhone ---
       ifuse
+      # NOTE: First Time Run: mkdir -p ~/mnt/vlc
+      # ifuse --documents org.videolan.vlc-ios ~/mnt/vlc
+      # cp -r ~/Music/SomeAlbum ~/mnt/vlc/
+      # fusermount -u ~/mnt/vlc
       libimobiledevice
+      # NOTE: First Time Run: mkdir -p ~/iphone-backup
+      # NOTE: Then Run: idevicebackup2 backup --full ~/iphone-backup
+      # NOTE: To check on backup progress run: watch -n 5 du -sh ~/iphone-backup
+      # Or: watch -n 5 du -sm ~/iphone-backup
+      # NOTE: Restore later with: idevicebackup2 restore ~/iphone-backup
+      # NOTE: idevicebackup2 -i encryption on ~/iphone-backup
+      # NOTE: Unencrypted is still a good backup. It just leaves out saved passwords, Health data, and Wi-Fi settings, which iOS only includes when backups are encrypted. If you don't care about those, just skip.
+
       idevicerestore
 
       # --- Notes & Recording ---
@@ -231,6 +246,11 @@
 
       };
     };
-
+      environment.plasma6.excludePackages = with pkgs.kdePackages; [
+        elisa
+        kdepim-runtime
+        konversation
+        kdepim-runtime
+      ];
   };
 }
