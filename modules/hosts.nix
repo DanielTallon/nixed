@@ -176,11 +176,12 @@ in
       config.flake.modules.homeManager.kate
       config.flake.modules.homeManager.konsole
       config.flake.modules.homeManager.krohnkite
+      config.flake.modules.homeManager.librewolf
       config.flake.modules.homeManager.nix-index
       config.flake.modules.homeManager.plasma
       config.flake.modules.homeManager.protonDpi
+      config.flake.modules.homeManager.wallpaper
       config.flake.modules.homeManager.xdgUserDirs
-      config.flake.modules.homeManager.librewolf
         {
           custom.protonDpi."2105600" = 192; # Larger loading window for RPG Stories
           #custom.protonDpi."2105600" = 96; # Default setting
