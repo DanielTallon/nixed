@@ -114,6 +114,7 @@ in
       {
         system.stateVersion = "25.11";
         powerManagement.cpuFreqGovernor = "performance";
+        programs.gamemode.settings.cpu.pin_cores = "0-15"; # 14700KF P-core threads
         custom.vm.gpuPassthrough.enable = true;
 
         # Secondary NTFS drive (desktop only).

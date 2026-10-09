@@ -26,6 +26,26 @@
           );
         '';
       };
+
+
+    # Disable hot corners/edges ONCE on first login.
+    # Re-runs only if this text changes, so GUI changes are kept.
+      startup.startupScript."disable-screen-edges" = {
+        text = ''
+          kw=${pkgs.kdePackages.kconfig}/bin/kwriteconfig6
+
+          for edge in Top TopRight Right BottomRight Bottom BottomLeft Left TopLeft; do
+            $kw --file kwinrc --group ElectricBorders --key "$edge" None
+          done
+
+          $kw --file kwinrc --group Effect-overview --key BorderActivate 9
+          $kw --file kwinrc --group TabBox          --key BorderActivate 9
+
+          ${pkgs.kdePackages.qttools}/bin/qdbus org.kde.KWin /KWin reconfigure || true
+        '';
+      };
+
+
       kwin = {
         effects = {
           hideCursor = {
@@ -80,28 +100,12 @@
         theme = "breeze-dark";
       };
       configFile = {
-        # Enable background blur in Konsole profile
+    # Enable background blur in Konsole profile
         "konsole.conf"."General"."BackgroundMode" = 1; # 1 for transparency/blur
         "konsole.conf"."General"."BackgroundTransparency" = 50; # 0-100
 
-        # Disable hot corners/edges to avoid accidental triggers
-        "kwinrc".ElectricBorders = {
-          Top = "None";
-          TopRight = "None";
-          Right = "None";
-          BottomRight = "None";
-          Bottom = "None";
-          BottomLeft = "None";
-          Left = "None";
-          TopLeft = "None";
-        };
-        "kwinrc".Effect-PresentWindows.BorderActivate = "9";
-        "kwinrc".Effect-DesktopGrid.BorderActivate = "9";
-        "kwinrc".TabBox.BorderActivate = "9";
 
-        # Geometry Change: animates windows that are moved/resized by
-        # programs or scripts (e.g. Krohnkite re-tiling). You enabled this
-        # via System Settings > Window Management > Desktop Effects.
+    # Geometry Change: animates windows that are moved/resized by programs or scripts (e.g. Krohnkite re-tiling). You can enabled this via System Settings > Window Management > Desktop Effects.
         "kwinrc".Plugins.kwin4_effect_geometry_changeEnabled = true;
         "kwinrc".Effect-kwin4_effect_geometry_change.Duration = 500;
         "kscreenrc".Config.autoRotate = false;

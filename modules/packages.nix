@@ -22,11 +22,8 @@
     environment.systemPackages = with pkgs; [
       # --- Browsers ---
       brave
-      #librewolf
+      #librewolf is installed, but has it's own .nix file
 
-
-      #zen-browser
-#       pkgs-unstable.brave-origin
 
       # --- General ---
       #pkgs-unstable is default for desktop
@@ -49,8 +46,6 @@
       lact
       lazygit
       localsend
-
-
       nixd
       onlyoffice-desktopeditors
       pkgs-stable.inetutils #Watch Star Wars with telnet towel.blinkenlights.nl
@@ -197,7 +192,10 @@
 
     # --- Shell ---
     programs.fish.enable = true;
-    users.users.${username}.shell = pkgs.fish;
+        users.users.${username} = {
+      shell = pkgs.fish;
+      extraGroups = [ "gamemode" ];
+    };
 
     # --- AppImage support ---
     programs.appimage = {
@@ -227,7 +225,14 @@
     };
 
     # --- Gaming: Gamemode ---
-    programs.gamemode.enable = true;
+        programs.gamemode = {
+          enable = true;
+          settings = {
+            general.renice = 10;
+            cpu.park_cores = "no";
+          };
+        };
+
     programs.command-not-found.enable = false;
 
     # --- XBox Gaming Controller Support ---
@@ -248,9 +253,9 @@
     };
       environment.plasma6.excludePackages = with pkgs.kdePackages; [
         elisa
-        kdepim-runtime
         konversation
-        kdepim-runtime
       ];
+
+      programs.kde-pim.enable = false;   # removes KMail, Kontact, Merkuro, Akonadi, kdepim-runtime
   };
 }

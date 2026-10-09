@@ -64,9 +64,15 @@
             "vm.nr_hugepages" = 0; # Let THP handle it dynamically
             "kernel.sched_autogroup_enabled" = 0; # Better for gaming workloads
             "vm.swappiness" = 100; # zram-only: prefer fast RAM swap early (see modules/zram.nix)
+            "kernel.split_lock_mitigate" = 0; # Intel: stop split-lock slowdowns/stutter in some games
+            "kernel.nmi_watchdog" = 0;
+            "vm.page-cluster" = 0; # zram: swap in one page at a time, not 8
+            "vm.watermark_boost_factor" = 0;
+            "vm.watermark_scale_factor" = 125;
           };
           boot.kernelParams = [
             "transparent_hugepage=always"
+            "nowatchdog"
           ] ++ lib.optionals config.hasNvidia [
             "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
             "nvidia-drm.modeset=1"

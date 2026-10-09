@@ -41,7 +41,7 @@ echo "---------- stage 2 started $(date) ----------"
 # Console font. Stage 1 sizes for about 80 columns, which suits its menus
 # but is too big for the build's progress tree, so stage 2 picks again for
 # about @STAGE2COLS@ columns: the biggest Terminus that still fits, doubled
-# (-d) above 32px. On 1080p that's ter-v32b, 120x33. Skipped when stage 1
+# (-d) above 32px. On 1080p that's ter-v24b, 160x45. Skipped when stage 1
 # didn't set a font (not on a console, or NIXED_FONT=none).
 font="@FONT@"
 console="$(tty 2>/dev/null || true)"

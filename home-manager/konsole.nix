@@ -129,7 +129,7 @@
                   type = "text";
                   style = "diamond";
                   foreground = "#ffffff";
-                  background = "#8B008B";
+                  background = "#4B004B"; #Dark Magenta
                   leading_diamond = roundedLeftCap;
                   powerline_symbol = pointRightCap;
                   template = "  ${nixosIcon} ";
@@ -138,7 +138,7 @@
                   type = "time";
                   style = "powerline";
                   foreground = "#ffffff";
-                  background = "#064e40";
+                  background = "#5B9BD5"; #Medium Blue
                   powerline_symbol = pointRightCap;
                   template = "  {{ .CurrentDate | date \"3:04\" }} ";
                 }
@@ -146,7 +146,7 @@
                   type = "path";
                   style = "powerline";
                   foreground = "#ffffff";
-                  background = "#CC5500";
+                  background = "#3A8B9B"; #Deep cyan-teal
                   powerline_symbol = pointRightCap;
                   template = "  {{ .Path }} ";
                 }

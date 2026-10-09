@@ -56,7 +56,7 @@ step() { gum style --foreground "$accent" "==> $*"; }
 # 80x22, about twice the old size.
 # NIXED_FONT=ter-v28b (or "ter-v20b -d") picks one by hand; NIXED_FONT=none
 # keeps the default. Stage 2 picks a smaller one for NIXED_STAGE2_COLS
-# columns (default 120), since the build output needs the width.
+# columns (default 150), since the build output needs the width.
 #
 # This runs as root after the sudo re-exec above, and sudo puts us in a
 # pseudo-terminal (/dev/pts/N), so `tty` can't tell whether we're on a real
@@ -98,10 +98,10 @@ if [ -n "$vt" ]; then
   fi
 fi
 
-stage2_cols="${NIXED_STAGE2_COLS:-120}"
-[[ "$stage2_cols" =~ ^[0-9]+$ ]] || stage2_cols=120
-stage2_rows="${NIXED_STAGE2_ROWS:-36}"
-[[ "$stage2_rows" =~ ^[0-9]+$ ]] || stage2_rows=36
+stage2_cols="${NIXED_STAGE2_COLS:-150}"
+[[ "$stage2_cols" =~ ^[0-9]+$ ]] || stage2_cols=150
+stage2_rows="${NIXED_STAGE2_ROWS:-40}"
+[[ "$stage2_rows" =~ ^[0-9]+$ ]] || stage2_rows=40
 
 # ---------- preflight ----------
 clear
