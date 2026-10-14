@@ -1,0 +1,117 @@
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+
+frame_count = FRAME_COUNT_PLACEHOLDER;
+
+// Get screen dimensions
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+
+// Frames are sized at build time, so they're drawn 1:1 and centered
+// on the black background (no runtime scaling: faster startup, far less RAM).
+// ffmpeg outputs frame-1.png, frame-2.png ... (1-indexed)
+for (i = 0; i < frame_count; i++)
+  anim_image[i] = Image("frame-" + (i + 1) + ".png");
+
+anim_sprite = Sprite(anim_image[0]);
+anim_sprite.SetX(Math.Int((screen_width - anim_image[0].GetWidth()) / 2));
+anim_sprite.SetY(Math.Int((screen_height - anim_image[0].GetHeight()) / 2));
+anim_sprite.SetZ(0);
+
+// Plymouth calls the refresh function at 50 Hz; advance one frame every N ticks.
+ticks_per_frame = TICKS_PER_FRAME_PLACEHOLDER;
+progress = 0;
+
+fun refresh_callback() {
+  anim_sprite.SetImage(anim_image[Math.Int(progress / ticks_per_frame) % frame_count]);
+  progress++;
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+
+// Global sprite references — must be global or Plymouth's GC destroys them instantly
+mode_sprite = null;
+prompt_sprite = null;
+bullets = null;
+msg_sprite = null;
+ok_sprite = null;
+bullet_img = Image.Text("*", 1, 1, 1);
+password_field_active = 0;
+password_error = 0;
+
+// ── Boot / shutdown mode label ────────────────────────────
+fun update_mode_label() {
+  sw = Window.GetWidth();
+  sh = Window.GetHeight();
+  if (sw == 0) return;
+
+  mode = Plymouth.GetMode();
+  if (mode == "shutdown")
+    mode_text = "Shutting down...";
+  else if (mode == "reboot")
+    mode_text = "Rebooting...";
+  else
+    mode_text = "Booting...";
+
+  mode_img = Image.Text(mode_text, 0.7, 0.7, 0.7);
+  mode_sprite = Sprite(mode_img);
+  mode_sprite.SetX(sw - mode_img.GetWidth() - 40);
+  mode_sprite.SetY(sh - mode_img.GetHeight() - 40);
+  mode_sprite.SetZ(10);
+}
+update_mode_label();
+
+// ── LUKS / password prompt ───────────────────────────────
+fun DisplayPasswordCallback(nil, bulletCount) {
+  password_field_active = 1;
+  password_error = 0;
+  sw = Window.GetWidth();
+  sh = Window.GetHeight();
+
+  prompt_img = Image.Text("Enter Password:", 1, 1, 1);
+  prompt_sprite = Sprite(prompt_img);
+  prompt_sprite.SetX(sw / 2 - prompt_img.GetWidth() / 2);
+  prompt_sprite.SetY(sh * 0.8);
+  prompt_sprite.SetZ(10);
+
+  bullets = null;
+  total = bulletCount * bullet_img.GetWidth();
+  bx = sw / 2 - total / 2;
+  for (i = 0; i < bulletCount; i++) {
+    bullets[i] = Sprite(bullet_img);
+    bullets[i].SetX(bx + i * bullet_img.GetWidth());
+    bullets[i].SetY(sh * 0.8 + prompt_img.GetHeight() + 4);
+    bullets[i].SetZ(10);
+  }
+}
+Plymouth.SetDisplayPasswordFunction(DisplayPasswordCallback);
+
+fun DisplayNormalCallback() {
+  prompt_sprite = null;
+  bullets = null;
+  msg_sprite = null;
+  ok_sprite = null;
+  password_field_active = 0;
+  password_error = 0;
+}
+Plymouth.SetDisplayNormalFunction(DisplayNormalCallback);
+
+// ── Message callback: amber status messages ───────────────
+fun MessageCallback(text) {
+  sw = Window.GetWidth();
+  sh = Window.GetHeight();
+
+  is_error = (text == "Password incorrect") || (text == "Authentication failure") || (text == "Login failed");
+
+  if (is_error) {
+    msg_img = Image.Text(text, 1, 0.2, 0.2);
+    password_error = 1;
+  } else
+    msg_img = Image.Text(text, 1, 0.75, 0.2);
+
+  msg_sprite = Sprite(msg_img);
+  msg_sprite.SetX(sw - msg_img.GetWidth() - 40);
+  msg_sprite.SetY(sh - msg_img.GetHeight() - 80);
+  msg_sprite.SetZ(11);
+}
+Plymouth.SetMessageFunction(MessageCallback);

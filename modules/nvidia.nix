@@ -92,6 +92,7 @@
           VDPAU_DRIVER = "nvidia";
           __GL_GSYNC_ALLOWED = "1";
           __GL_VRR_ALLOWED = "1";
+          __GL_SHADER_DISK_CACHE_SIZE = "12000000000"; # 12 GB
           WLR_NO_HARDWARE_CURSORS = "1";
           NVD_BACKEND = "direct"; # Direct backend avoids the EGL round-trip; generally the more reliable path
           GST_VAAPI_ALL_DRIVERS = "1"; # Optional: makes gstreamer's VAAPI plugin actually pick nvidia

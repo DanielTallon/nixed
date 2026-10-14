@@ -25,6 +25,15 @@
       #librewolf is installed, but has it's own .nix file
 
 
+
+
+
+#   (pkgs.hello.overrideAttrs (old: {
+#     postInstall = "echo 'nixed-error test: failing on purpose'; exit 1";
+#   }))
+
+
+
       # --- General ---
       #pkgs-unstable is default for desktop
       baobab

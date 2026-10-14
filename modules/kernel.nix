@@ -84,13 +84,12 @@
           '';
         }
         # --- Default boot entry: whichever provider kernelProvider is set to ---
+        # --- Single specialisation: Always offer the LTS kernel ---
+# NOTE: LTS is the fallback specialization. Kernels Zen, Xanmod, both CachyOS builds and Latest all track the same recent upstream release. An upstream regression, or an out-of-tree module like nvidia or zfs failing to build against a new release, will often hit all of them at once. LTS is the only kernel with a separate upstream branch.
+
         (providerConfig config.kernelProvider)
-        # --- Single specialisation: always offer the latest mainline kernel ---
-        # Plain assignment here beats a mkDefault at the host layer, so no
-        # mkForce is needed. If some future definition needs to override this
-        # specialisation's choice, it still can.
-        (lib.mkIf (config.kernelProvider != "latest") {
-          specialisation.latest.configuration.kernelProvider = "latest";
+        (lib.mkIf (config.kernelProvider != "lts") {
+          specialisation.lts.configuration.kernelProvider = "lts";
         })
       ];
     };

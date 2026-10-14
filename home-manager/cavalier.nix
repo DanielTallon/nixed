@@ -44,7 +44,7 @@
         home-manager.sharedModules = [
           {
             programs.cavalier = {
-              enable = true;
+              enable = false;
               settings.general = {
                 # 100 total bars, stereo mode mirrors L/R -> 50 pairs.
                 # If Stereo were false this would need to be 100 instead.

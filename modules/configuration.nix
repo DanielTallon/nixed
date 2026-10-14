@@ -74,7 +74,17 @@
     };
 
     # --- Bluetooth ---
-    hardware.bluetooth.enable = true;
+    hardware.bluetooth = {
+      enable = true;
+      powerOnBoot = true;
+      settings.General = {
+        Experimental = true;        # AirPods battery level in Plasma
+        # ControllerMode = "bredr"; # uncomment if AirPods won't connect or keep dropping
+      };
+    };
+
+    services.blueman.enable = true;  # pairing GUI; skip it if you use GNOME or KDE
+
 
     # --- CPU MicroCode ---
     hardware.cpu.intel.updateMicrocode = true;
@@ -92,6 +102,7 @@
       alsa.support32Bit = true;
       pulse.enable = true;
       jack.enable = true;
+      wireplumber.enable = true;
     };
 
     # --- Wayland Support ---
@@ -155,6 +166,34 @@
         fi
       '';
     };
+
+
+    # Steam: faster game installs from another PC on your network
+    programs.steam.localNetworkGameTransfers.openFirewall = true;
+
+    # Stop the PS4/PS5 controller touchpad from moving the mouse cursor
+    services.udev.extraRules = ''
+      ATTRS{name}=="Sony Interactive Entertainment Wireless Controller Touchpad", ENV{LIBINPUT_IGNORE_DEVICE}="1"
+      ATTRS{name}=="Sony Interactive Entertainment DualSense Wireless Controller Touchpad", ENV{LIBINPUT_IGNORE_DEVICE}="1"
+      ATTRS{name}=="Wireless Controller Touchpad", ENV{LIBINPUT_IGNORE_DEVICE}="1"
+      ATTRS{name}=="DualSense Wireless Controller Touchpad", ENV{LIBINPUT_IGNORE_DEVICE}="1"
+    '';
+
+    # Disk write-back: fewer stalls during large writes (shader caches, game installs)
+    boot.kernel.sysctl = {
+      "vm.dirty_bytes" = 268435456;            # 256 MB
+      "vm.dirty_background_bytes" = 67108864;  # 64 MB
+      "vm.vfs_cache_pressure" = 50;
+    };
+
+    # Stop WirePlumber polling for cameras through libcamera
+    services.pipewire.wireplumber.extraConfig."10-disable-libcamera" = {
+      "wireplumber.profiles".main."monitor.libcamera" = "disabled";
+    };
+
+
+
+
 
     # --- User ---
     users.users.${username} = {
