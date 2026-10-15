@@ -2,7 +2,7 @@
 
 { inputs, ... }:
 {
-  flake.modules.homeManager.discord = { pkgs, ... }:
+  flake.modules.homeManager.discord = { config, options, lib, pkgs, ... }:
     # IN CASE IT BREAKS AGAIN (nixcord#247-style): uncomment this `let` block,
     # the `package` line below, and the nixpkgs-discord input in flake.nix.
     # let
@@ -12,8 +12,23 @@
     #   };
     # in
 
+    # Discord's video background filter opens its segmentation models O_RDWR,
+    # which fails on the read-only Nix store and turns the camera black. Point
+    # the store files at writable copies in ~/.local/share/discord-ml.
+    let
+      mlDir = "${config.xdg.dataHome}/discord-ml";
+      mlModels = [ "selfie_segmentation.tflite" "selfie_segmentation_landscape.tflite" ];
+    in
+
   {
     imports = [ inputs.nixcord.homeModules.nixcord ];
+
+    home.activation.discordMlModels = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      run mkdir -p ${lib.escapeShellArg mlDir}
+      for f in ${lib.escapeShellArgs mlModels}; do
+        run install -m 644 "${config.programs.nixcord.finalPackage.discord}/share/discord-ml/$f" ${lib.escapeShellArg mlDir}/"$f"
+      done
+    '';
 
     programs.nixcord = {
       enable = true;
@@ -21,6 +36,16 @@
       discord = {
 #         IN CASE IT BREAKS AGAIN:
 #         package = oldPkgs.callPackage "${inputs.nixcord}/pkgs/discord" { };
+        package = options.programs.nixcord.discord.package.default.overrideAttrs (old: {
+          postInstall = (old.postInstall or "") + ''
+            voice="$out/opt/Discord/modules/discord_voice"
+            mkdir -p "$out/share/discord-ml"
+            for f in ${lib.escapeShellArgs mlModels}; do
+              mv "$voice/$f" "$out/share/discord-ml/$f"
+              ln -s ${lib.escapeShellArg mlDir}/"$f" "$voice/$f"
+            done
+          '';
+        });
         vencord.enable = true;
         krisp.enable = true;
       };

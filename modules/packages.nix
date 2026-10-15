@@ -89,9 +89,9 @@
       #pkgs-stable.davinci-resolve #Vdeo Editing
       #pkgs-stable.openshot-qt #Video Editing
       parabolic
-      pkgs-stable.obs-studio
+#       pkgs-stable.obs-studio
       pkgs-stable.vlc
-      tauon #Music Player
+      pkgs-stable.tauon #Music Player
       pkgs-unstable.unimatrix
 
       # --- Utilities ---

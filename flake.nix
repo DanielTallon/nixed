@@ -7,6 +7,12 @@
     nix-flatpak.url = "github:gmodena/nix-flatpak";
     areofyl-fetch.url = "github:areofyl/fetch";
 
+    # --- Flow Desktop (privacy-first YouTube client, built from source) ---
+    flowtube = {
+      url = "github:olafkfreund/nixos-FlowTube";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # --- Dendritic pattern machinery ---
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:vic/import-tree";

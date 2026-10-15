@@ -152,6 +152,7 @@
         # ~/.steam/steam ourselves: if it already exists as a plain folder,
         # Steam can't make its link and stops with "Couldn't set up Steam
         # data". (An older version of this service did exactly that.)
+        # On my system: 24 shader threads that ends once the shaders are processed
         steam_root="$HOME/.local/share/Steam"
         mkdir -p "$steam_root"
         echo "unShaderBackgroundProcessingThreads $STEAM_THREADS" > "$steam_root/steam_dev.cfg"
