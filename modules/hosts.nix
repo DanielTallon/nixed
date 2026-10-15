@@ -148,11 +148,8 @@ in
         hardware.nvidia.package = lib.mkForce config.boot.kernelPackages.nvidiaPackages.production;
 
         # Uses the plain LTS kernel (always cached on the standard binary
-        # cache) instead of the shared default ("xddxdd" — a custom
-        # cachyos-bore-lto build via a niche substituter). That default is
-        # fine on desktop where it's already been built/cached, but on a
-        # different base pkgs revision (stable vs. unstable) it means
-        # compiling a full kernel from source locally.
+        # cache) instead of the shared default ("zen"), which tracks the
+        # newest upstream release.
         #
         # mkDefault (not a plain assignment) so kernel.nix's "latest"
         # specialisation can override it with a plain assignment instead

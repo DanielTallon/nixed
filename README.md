@@ -16,7 +16,7 @@ This build utilizes:
 - Windows dual-boot auto-detection: This install command also looks for Windows' boot manager on any EFI partition (its own disk or shared with Linux) and, if found, writes a Limine menu entry to `hosts/<host>/dualboot.nix`
 - Krohnkite for tiling on KDE Plasma
 - Home Manager integrated directly into the NixOS configuration, not run standalone. There's no separate `home-manager` CLI to use here and no home-manager generations to manage on their own — everything under `home-manager/` is applied as part of each `nixos-rebuild`/`nh os switch`, so your user config and system config move together as one generation
-- A kernel.nix file to switch between different kernel options. Xddxdd or Chaotic (both from CachyOS), lts if you want long term support. Zen (from Garuda) and Xanmod (very good low latency support). To check the version of each, run: "kernel version" and it will show a current list.
+- A kernel.nix file to switch between different kernel options. Chaotic (from CachyOS), lts if you want long term support. Zen (from Garuda) and Xanmod (very good low latency support). To check the version of each, run: "kernel version" and it will show a current list.
 - Specialization, so that you can always load into the latest linux kernel, or whatever you set the default to be, on Limine
 - A bootloader limit of 10 generations and a system limit of 35 generations total, automatically cleaned every day.
 - A new TUI tool I developed, called Boot Gardener, that allows you to manage your generations easier, and even free up space from /boot.

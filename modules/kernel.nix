@@ -17,16 +17,10 @@
 {
   flake.modules.nixos.kernel = { config, lib, pkgs, inputs, ... }:
     let
-      kernelProviders = [ "xddxdd" "chaotic" "latest" "lts" "zen" "xanmod" ];
+      kernelProviders = [ "chaotic" "latest" "lts" "zen" "xanmod" ];
       # Per-provider config, shared between the default entry and every
       # specialisation so there's only one place to edit per kernel.
       providerConfig = provider: lib.mkMerge [
-        (lib.mkIf (provider == "xddxdd") {
-          nixpkgs.overlays = [ inputs."nix-cachyos-kernel".overlays.pinned ];
-          boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-bore-lto-x86_64-v3;
-          nix.settings.substituters = [ "https://attic.xuyh0120.win/lantian" ];
-          nix.settings.trusted-public-keys = [ "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc=" ];
-        })
         (lib.mkIf (provider == "chaotic") {
           boot.kernelPackages = pkgs.linuxPackages_cachyos;
           hardware.nvidia.package = lib.mkDefault pkgs.nvidia_cachyos;

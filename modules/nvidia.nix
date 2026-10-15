@@ -38,14 +38,11 @@
           # Open vs. closed kernel modules, keyed to kernelProvider (see
           # kernel.nix): the closed/proprietary module's nv-linux.h
           # compatibility shim fails to compile against the CachyOS-based
-          # kernels ("xddxdd", "chaotic") — a gpio_device_get_chip() const
-          # mismatch — so those two need the open modules. "zen"/"xanmod"
+          # kernel ("chaotic") — a gpio_device_get_chip() const
+          # mismatch — so it needs the open modules. "zen"/"xanmod"
           # stay on closed since they build fine and it's the more
           # conservative/default-recommended choice on stock kernels.
-          # Note: "xddxdd" has a separate, unrelated build failure (a Nix
-          # store-purity error referencing the kernel -dev output) that
-          # this open/closed switch alone may not resolve.
-          open = builtins.elem config.kernelProvider [ "xddxdd" "chaotic" ];
+          open = config.kernelProvider == "chaotic";
           nvidiaSettings = true;
           # Keeps the GPU initialized even when nothing's actively using it,
           # so the driver doesn't have to re-init (adding a beat of latency)
