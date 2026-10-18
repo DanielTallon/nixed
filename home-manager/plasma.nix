@@ -94,6 +94,12 @@
           };
         }
       ];
+      # Wallpaper picker (nix-packages.wallpaperpicker; started by the autostart entry below)
+      hotkeys.commands."wallpaperpicker" = {
+        name = "Wallpaper picker";
+        key = "Meta+Space";
+        command = "wallpaperpicker toggle";
+      };
       workspace = {
         lookAndFeel = "org.kde.breezedark.desktop";
         colorScheme = "BreezeDark";
@@ -122,6 +128,13 @@
         "baloofilerc".General."exclude folders" = {
           value = lib.concatStringsSep "," balooExcludes;
           shellExpand = true;
+        };
+        # Trash: auto-delete items older than 35 days.
+        # The group name is the trash path; plasma-manager treats "/" as a
+        # nested-group separator, so each slash is escaped as "\/".
+        "ktrashrc".${lib.replaceStrings [ "/" ] [ "\\/" ] "${config.home.homeDirectory}/.local/share/Trash"} = {
+          UseTimeLimit = true;
+          Days = 35;
         };
       };
 
@@ -153,5 +166,14 @@
         lockOnResume = false;
       };
     };
+
+    # --- Wallpaper picker: start it on login (the hotkey above toggles it) ---
+    xdg.configFile."autostart/wallpaperpicker.desktop".text = ''
+      [Desktop Entry]
+      Type=Application
+      Name=wallpaperpicker
+      Exec=wallpaperpicker
+      Icon=preferences-desktop-wallpaper
+    '';
   };
 }

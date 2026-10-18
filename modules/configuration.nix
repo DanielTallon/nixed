@@ -18,7 +18,8 @@
       "electron-40.10.5"
     ];
 
-    #documentation.nixos.enable = false;
+    # --- Remove Discover’s Update. Can’t install system updates anyway ---
+    environment.plasma6.excludePackages = [ pkgs.kdePackages.discover ];
 
     # --- Networking ---
     networking.networkmanager.enable = true;
@@ -84,6 +85,9 @@
     };
 
     services.blueman.enable = true;  # pairing GUI; skip it if you use GNOME or KDE
+
+    # --- Set ~/.local/bin onto your PATH ---
+    environment.localBinInPath = true;
 
 
     # --- CPU MicroCode ---

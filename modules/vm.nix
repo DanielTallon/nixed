@@ -8,7 +8,109 @@
       cfg = config.custom.vm;
 
       # In nixpkgs-unstable, not in 26.05, so the stable host takes it from pkgs-unstable.
-      vm-curator = pkgs.vm-curator or pkgs-unstable.vm-curator;
+      # Patched so --install boots the disk first and the ISO only as a
+      # fallback: the installer's reboot happens inside the same QEMU process,
+      # and upstream's `-boot d` sent every finished install straight back
+      # into the installer.
+      vm-curator = (pkgs.vm-curator or pkgs-unstable.vm-curator).overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [ installBootDiskFirstPatch ];
+      });
+
+      # Blank context lines are left empty (not a lone space) so formatters
+      # can't break them; GNU patch reads an empty hunk line as blank context.
+      installBootDiskFirstPatch = pkgs.writeText "vm-curator-install-boot-disk-first.patch" ''
+          diff --git a/src/vm/create.rs b/src/vm/create.rs
+          index 252f9f4..6f7af27 100644
+          --- a/src/vm/create.rs
+          +++ b/src/vm/create.rs
+          @@ -1310,6 +1310,15 @@ fn build_qemu_command_with_os_impl<'a>(
+               let needs_uefi = config.uefi || is_windows_11(os_profile);
+               let normal_uefi_disk_boot =
+                   needs_uefi && matches!(install_media, InstallMedia::None) && !boot_from_floppy;
+          +    // The guest reboots inside the same QEMU process when the installer
+          +    // finishes, so `-boot d` would send it straight back into the installer.
+          +    // For the --install ISO, rank the (still empty) disk first instead: OVMF
+          +    // finds nothing to boot there and falls through to the CD-ROM, and once
+          +    // the installer has written a bootloader the reboot lands on the disk.
+          +    let uefi_install_disk_first = needs_uefi
+          +        && matches!(install_media, InstallMedia::Iso(None))
+          +        && !is_intel_macos_vm
+          +        && floppy_path.is_none();
+
+               // Emulator
+               args.push(config.emulator.clone());
+          @@ -1453,7 +1462,7 @@ fn build_qemu_command_with_os_impl<'a>(
+                               } else {
+                                   &config.disk_interface
+                               };
+          -                    if normal_uefi_disk_boot && disk_if == "virtio" {
+          +                    if (normal_uefi_disk_boot || uefi_install_disk_first) && disk_if == "virtio" {
+                                   args.push("-global virtio-blk-pci.bootindex=0".to_string());
+                                   disk_has_bootindex = true;
+                               }
+          @@ -1503,8 +1512,13 @@ fn build_qemu_command_with_os_impl<'a>(
+                                   // No -boot d for macOS (OpenCore handles boot)
+                               } else {
+                                   args.push(format!("-drive file={},media=cdrom,index=1", iso_ref));
+          -                        // Boot from CD-ROM
+          -                        args.push("-boot d".to_string());
+          +                        if uefi_install_disk_first && disk_has_bootindex {
+          +                            // Disk first, CD-ROM as the fallback (see above)
+          +                            args.push("-global ide-cd.bootindex=1".to_string());
+          +                        } else {
+          +                            // Boot from CD-ROM
+          +                            args.push("-boot d".to_string());
+          +                        }
+                               }
+                           }
+                       }
+          diff --git a/src/vm/tests/create.rs b/src/vm/tests/create.rs
+          index 3f3907b..7048425 100644
+          --- a/src/vm/tests/create.rs
+          +++ b/src/vm/tests/create.rs
+          @@ -277,7 +277,7 @@ fn test_build_qemu_command_uefi_explicit_floppy_boot_does_not_force_disk() {
+           }
+
+           #[test]
+          -fn test_build_qemu_command_uefi_cdrom_still_prefers_cdrom() {
+          +fn test_build_qemu_command_uefi_install_prefers_disk_then_cdrom() {
+               let config = WizardQemuConfig {
+                   uefi: true,
+                   disk_interface: "virtio".to_string(),
+          @@ -287,8 +287,32 @@ fn test_build_qemu_command_uefi_cdrom_still_prefers_cdrom() {
+               let cmd =
+                   build_qemu_command_with_os(&config, "disk.qcow2", &InstallMedia::Iso(None), None, None);
+
+          +    assert!(cmd.contains("-global virtio-blk-pci.bootindex=0"));
+          +    assert!(cmd.contains("-global ide-cd.bootindex=1"));
+          +    assert!(!cmd.contains("-boot d"));
+          +    assert!(!cmd.contains("-boot order=c,strict=on"));
+          +    assert!(!cmd.contains("-boot strict=on"));
+          +}
+          +
+          +#[test]
+          +fn test_build_qemu_command_uefi_cdrom_still_prefers_cdrom() {
+          +    let config = WizardQemuConfig {
+          +        uefi: true,
+          +        disk_interface: "virtio".to_string(),
+          +        ..WizardQemuConfig::default()
+          +    };
+          +
+          +    let cmd = build_qemu_command_with_os(
+          +        &config,
+          +        "disk.qcow2",
+          +        &InstallMedia::Iso(Some("\"$2\"")),
+          +        None,
+          +        None,
+          +    );
+          +
+               assert!(cmd.contains("-boot d"));
+               assert!(!cmd.contains("-global virtio-blk-pci.bootindex=0"));
+          +    assert!(!cmd.contains("-global ide-cd.bootindex=1"));
+               assert!(!cmd.contains("-boot order=c,strict=on"));
+               assert!(!cmd.contains("-boot strict=on"));
+           }
+        '';
 
       # Secure Boot capable, 4M, with a Microsoft-keys VARS template (Windows 11).
       ovmf = pkgs.OVMFFull.fd;

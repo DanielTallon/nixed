@@ -168,7 +168,6 @@ in
       config.flake.modules.homeManager.fastfetch
       config.flake.modules.homeManager.fetch
       config.flake.modules.homeManager.fish
-      config.flake.modules.homeManager.flowDesktop
       config.flake.modules.homeManager.git
       config.flake.modules.homeManager.glava
       config.flake.modules.homeManager.home

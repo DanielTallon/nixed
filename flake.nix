@@ -7,19 +7,10 @@
     nix-flatpak.url = "github:gmodena/nix-flatpak";
     areofyl-fetch.url = "github:areofyl/fetch";
 
-    # --- Flow Desktop (privacy-first YouTube client, built from source) ---
-    flowtube = {
-      url = "github:olafkfreund/nixos-FlowTube";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # --- Dendritic pattern machinery ---
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:vic/import-tree";
     systems.url = "github:nix-systems/default-linux";
-
-    # --- Determinate Nix ---
-#     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
 
     # --- Discord-Nixcord
     nixcord.url = "github:4evy/nixcord";
@@ -43,7 +34,7 @@
     nix-index-database.url = "github:nix-community/nix-index-database";
       nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
 
-    # --- Personal packages (Boot Gardener, LGL-Papercutter & Kenku-FM) ---
+    # --- Personal packages (Boot Gardener, LGL-Papercutter, Kenku-FM, Flow Desktop & wallpaperpicker) ---
     nix-packages.url = "github:DanielTallon/nix-packages";
 
     #--- Proton-CachyOS ---
@@ -65,8 +56,6 @@
     # --- Unstable (primary) ---
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    # --- Zen Browser ---
-    #zen-browser.url = "github:0xc000022070/zen-browser-flake";
   };
 
   # The only file in this repo that isn't a flake-parts module.

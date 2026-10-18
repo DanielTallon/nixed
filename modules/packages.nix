@@ -105,8 +105,10 @@
 
       # --- My packages (DanielTallon/nix-packages) ---
       nix-packages.boot-gardener
+      nix-packages.flow-desktop       # registers the flow:// link handler too
       nix-packages.kenku-fm
       nix-packages.lgl-papercutter
+      nix-packages.wallpaperpicker  # needs material-symbols (fonts.packages below)
 
       # --- Nix Tooling ---
       deadnix   # Find unused bindings/arguments in .nix files
@@ -160,6 +162,7 @@
       pkgs-stable.tetris
 
     ];
+
 
     services.flatpak.enable = true;
     services.packagekit.enable = false;
