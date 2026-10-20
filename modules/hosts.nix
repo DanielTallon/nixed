@@ -86,6 +86,7 @@ in
       config.flake.modules.nixos.nixCaches
       config.flake.modules.nixos.nvidia
       config.flake.modules.nixos.packages
+      config.flake.modules.nixos.tailscale
       config.flake.modules.nixos.vm
       config.flake.modules.nixos.zram
 

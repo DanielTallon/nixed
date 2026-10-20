@@ -1,3 +1,4 @@
+
 # /.dotfiles/modules/packages.nix
 {
   # NOTE:`pkgs-unstable` is the nixos-unstable channel on both hosts. On the
@@ -16,6 +17,29 @@
     nixpkgs.config.problems.handlers = {
       cups.broken = "warn"; # or "ignore" to silence entirely
     };
+
+    # FIX: tauon 13 crashes on start with "Namespace Pango not available".
+    # Since python packages build with __structuredAttrs, its wrapper gets the
+    # literal string '$GI_TYPELIB_PATH' (and '$out/share/tauon'). This applies
+    # the fix from NixOS/nixpkgs#575801; it turns itself off once that's merged.
+    # TODO: delete this overlay after nixpkgs#575801 lands.
+    nixpkgs.overlays = [
+      (_final: prev: {
+        tauon =
+          if prev.lib.elem "$GI_TYPELIB_PATH" (prev.tauon.makeWrapperArgs or [ ]) then
+            prev.tauon.overridePythonAttrs (old: {
+              makeWrapperArgs =
+                map (a: if a == "$out/share/tauon" then "${placeholder "out"}/share/tauon" else a)
+                  (prev.lib.filter (a: a != "--set" && a != "GI_TYPELIB_PATH" && a != "$GI_TYPELIB_PATH")
+                    old.makeWrapperArgs);
+              preFixup = (old.preFixup or "") + ''
+                makeWrapperArgs+=(--set GI_TYPELIB_PATH "$GI_TYPELIB_PATH")
+              '';
+            })
+          else
+            prev.tauon;
+      })
+    ];
 
     hardware.graphics.enable32Bit = true;
 
@@ -84,14 +108,14 @@
       }))
 
       # --- Music, Audio, Video ---
-      audacity
+      pkgs-stable.audacity
       deno # Required for spotdl: nix-shell -p spotdl URL
       #pkgs-stable.davinci-resolve #Vdeo Editing
       #pkgs-stable.openshot-qt #Video Editing
       parabolic
 #       pkgs-stable.obs-studio
       pkgs-stable.vlc
-      pkgs-stable.tauon #Music Player
+      tauon #Music Player (same pkgs as tauon-with-glava; stable 9.1.3 can't read the newer DB)
       pkgs-unstable.unimatrix
 
       # --- Utilities ---
@@ -121,6 +145,9 @@
       mission-center
       nix-output-monitor
       nvd
+
+      # --- Remote IT & Monitoring ---
+      rustdesk-flutter
 
       # --- iPhone ---
       ifuse
@@ -248,8 +275,8 @@
     programs.command-not-found.enable = false;
 
     # --- XBox Gaming Controller Support ---
-    hardware.xone.enable = true;
-    hardware.xpadneo.enable = true;
+#     hardware.xone.enable = true;
+#     hardware.xpadneo.enable = true;
 
     # --- nh: NixOS helper with auto-clean ---
     programs.nh = {

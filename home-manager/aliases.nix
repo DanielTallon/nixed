@@ -32,6 +32,7 @@
             ;;
         esac
       '')
+
     ];
     fonts.fontconfig.enable = true;
   };
