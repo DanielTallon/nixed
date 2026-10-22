@@ -116,6 +116,7 @@
         "kwinrc".Effect-kwin4_effect_geometry_change.Duration = 500;
         "kscreenrc".Config.autoRotate = false;
         "ksmserverrc".General.confirmLogout = false;
+        # Accent color from wallpaper: see wallpaper-colors.nix
 
         "breezerc"."Common" = {
           ShadowSize = "ShadowMedium";

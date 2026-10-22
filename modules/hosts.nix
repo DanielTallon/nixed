@@ -180,6 +180,7 @@ in
       config.flake.modules.homeManager.plasma
       config.flake.modules.homeManager.protonDpi
       config.flake.modules.homeManager.wallpaper
+      config.flake.modules.homeManager.wallpaperColors
       config.flake.modules.homeManager.xdgUserDirs
         {
           custom.protonDpi."2105600" = 192; # Larger loading window for RPG Stories

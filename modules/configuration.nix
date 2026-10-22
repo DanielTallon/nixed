@@ -2,7 +2,7 @@
 # Core system settings.
 # NOTE:Host-specific values (hostname, stateVersion, cpuFreqGovernor) live in modules/hosts.nix
 {
-  flake.modules.nixos.core = { config, pkgs, lib, username, ... }: {
+  flake.modules.nixos.core = { config, options, pkgs, lib, username, ... }: {
     # --- Nix Settings ---
     nix.settings = {
       warn-dirty = false;
@@ -21,18 +21,30 @@
     # --- Remove Discover’s Update. Can’t install system updates anyway ---
     environment.plasma6.excludePackages = [ pkgs.kdePackages.discover ];
 
+    #---Allow for reading backups from Windows ---
+    boot.supportedFilesystems = [ "ntfs" ];
+
     # --- Networking ---
     networking.networkmanager.enable = true;
     # Lets devices on local network find each other and their services without DNS server.
+    # Unstable moved publishing to the freeform `settings`; 26.05 still has `publish`.
+    # Drop the else branch once nixpkgs-stable has `settings` too.
     services.avahi = {
       enable = true;
       nssmdns4 = true;
+    } // (if options.services.avahi ? settings then {
+      settings.publish = {
+        disable-publishing = false;
+        publish-workstation = true;
+        publish-hinfo = true;
+      };
+    } else {
       publish = {
         enable = true;
         workstation = true;
         hinfo = true;
       };
-    };
+    });
 
     # Clear a PID file left behind by a crashed instance before starting
     systemd.services.avahi-daemon.serviceConfig = {
