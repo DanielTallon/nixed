@@ -1,0 +1,575 @@
+{
+ "0": {
+  "weight": 1.0,
+  "lock_v": false,
+  "lock_h": false,
+  "fixed_w": 0,
+  "fixed_h": 0,
+  "aspect": false,
+  "square": false,
+  "gutter": 0,
+  "padding": 0,
+  "border": false,
+  "type": "stack",
+  "orient": "v",
+  "resizable": false,
+  "children": [
+   {
+    "weight": 1.0,
+    "lock_v": true,
+    "lock_h": false,
+    "fixed_w": 0,
+    "fixed_h": 30,
+    "aspect": false,
+    "square": false,
+    "gutter": 0,
+    "padding": 0,
+    "border": false,
+    "type": "leaf",
+    "kind": "top_panel"
+   },
+   {
+    "weight": 1.0,
+    "lock_v": false,
+    "lock_h": false,
+    "fixed_w": 0,
+    "fixed_h": 0,
+    "aspect": false,
+    "square": false,
+    "gutter": 0,
+    "padding": 0,
+    "border": false,
+    "type": "stack",
+    "orient": "h",
+    "resizable": true,
+    "children": [
+     {
+      "weight": 0.81,
+      "lock_v": false,
+      "lock_h": false,
+      "fixed_w": 0,
+      "fixed_h": 0,
+      "aspect": false,
+      "square": false,
+      "gutter": 3,
+      "padding": 0,
+      "border": true,
+      "type": "leaf",
+      "kind": "tracklist"
+     },
+     {
+      "weight": 1.19,
+      "lock_v": false,
+      "lock_h": false,
+      "fixed_w": 0,
+      "fixed_h": 0,
+      "aspect": false,
+      "square": false,
+      "gutter": 3,
+      "padding": 0,
+      "border": true,
+      "type": "leaf",
+      "kind": "gallery_grid",
+      "conf": {
+       "per_row": 3,
+       "spacing": 4,
+       "v_spacing": 4,
+       "titles": true
+      }
+     }
+    ]
+   },
+   {
+    "weight": 1.0,
+    "lock_v": true,
+    "lock_h": false,
+    "fixed_w": 0,
+    "fixed_h": 51,
+    "aspect": false,
+    "square": false,
+    "gutter": 0,
+    "padding": 0,
+    "border": false,
+    "type": "leaf",
+    "kind": "playback_panel"
+   }
+  ]
+ },
+ "1": {
+  "weight": 1.0,
+  "lock_v": false,
+  "lock_h": false,
+  "fixed_w": 0,
+  "fixed_h": 0,
+  "aspect": false,
+  "square": false,
+  "gutter": 0,
+  "padding": 0,
+  "border": false,
+  "type": "stack",
+  "orient": "v",
+  "resizable": false,
+  "children": [
+   {
+    "weight": 1.0,
+    "lock_v": true,
+    "lock_h": false,
+    "fixed_w": 0,
+    "fixed_h": 30,
+    "aspect": false,
+    "square": false,
+    "gutter": 0,
+    "padding": 0,
+    "border": false,
+    "type": "leaf",
+    "kind": "top_panel"
+   },
+   {
+    "weight": 1.0,
+    "lock_v": false,
+    "lock_h": false,
+    "fixed_w": 0,
+    "fixed_h": 0,
+    "aspect": false,
+    "square": false,
+    "gutter": 0,
+    "padding": 0,
+    "border": false,
+    "type": "stack",
+    "orient": "h",
+    "resizable": false,
+    "children": [
+     {
+      "weight": 1.38,
+      "lock_v": false,
+      "lock_h": false,
+      "fixed_w": 0,
+      "fixed_h": 0,
+      "aspect": false,
+      "square": false,
+      "gutter": 0,
+      "padding": 0,
+      "border": false,
+      "type": "stack",
+      "orient": "v",
+      "resizable": false,
+      "children": [
+       {
+        "weight": 1.76,
+        "lock_v": false,
+        "lock_h": false,
+        "fixed_w": 0,
+        "fixed_h": 0,
+        "aspect": false,
+        "square": false,
+        "gutter": 3,
+        "padding": 0,
+        "border": true,
+        "type": "leaf",
+        "kind": "tracklist"
+       },
+       {
+        "weight": 0.24,
+        "lock_v": true,
+        "lock_h": false,
+        "fixed_w": 0,
+        "fixed_h": 61,
+        "aspect": false,
+        "square": false,
+        "gutter": 3,
+        "padding": 0,
+        "border": true,
+        "type": "leaf",
+        "kind": "vis_spectrogram"
+       }
+      ]
+     },
+     {
+      "weight": 0.62,
+      "lock_v": false,
+      "lock_h": true,
+      "fixed_w": 285,
+      "fixed_h": 0,
+      "aspect": false,
+      "square": false,
+      "gutter": 0,
+      "padding": 0,
+      "border": false,
+      "type": "stack",
+      "orient": "v",
+      "resizable": false,
+      "children": [
+       {
+        "weight": 1.0,
+        "lock_v": false,
+        "lock_h": false,
+        "fixed_w": 0,
+        "fixed_h": 0,
+        "aspect": false,
+        "square": false,
+        "gutter": 3,
+        "padding": 0,
+        "border": true,
+        "type": "leaf",
+        "kind": "art"
+       },
+       {
+        "weight": 1.0,
+        "lock_v": false,
+        "lock_h": false,
+        "fixed_w": 0,
+        "fixed_h": 0,
+        "aspect": false,
+        "square": false,
+        "gutter": 3,
+        "padding": 0,
+        "border": true,
+        "type": "leaf",
+        "kind": "details"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "weight": 1.0,
+    "lock_v": true,
+    "lock_h": false,
+    "fixed_w": 0,
+    "fixed_h": 51,
+    "aspect": false,
+    "square": false,
+    "gutter": 0,
+    "padding": 0,
+    "border": false,
+    "type": "leaf",
+    "kind": "playback_panel"
+   }
+  ]
+ },
+ "2": {
+  "weight": 1.0,
+  "lock_v": false,
+  "lock_h": false,
+  "fixed_w": 0,
+  "fixed_h": 0,
+  "aspect": false,
+  "square": false,
+  "gutter": 0,
+  "padding": 0,
+  "border": false,
+  "type": "stack",
+  "orient": "v",
+  "resizable": false,
+  "children": [
+   {
+    "weight": 1.0,
+    "lock_v": true,
+    "lock_h": false,
+    "fixed_w": 0,
+    "fixed_h": 30,
+    "aspect": false,
+    "square": false,
+    "gutter": 0,
+    "padding": 0,
+    "border": false,
+    "type": "leaf",
+    "kind": "top_panel"
+   },
+   {
+    "weight": 1.0,
+    "lock_v": false,
+    "lock_h": false,
+    "fixed_w": 0,
+    "fixed_h": 0,
+    "aspect": false,
+    "square": false,
+    "gutter": 0,
+    "padding": 0,
+    "border": false,
+    "type": "leaf",
+    "kind": null
+   },
+   {
+    "weight": 1.0,
+    "lock_v": true,
+    "lock_h": false,
+    "fixed_w": 0,
+    "fixed_h": 51,
+    "aspect": false,
+    "square": false,
+    "gutter": 0,
+    "padding": 0,
+    "border": false,
+    "type": "leaf",
+    "kind": "playback_panel"
+   }
+  ]
+ },
+ "3": {
+  "weight": 1.0,
+  "lock_v": false,
+  "lock_h": false,
+  "fixed_w": 0,
+  "fixed_h": 0,
+  "aspect": false,
+  "square": false,
+  "gutter": 0,
+  "padding": 0,
+  "border": false,
+  "type": "stack",
+  "orient": "v",
+  "resizable": false,
+  "children": [
+   {
+    "weight": 1.0,
+    "lock_v": true,
+    "lock_h": false,
+    "fixed_w": 0,
+    "fixed_h": 30,
+    "aspect": false,
+    "square": false,
+    "gutter": 0,
+    "padding": 0,
+    "border": false,
+    "type": "leaf",
+    "kind": "top_panel"
+   },
+   {
+    "weight": 1.0,
+    "lock_v": false,
+    "lock_h": false,
+    "fixed_w": 0,
+    "fixed_h": 0,
+    "aspect": false,
+    "square": false,
+    "gutter": 0,
+    "padding": 0,
+    "border": false,
+    "type": "leaf",
+    "kind": null
+   },
+   {
+    "weight": 1.0,
+    "lock_v": true,
+    "lock_h": false,
+    "fixed_w": 0,
+    "fixed_h": 51,
+    "aspect": false,
+    "square": false,
+    "gutter": 0,
+    "padding": 0,
+    "border": false,
+    "type": "leaf",
+    "kind": "playback_panel"
+   }
+  ]
+ },
+ "active": 0,
+ "names": {
+  "0": "Tracks + Gallery (Compact)",
+  "1": "Volcano"
+ },
+ "columns": {
+  "0": {
+   "pl_st": [
+    [
+     "Artist",
+     42,
+     false
+    ],
+    [
+     "Title",
+     49,
+     false
+    ],
+    [
+     "T",
+     54.0,
+     true
+    ],
+    [
+     "Album",
+     40,
+     false
+    ],
+    [
+     "P",
+     37.800000000000004,
+     true
+    ],
+    [
+     "Starline",
+     116.10000000000001,
+     true
+    ],
+    [
+     "Date",
+     64.80000000000001,
+     true
+    ],
+    [
+     "Codec",
+     74.25,
+     true
+    ],
+    [
+     "Time",
+     71.55000000000001,
+     true
+    ]
+   ],
+   "set_bar": true,
+   "set_mode": false,
+   "pl_st_left": 16
+  },
+  "1": {
+   "pl_st": [
+    [
+     "Artist",
+     170,
+     false
+    ],
+    [
+     "Title",
+     188,
+     false
+    ],
+    [
+     "T",
+     54.0,
+     true
+    ],
+    [
+     "Album",
+     160,
+     false
+    ],
+    [
+     "P",
+     37.800000000000004,
+     true
+    ],
+    [
+     "Starline",
+     116.10000000000001,
+     true
+    ],
+    [
+     "Date",
+     64.80000000000001,
+     true
+    ],
+    [
+     "Codec",
+     74.25,
+     true
+    ],
+    [
+     "Time",
+     71.55000000000001,
+     true
+    ]
+   ],
+   "set_bar": true,
+   "set_mode": false,
+   "pl_st_left": 16
+  },
+  "2": {
+   "pl_st": [
+    [
+     "Artist",
+     160,
+     false
+    ],
+    [
+     "Title",
+     187,
+     false
+    ],
+    [
+     "T",
+     54.0,
+     true
+    ],
+    [
+     "Album",
+     154,
+     false
+    ],
+    [
+     "P",
+     37.800000000000004,
+     true
+    ],
+    [
+     "Starline",
+     116.10000000000001,
+     true
+    ],
+    [
+     "Date",
+     64.80000000000001,
+     true
+    ],
+    [
+     "Codec",
+     74.25,
+     true
+    ],
+    [
+     "Time",
+     71.55000000000001,
+     true
+    ]
+   ],
+   "set_bar": true,
+   "set_mode": false,
+   "pl_st_left": 16
+  },
+  "3": {
+   "pl_st": [
+    [
+     "Artist",
+     210,
+     false
+    ],
+    [
+     "Title",
+     274,
+     false
+    ],
+    [
+     "Album",
+     220,
+     false
+    ],
+    [
+     "Time",
+     396.2444444444442,
+     true
+    ],
+    [
+     "P",
+     -157.24444444444407,
+     true
+    ]
+   ],
+   "set_bar": true,
+   "set_mode": true,
+   "pl_st_left": 2
+  }
+ },
+ "order": [
+  "side_normal",
+  "side_reversed",
+  "gallery1",
+  "tracks",
+  "lyrics",
+  "radio",
+  "slot:0",
+  "slot:1",
+  "slot:2",
+  "slot:3"
+ ]
+}

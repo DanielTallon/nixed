@@ -67,7 +67,7 @@ The rest of this file is the manual path.
 - **`/` needs 80 GB minimum; 100 GB recommended.** The first build peaks at
   about 64 GB used. A 47 GB disk ran out partway through. After reboot and
   `sudo nix-collect-garbage -d` it settles around 44 GB.
-- **`/boot`:** each distinct kernel set (default + `latest` specialisation,
+- **`/boot`:** each distinct kernel set (default + `lts` specialisation,
   with initrds) takes about 500 MB. A 1 GB ESP holds the first install plus
   roughly one kernel update, so you'll need to prune with Boot Gardener. 3 GB
   holds about five, which is what I run.

@@ -1,0 +1,98 @@
+# Tauon user theme
+30,30,30,100    window frame
+32,178,170,255    gallery highlight
+245,245,245,255    index playing
+245,245,245,255    time playing
+245,245,245,255    artist playing
+122,122,122,255    track album
+245,245,245,255    album playing
+1,0,18,140    top panel
+75,75,75,255    corner button off
+255,255,255,230    corner button on
+106,106,106,255    menu button normal
+241,241,241,255    menu button hover
+1,0,18,175    queue panel
+15,15,15,140    side panel
+15,15,15,175    lyrics panel
+1,0,18,175    gallery background
+1,0,18,175    tracklist panel
+122,122,122,255    track line
+85,85,85,255    track missing
+5,0,103,175    playing highlight
+122,122,122,255    track time
+100,100,100,255    fav line
+175,175,175,255    folder title
+40,40,40,255    folder line
+255,255,255,130    buttons off
+255,255,255,255    buttons over
+255,255,255,255    buttons active
+255,255,255,255    playing time
+122,122,122,255    track index
+245,245,245,255    track playing
+89,78,135,100    select highlight
+122,122,122,255    track artist
+255,255,255,255    tab active text
+230,230,230,255    tab text
+30,30,30,255    tab background
+40,40,40,255    tab over
+65,65,65,255    tab active background
+255,255,255,255    title info
+220,220,220,255    extra info
+255,255,255,255    bottom title
+40,40,40,255    scroll bar
+255,255,255,255    seek bar
+255,255,255,60    seek bg
+255,255,255,255    volume bar
+255,255,255,60    volume bg
+255,255,255,100    mode off
+255,255,255,255    mode over
+255,255,255,255    mode on
+21,21,21,100    art border
+21,21,21,255    tb line
+190,190,190,255    music vis
+20,20,20,255    menu background
+230,230,230,255    menu text
+50,50,50,255    menu disable
+255,255,255,25    menu icons
+40,40,40,255    menu highlight
+30,30,30,255    menu border
+245,245,245,255    lyrics text
+255,210,50,255    active lyric
+92,75,185,200    bottom panel
+15,15,15,255    mini bg
+40,40,40,255    mini border
+255,255,255,240    mini text 1
+255,255,255,77    mini text 2
+1,0,18,175    playlist background
+16,16,16,255    box background
+59,59,59,255    box border
+41,41,41,255    box text border
+97,97,97,255    box text label
+245,245,245,255    box title text
+240,240,240,255    box text normal
+226,226,226,255    box sub text
+225,225,225,255    box input text
+250,250,250,255    box button text highlight
+225,225,225,255    box button text normal
+26,26,26,255    box button background normal
+34,34,34,255    box button background highlight
+255,255,255,18    box button border
+0,0,0,50    window buttons background
+255,255,255,10    window buttons on
+255,255,255,40    window buttons icon off
+255,255,255,60    window buttons icon over
+245,245,245,255    window button x on
+255,255,255,40    window button x off
+1,0,18,175    column bar background
+27,27,27,255    artist bio background
+230,230,230,255    artist bio text
+13,12,29,255    visualizer bg
+100,200,252,255    link text
+16,16,16,255    message box bg
+240,240,240,255    message box text
+200,50,240,255    queue drag indicator
+244,212,66,255    pulse colour
+10,10,27,175    queue card background
+255,255,255,77    column grip
+240,240,240,255    column bar text
+26,26,26,175    box thumb background

@@ -152,9 +152,10 @@ in
         # cache) instead of the shared default ("zen"), which tracks the
         # newest upstream release.
         #
-        # mkDefault (not a plain assignment) so kernel.nix's "latest"
-        # specialisation can override it with a plain assignment instead
-        # of needing lib.mkForce.
+        # mkDefault (not a plain assignment) so a kernel.nix specialisation
+        # can override it with a plain assignment instead of needing
+        # lib.mkForce. With "lts" as the default there's no LTS
+        # specialisation here, since it would duplicate the default entry.
         kernelProvider = lib.mkDefault "lts";
       })
     ];
@@ -179,6 +180,7 @@ in
       config.flake.modules.homeManager.nix-index
       config.flake.modules.homeManager.plasma
       config.flake.modules.homeManager.protonDpi
+      config.flake.modules.homeManager.tauon
       config.flake.modules.homeManager.wallpaper
       config.flake.modules.homeManager.wallpaperColors
       config.flake.modules.homeManager.xdgUserDirs

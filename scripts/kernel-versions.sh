@@ -5,7 +5,8 @@
 set -euo pipefail
 
 FLAKE_DIR="$HOME/.dotfiles"
-HOST="nixos"
+# This machine's config (/etc/nixed-host), since both hosts share the hostname "nixos"
+HOST="$(cat /etc/nixed-host 2>/dev/null || hostname)"
 cd "$FLAKE_DIR"
 
 echo "Kernel versions for host: $HOST"

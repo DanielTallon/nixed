@@ -46,6 +46,37 @@
       };
     });
 
+    # --- DNS ---
+    # Use Cloudflare/Google for every lookup instead of whatever DNS the
+    # network hands out, so a filtering DNS server (at work) is never asked.
+    # Lookups go through systemd-resolved over DNS-over-TLS (port 853), which
+    # also gets past networks that intercept plain DNS on port 53.
+    # "opportunistic" falls back to plain DNS to these same servers if a
+    # network blocks 853; "true" would refuse instead and leave you offline.
+    # Local names still work: Avahi handles .local, and Tailscale's MagicDNS
+    # registers itself with resolved.
+    # Don't pass the network's DNS servers on to resolved. mkForce because
+    # enabling resolved sets this to "systemd-resolved" itself.
+    networking.networkmanager.dns = lib.mkForce "none";
+    # dns = "none" only covers resolv.conf. NetworkManager still hands each
+    # connection's DNS to resolved directly unless this is off too.
+    networking.networkmanager.settings.main.systemd-resolved = false;
+    services.resolved = {
+      enable = true;
+      settings.Resolve = {
+        DNS = [
+          "1.1.1.1#cloudflare-dns.com"
+          "1.0.0.1#cloudflare-dns.com"
+          "8.8.8.8#dns.google"
+          "8.8.4.4#dns.google"
+        ];
+        FallbackDNS = [ ]; # no servers beyond the ones above
+        DNSOverTLS = "opportunistic";
+        Domains = [ "~." ]; # send every domain to the servers above
+        MulticastDNS = false; # Avahi does mDNS
+      };
+    };
+
     # Clear a PID file left behind by a crashed instance before starting
     systemd.services.avahi-daemon.serviceConfig = {
       ExecStartPre = [ "-${pkgs.coreutils}/bin/rm -f /run/avahi-daemon/pid" ];

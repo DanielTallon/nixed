@@ -2,9 +2,9 @@
 # Switchable kernel provider. NVIDIA kernel params live here so all
 # boot.kernelParams stay in one place.
 #
-# The "latest" provider always gets its own specialisation (unless it's
-# already the default), so the newest mainline kernel is selectable at boot
-# time regardless of which kernelProvider you're currently running.
+# The "lts" provider always gets its own specialisation (unless it's
+# already the default), so there's a fallback kernel to boot when the
+# current kernelProvider breaks (see the NOTE above the specialisation).
 #
 # NOTE: per-host `kernelProvider` assignments (in hosts.nix or the host
 # module) must use `lib.mkDefault`, e.g.:
