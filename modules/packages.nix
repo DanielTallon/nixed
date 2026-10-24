@@ -1,4 +1,3 @@
-
 # /.dotfiles/modules/packages.nix
 {
   # NOTE:`pkgs-unstable` is the nixos-unstable channel on both hosts. On the
@@ -79,6 +78,7 @@
       lact
       lazygit
       localsend
+#       mcp-nixos
       nixd
       onlyoffice-desktopeditors
       pkgs-stable.inetutils #Watch Star Wars with telnet towel.blinkenlights.nl
@@ -179,11 +179,6 @@
       jq
       protonplus
       wine
-      xdotool
-      xwininfo
-      yad
-      dxvk
-      vkd3d-proton
       pkgs-stable.tetris
 
     ];

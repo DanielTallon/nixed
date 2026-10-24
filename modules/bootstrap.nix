@@ -156,14 +156,13 @@
           # yet; pass both for this first build (root is a trusted user).
           # warn-dirty: the hardware config and username edits are
           # intentionally left uncommitted, so skip the "Git tree is dirty" noise.
-          # The config itself adds these caches (nix-caches.nix, configuration.nix),
+          # The config itself adds these caches (nix-caches.nix),
           # but only once it's installed; this first build has to be
-          # told about them. Keep this list in sync with those files:
+          # told about them. Keep this list in sync with that file:
           #   nix-community  most flake inputs' packages
-          #   nix-gaming     gaming packages
           nixconf="experimental-features = nix-command flakes
-          extra-substituters = https://nix-community.cachix.org https://nix-gaming.cachix.org
-          extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svXaZF/Ees8vCUUs4=
+          extra-substituters = https://nix-community.cachix.org
+          extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
           warn-dirty = false"
 
 

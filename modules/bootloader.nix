@@ -95,7 +95,7 @@
       themePackages = [ plymouthThemes.${config.plymouthTheme} ];
     };
     boot.consoleLogLevel = 0;
-    boot.initrd.verbose = false;
+#     boot.initrd.verbose = false;
     boot.kernelParams = [
       "quiet"
       "splash"

@@ -46,6 +46,7 @@
       dedicatedServer.openFirewall = true;
       # Steam: faster game installs from another PC on your network
       localNetworkGameTransfers.openFirewall = true;
+      protontricks.enable = true;
       extraCompatPackages = with pkgs; [
         proton-ge-bin
 #         proton-ge-bin nix-packages.proton-ge-w3rt
@@ -56,8 +57,8 @@
     };
 
     # --- Steam helper tools ---
+    # steamtinkerlaunch brings its own xdotool, xwininfo and yad.
     environment.systemPackages = with pkgs; [
-      protontricks
       steamtinkerlaunch
     ];
 
