@@ -86,6 +86,7 @@ in
       config.flake.modules.nixos.nixCaches
       config.flake.modules.nixos.nvidia
       config.flake.modules.nixos.packages
+      config.flake.modules.nixos.steam
       config.flake.modules.nixos.tailscale
       config.flake.modules.nixos.vm
       config.flake.modules.nixos.zram
@@ -180,6 +181,7 @@ in
       config.flake.modules.homeManager.nix-index
       config.flake.modules.homeManager.plasma
       config.flake.modules.homeManager.protonDpi
+      config.flake.modules.homeManager.superfile
       config.flake.modules.homeManager.tauon
       config.flake.modules.homeManager.wallpaper
       config.flake.modules.homeManager.wallpaperColors

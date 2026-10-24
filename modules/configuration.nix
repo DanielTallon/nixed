@@ -177,48 +177,6 @@
       package = pkgs.usbmuxd2;
     };
 
-    # --- Steam Shaders Set To Use Multicore Setup ---
-    systemd.user.services.steam-shader-config = {
-      description = "Configure Steam shader preprocessing threads";
-      wantedBy = [ "default.target" ];
-      path = with pkgs; [ coreutils gnugrep ];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-      };
-      script = ''
-        THREADS=$(nproc)
-        # Reserve 4 threads for the system, minimum 4 for Steam
-        STEAM_THREADS=$((THREADS - 4))
-        if [ $STEAM_THREADS -lt 4 ]; then
-          STEAM_THREADS=4
-        fi
-
-        # Steam's real data dir. ~/.steam/steam is a symlink to it that Steam
-        # makes on its first run, so only write here and never create
-        # ~/.steam/steam ourselves: if it already exists as a plain folder,
-        # Steam can't make its link and stops with "Couldn't set up Steam
-        # data". (An older version of this service did exactly that.)
-        # On my system: 24 shader threads that ends once the shaders are processed
-        steam_root="$HOME/.local/share/Steam"
-        mkdir -p "$steam_root"
-        echo "unShaderBackgroundProcessingThreads $STEAM_THREADS" > "$steam_root/steam_dev.cfg"
-
-        # Repair: ~/.steam/steam is a plain folder. Move its contents into
-        # the real data dir (keeping what's already there), replace it with
-        # the link Steam expects, and drop ~/.steam/bin so Steam rebuilds it.
-        if [ -d "$HOME/.steam/steam" ] && [ ! -L "$HOME/.steam/steam" ]; then
-          cp -a --update=none "$HOME/.steam/steam/." "$steam_root/"
-          rm -rf "$HOME/.steam/steam" "$HOME/.steam/bin"
-          ln -s ../.local/share/Steam "$HOME/.steam/steam"
-        fi
-      '';
-    };
-
-
-    # Steam: faster game installs from another PC on your network
-    programs.steam.localNetworkGameTransfers.openFirewall = true;
-
     # Stop the PS4/PS5 controller touchpad from moving the mouse cursor
     services.udev.extraRules = ''
       ATTRS{name}=="Sony Interactive Entertainment Wireless Controller Touchpad", ENV{LIBINPUT_IGNORE_DEVICE}="1"
