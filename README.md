@@ -2,7 +2,7 @@
 
 My daily-driver NixOS dotfiles. One setup, two flavors: rolling release for my gaming rig, stable release for my older laptop. Nothing fancy.
 
-A flake-based NixOS + Home Manager config in the dendritic pattern (flake-parts + import-tree: every `.nix` file under `modules/` and `home-manager/` is picked up automatically). Shared as-is in case any of it is useful. It's not a general-purpose template, so expect to adapt things rather than a turnkey experience.
+A flake-based NixOS + Home Manager config in the dendritic pattern (flake-parts + import-tree: every `.nix` file under `modules/` is picked up automatically, and each feature keeps its NixOS and Home Manager halves in the same file). Shared as-is in case any of it is useful. It's not a general-purpose template, so expect to adapt things rather than a turnkey experience.
 
 What's in it:
 
@@ -10,7 +10,7 @@ What's in it:
   - `nixos`: nixos-unstable. My two-monitor desktop: RTX 4070 Super on NVIDIA's newest driver, Zen kernel.
   - `nixos-stable`: nixos-26.05, LTS kernel, NVIDIA's production driver if there's a card. Any single package can still come from unstable via `pkgs-unstable`.
 - **Hardware detection at install.** The install command checks your PCI devices and writes `hosts/<host>/gpu.nix`, so either host works with or without an NVIDIA card (without one it sets up Intel graphics). It also looks for Windows' boot manager on any EFI partition and adds it to the Limine menu via `hosts/<host>/dualboot.nix`.
-- **Limine with switchable kernels.** Set `kernelProvider` in `modules/kernel.nix`: `zen` (default), `xanmod`, `chaotic` (CachyOS), `latest` or `lts`. Unless the default is already LTS, Limine also gets an LTS entry as a fallback, since the others all track the same upstream release and tend to break together. Run `kernel version` to see what each is currently at.
+- **Limine with switchable kernels.** Set `kernelProvider` in `modules/system/kernel.nix`: `zen` (default), `xanmod`, `chaotic` (CachyOS), `latest` or `lts`. Unless the default is already LTS, Limine also gets an LTS entry as a fallback, since the others all track the same upstream release and tend to break together. Run `kernel version` to see what each is currently at.
 - **Generation cleanup.** Limine shows the newest 10 generations; `nh` keeps 35 and cleans daily. Boot Gardener, a TUI I wrote, helps manage generations, pin old ones to the boot menu and free up space on `/boot`. With everything as is, I'd make `/boot` 2–3 GB.
 - **Home Manager as a NixOS module**, so user and system config rebuild together as one generation (see [Before you use this](#before-you-use-this)).
 - **KDE Plasma 6** via plasma-manager, with Krohnkite tiling and desktop colors generated from the wallpaper (matugen + my WallpaperPicker).
@@ -66,16 +66,16 @@ If you're not using the install commands above, this won't build or apply as-is 
    ```
    and copy the generated `hardware-configuration.nix` into the matching `hosts/<yourhost>/` folder.
    
-3. **Set your own git identity** — in `home-manager/git.nix`, replace the placeholder name/email, and swap in your own SSH signing key + `allowed_signers` entry (see git's SSH signing docs if you're not familiar).
+3. **Set your own git identity** — in `modules/dev/git.nix`, replace the placeholder name/email, and swap in your own SSH signing key + `allowed_signers` entry (see git's SSH signing docs if you're not familiar).
 
-4. **Review before applying** — this is a personal config, not a hardened template. Skim through `modules/` and `home-manager/` first so you know what you're opting into (packages, services, etc.) before running `nixos-rebuild switch`.
+4. **Review before applying** — this is a personal config, not a hardened template. Skim through `modules/` first so you know what you're opting into (packages, services, etc.) before running `nixos-rebuild switch`.
 
-5. **Don't expect a standalone `home-manager` command to work** — Home Manager here is wired in as a NixOS module, not run standalone. Everything under `home-manager/` is applied by `nh os switch` (or `nixos-rebuild switch`), not `home-manager switch`, and don't go looking for home-manager generations — there aren't any separate from the system's own.
+5. **Don't expect a standalone `home-manager` command to work** — Home Manager here is wired in as a NixOS module, not run standalone. Every `flake.modules.homeManager.*` half is applied by `nh os switch` (or `nixos-rebuild switch`), not `home-manager switch`, and don't go looking for home-manager generations — there aren't any separate from the system's own.
 
 
 ## iPhone music sync
 
-I have an iphone, but sadly Apple's Music app can only be filled by iTunes/Finder. So instead this syncs into **VLC for iOS**, over USB - because I am old-school. It's built into both hosts (`modules/iphone-music.nix` + `scripts/iphone-music-sync.sh`), so once you've rebuilt, the `iphone-music-sync` command is just there.
+I have an iphone, but sadly Apple's Music app can only be filled by iTunes/Finder. So instead this syncs into **VLC for iOS**, over USB - because I am old-school. It's built into both hosts (`modules/apps/iphone.nix` + `scripts/iphone-music-sync.sh`), so once you've rebuilt, the `iphone-music-sync` command is just there.
 
 ### One-time setup
 
@@ -114,7 +114,7 @@ Two environment variables, if you need them:
 - `IPHONE_MUSIC_APP`: the app to sync into (default `org.videolan.vlc-ios`). Run `ifuse --list-apps` with the phone connected to find other apps' IDs.
 - `IPHONE_MUSIC_SUBDIR`: the folder inside the app (default `Music`).
 
-Don't want any of this? Remove `iphoneMusic` from the imports in `modules/hosts.nix`.
+Don't want any of this? Remove the `"iphone"` line from `features` in `modules/hosts.nix`.
 
 ### Backing up the iPhone
 
@@ -134,8 +134,8 @@ A first full backup can take an hour or more. Before you start it, set the phone
 
 - `flake.nix` / `flake.lock` — flake inputs and outputs
 - `hosts/` — per-machine files (desktop, nixos-stable): hardware config, plus `gpu.nix`, `dualboot.nix` and `locale.nix`, written by the install commands
-- `modules/` — NixOS system modules (bootloader, kernel, nvidia, users, etc.)
-- `home-manager/` — user-level (home-manager) configs
+- `modules/` — one file per feature, grouped into `system/`, `desktop/`, `shell/`, `dev/`, `apps/` and `gaming/`. A feature file defines `flake.modules.nixos.<name>`, `flake.modules.homeManager.<name>`, or both, so a feature's system and user config live together (Kate and the nixd it uses, Fish and the login shell, Steam and its per-game Proton DPI)
+- `modules/hosts.nix` — the two hosts and the single `features` list both of them get
 - `installer/` — the minimal-ISO installer (disk layout, base system, first-boot stage)
 - `scripts/` — misc helper scripts (including `iphone-music-sync.sh`)
 - `limine-pins.json` — old generations Boot Gardener has pinned to the boot menu

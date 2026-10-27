@@ -14,7 +14,7 @@
 # by the nixed installer, modules/installer.nix; { } otherwise).
 # Adding an aspect to both hosts = one more line in `common` below.
 # Adding a new host = one more `mkHost` call plus a small host module.
-{ inputs, config, username, ... }:
+{ inputs, config, lib, username, ... }:
 let
   system = "x86_64-linux";
 
@@ -69,31 +69,80 @@ let
         }
       ];
     };
+
+  # Every feature both hosts get, one line each. A feature is a file under
+  # modules/ that defines flake.modules.nixos.<name>,
+  # flake.modules.homeManager.<name>, or both; listing the name here pulls in
+  # whichever halves exist (the home-manager half via homeManager.desktop
+  # below). Dropping a feature = deleting its line.
+  features = [
+    # --- System ---
+    "audio"
+    "bluetooth"
+    "bootloader"
+    "chaotic"
+    "hardware"
+    "kernel"
+    "locale"
+    "multiverse"
+    "networking"
+    "nix"
+    "nvidia"
+    "tailscale"
+    "user"
+    "vm"
+    "zram"
+
+    # --- Desktop ---
+    "display"
+    "flatpak"
+    "kate"
+    "konsole"
+    "krohnkite"
+    "plasma"
+    "wallpaper"
+    "wallpaperColors"
+    "xdgUserDirs"
+
+    # --- Shell ---
+    "aliases"
+    "fastfetch"
+    "fetch"
+    "fish"
+    "superfile"
+
+    # --- Dev ---
+    "git"
+
+    # --- Apps ---
+    "brave"
+    "discord"
+    "glava"
+    "iphone"
+    "librewolf"
+    "packages"
+    "tauon"
+
+    # --- Gaming ---
+    "gaming"
+    "steam"
+  ];
+
+  # The `class` half (nixos or homeManager) of every feature that has one.
+  # A name with neither half is a typo, so it fails instead of doing nothing.
+  featureModules = class:
+    let
+      inherit (config.flake) modules;
+      unknown = lib.filter (name: !(modules.nixos ? ${name} || modules.homeManager ? ${name})) features;
+    in
+    lib.throwIf (unknown != [ ]) "modules/hosts.nix: no feature named ${lib.concatStringsSep ", " unknown}"
+      (map (name: modules.${class}.${name}) (lib.filter (name: modules.${class} ? ${name}) features));
 in
 {
-  #---Shared system setup: every aspect both hosts get---
+  #---Shared system setup: every feature's NixOS half, for both hosts---
   flake.modules.nixos.common = {
-    imports = [
-      config.flake.modules.nixos.bootloader
-      config.flake.modules.nixos.cavalier
-      config.flake.modules.nixos.chaotic
-      config.flake.modules.nixos.core
-      config.flake.modules.nixos.desktopEnvironment
-      config.flake.modules.nixos.flatpak
-      config.flake.modules.nixos.iphoneMusic
-      config.flake.modules.nixos.kernel
-      config.flake.modules.nixos.multiverse
-      config.flake.modules.nixos.nixCaches
-      config.flake.modules.nixos.nvidia
-      config.flake.modules.nixos.packages
-      config.flake.modules.nixos.steam
-      config.flake.modules.nixos.tailscale
-      config.flake.modules.nixos.vm
-      config.flake.modules.nixos.zram
-
+    imports = featureModules "nixos" ++ [
       {
-        custom.cavalier.enable = true;
-
         # Boot Gardener pins. Shared file: a pin points at store paths that
         # only exist on the machine that made it, so clear pins before
         # building the other host (see Boot Gardener's --output flag for
@@ -162,45 +211,11 @@ in
     ];
   };
 
-#---Per-user module list — Configures your home directory and user-session state, not the whole OS.
-# Shared by both hosts.
+#---Per-user setup: every feature's home-manager half. Configures your home
+# directory and user-session state, not the whole OS. Shared by both hosts.
   flake.modules.homeManager.desktop = {
-    imports = [
-      config.flake.modules.homeManager.aliases
-      config.flake.modules.homeManager.discord
-      config.flake.modules.homeManager.fastfetch
-      config.flake.modules.homeManager.fetch
-      config.flake.modules.homeManager.fish
-      config.flake.modules.homeManager.git
-      config.flake.modules.homeManager.glava
-      config.flake.modules.homeManager.home
-      config.flake.modules.homeManager.kate
-      config.flake.modules.homeManager.konsole
-      config.flake.modules.homeManager.krohnkite
-      config.flake.modules.homeManager.librewolf
-      config.flake.modules.homeManager.nix-index
-      config.flake.modules.homeManager.plasma
-      config.flake.modules.homeManager.protonDpi
-      config.flake.modules.homeManager.superfile
-      config.flake.modules.homeManager.tauon
-      config.flake.modules.homeManager.wallpaper
-      config.flake.modules.homeManager.wallpaperColors
-      config.flake.modules.homeManager.xdgUserDirs
-        {
-          custom.protonDpi."2105600" = 192; # Larger loading window for RPG Stories
-          #custom.protonDpi."2105600" = 96; # Default setting
-          #96	100%
-          #120	125%
-          #144	150%
-          #168	175%
-          #192	200%
-          #216	225%
-          #240	250%
-          #288	300%
-
-        }
-      ];
-    };
+    imports = featureModules "homeManager";
+  };
 
   flake.nixosConfigurations.nixos = mkHost {
     name = "nixos";

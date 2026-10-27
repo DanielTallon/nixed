@@ -93,7 +93,7 @@
           echo "==> NVIDIA GPU detected: $has_nvidia (hosts/$hwdir/gpu.nix)"
           cat > "$dest/hosts/$hwdir/gpu.nix" <<EOF
           # Written by the nixed bootstrap app from this machine's PCI devices.
-          # Flip it by hand if detection got it wrong. See modules/nvidia.nix.
+          # Flip it by hand if detection got it wrong. See modules/system/nvidia.nix.
           { hasNvidia = $has_nvidia; }
           EOF
 

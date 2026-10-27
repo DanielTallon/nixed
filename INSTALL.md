@@ -120,7 +120,7 @@ Reboot into the new generation. From here on, use `switch` (or
 
 ## Afterwards
 
-- Set your git identity and SSH signing key in `home-manager/git.nix`.
+- Set your git identity and SSH signing key in `modules/dev/git.nix`.
   The public copy has placeholders there, and `commit.gpgsign = true`
   will block commits until it's filled in.
 - Want to clone to a different path or repo? Set `NIXED_DEST=<path>` or
@@ -147,7 +147,7 @@ keep your changes under version control:
 
 3. **Commit what the installer changed.** The bootstrap leaves your
    `hardware-configuration.nix` and `username` staged but uncommitted. Fill
-   in `home-manager/git.nix` first (see above), then:
+   in `modules/dev/git.nix` first (see above), then:
 
    ```
    git commit -m "Initial setup for my machine"

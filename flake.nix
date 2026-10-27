@@ -59,7 +59,7 @@
   };
 
   # The only file in this repo that isn't a flake-parts module.
-  # Every *.nix file under ./modules and ./home-manager is auto-discovered
+  # Every *.nix file under ./modules is auto-discovered
   # by import-tree — no manual imports list to keep in sync.
   outputs = inputs:
     let
@@ -71,7 +71,6 @@
         inputs.flake-parts.flakeModules.modules
         inputs.home-manager.flakeModules.home-manager
         (inputs.import-tree ./modules)
-        (inputs.import-tree ./home-manager)
       ];
       _module.args.username = username;
     };
