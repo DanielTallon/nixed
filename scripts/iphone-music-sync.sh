@@ -52,5 +52,7 @@ ifuse --documents "$app" "$mnt"
 mkdir -p "$mnt/$subdir"
 
 echo "Syncing $src -> iPhone:$app/$subdir/"
-rsync -rt --modify-window=1 --delete --info=progress2 "${dry_run[@]}" "$src" "$mnt/$subdir/"
+# encode-output/ is Tauon's transcode folder: re-encoded copies of tracks already in the library
+rsync -rt --modify-window=1 --delete --delete-excluded --exclude=/encode-output/ \
+  --info=progress2 "${dry_run[@]}" "$src" "$mnt/$subdir/"
 echo "Done. Open VLC on the phone to pick up the changes."

@@ -51,6 +51,9 @@
       pass
       pdfarranger
       py7zr
+
+      plasmusic-toolbar
+
       tealdeer
       tree
       usbimager #Used for flashing new ISOs on a USB

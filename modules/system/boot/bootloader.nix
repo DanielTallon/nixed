@@ -72,7 +72,7 @@
     boot.loader.limine = {
       enable = true;
       validateChecksums = true;
-      maxGenerations = 10;
+      maxGenerations = 7;
 
       extraConfig = ''
         timeout: 3

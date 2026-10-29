@@ -54,6 +54,15 @@ let
           networking.hostName = "nixos";
           environment.etc."nixed-host".text = name;
           environment.sessionVariables.NH_OS_FLAKE = "/home/${username}/.dotfiles#${name}";
+
+          # Tie each generation to the config that built it, so a rollback
+          # can be traced back to its source without GitHub.
+          # `nixos-rebuild list-generations` / `nixos-version
+          # --configuration-revision` show the commit ("-dirty" if built
+          # with uncommitted changes), and /etc/nixos-config-source is a
+          # read-only copy of the flake's git-tracked files as built.
+          system.configurationRevision = inputs.self.rev or inputs.self.dirtyRev or "unknown";
+          environment.etc."nixos-config-source".source = inputs.self;
         }
         inputs.home-manager.nixosModules.home-manager
         hostModule
