@@ -55,7 +55,102 @@ in
     home-manager.users.${username}.imports = [ hmModule ];
   };
 
-  flake.modules.homeManager.niri = { pkgs, ... }: {
+  flake.modules.homeManager.niri = { lib, pkgs, ... }: {
+    # --- First window on a workspace opens wide ---
+    # Niri can't pick a width by how many windows a workspace has, so this
+    # watches niri's event stream: a window that opens alone on its workspace
+    # is set to the wide preset (2/3); always-center-single-column below puts
+    # it in the middle. When a second window opens there, the wide one goes
+    # back to normal (1/2), unless its width was changed by hand meanwhile.
+    systemd.user.services.niri-first-window-wide = {
+      Unit = {
+        Description = "Open the first window on a Niri workspace wide";
+        After = [ "niri.service" ];
+        PartOf = [ "niri.service" ];
+      };
+      Service = {
+        ExecStart = lib.getExe (pkgs.writers.writePython3Bin "niri-first-window-wide" {
+          flakeIgnore = [ "E501" ];
+        } ''
+          import json
+          import subprocess
+          import time
+
+          NIRI = "${pkgs.niri}/bin/niri"
+          WIDE = "66.667%"
+          NORMAL = "50%"
+
+          windows = {}  # id -> window from the event stream
+          widened = {}  # id -> {"at": time we widened it, "width": its width after}
+
+
+          def width(win):
+              return win["layout"]["tile_size"][0]
+
+
+          def tiled_on(ws, skip):
+              return [w for w in windows.values()
+                      if w["workspace_id"] == ws and not w["is_floating"] and w["id"] != skip]
+
+
+          def set_width(win_id, change):
+              subprocess.run([NIRI, "msg", "action", "set-window-width", "--id", str(win_id), change])
+
+
+          def opened(win):
+              if win["is_floating"] or win["workspace_id"] is None:
+                  return
+              others = tiled_on(win["workspace_id"], win["id"])
+              if not others:
+                  set_width(win["id"], WIDE)
+                  widened[win["id"]] = {"at": time.monotonic(), "width": None}
+              elif len(others) == 1 and others[0]["id"] in widened:
+                  first = widened.pop(others[0]["id"])
+                  if first["width"] is None or abs(width(others[0]) - first["width"]) < 1:
+                      set_width(others[0]["id"], NORMAL)
+
+
+          def layout_changed(win_id, layout):
+              windows[win_id]["layout"] = layout
+              state = widened.get(win_id)
+              if state is None:
+                  return
+              # Resizes just after ours are ours (and its animation); later ones
+              # mean the width was changed by hand, so leave it alone from then on.
+              if time.monotonic() - state["at"] < 1:
+                  state["width"] = layout["tile_size"][0]
+              elif state["width"] is not None and abs(layout["tile_size"][0] - state["width"]) >= 1:
+                  del widened[win_id]
+
+
+          stream = subprocess.Popen([NIRI, "msg", "--json", "event-stream"],
+                                    stdout=subprocess.PIPE, text=True)
+          for line in stream.stdout:
+              event = json.loads(line)
+              if "WindowsChanged" in event:
+                  windows = {w["id"]: w for w in event["WindowsChanged"]["windows"]}
+              elif "WindowOpenedOrChanged" in event:
+                  win = event["WindowOpenedOrChanged"]["window"]
+                  old = windows.get(win["id"])
+                  windows[win["id"]] = win
+                  if old is None:
+                      opened(win)
+                  elif old["workspace_id"] != win["workspace_id"] or old["is_floating"] != win["is_floating"]:
+                      widened.pop(win["id"], None)
+              elif "WindowClosed" in event:
+                  windows.pop(event["WindowClosed"]["id"], None)
+                  widened.pop(event["WindowClosed"]["id"], None)
+              elif "WindowLayoutsChanged" in event:
+                  for win_id, layout in event["WindowLayoutsChanged"]["changes"]:
+                      if win_id in windows:
+                          layout_changed(win_id, layout)
+          raise SystemExit(stream.wait() or 1)
+        '');
+        Restart = "on-failure";
+      };
+      Install.WantedBy = [ "niri.service" ];
+    };
+
     # --- Noctalia ---
     # Files in ~/.config/noctalia are the base config; changes made in
     # Noctalia's settings window go to ~/.local/state/noctalia and win.
@@ -157,6 +252,8 @@ in
       layout {
           gaps 12
           center-focused-column "never"
+          // A lone window sits in the middle (see niri-first-window-wide above).
+          always-center-single-column
           preset-column-widths {
               proportion 0.33333
               proportion 0.5

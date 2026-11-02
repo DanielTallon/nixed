@@ -13,5 +13,16 @@
       programs.fastfetch.enable = true;
       xdg.configFile."fastfetch/config.jsonc".source = ./config.jsonc;
       xdg.configFile."fastfetch/logo.png".source = logoImage;
+      # "nunny" from the Noctalia Discord, white background made transparent
+      xdg.configFile."fastfetch/logo-niri.png".source = ./logo-niri.png;
+
+      # Swap in the owl logo under Niri; KDE and everything else keep logo.png
+      programs.fish.functions.fastfetch = ''
+        if test "$XDG_CURRENT_DESKTOP" = niri
+          command fastfetch --logo ~/.config/fastfetch/logo-niri.png $argv
+        else
+          command fastfetch $argv
+        end
+      '';
     };
 }

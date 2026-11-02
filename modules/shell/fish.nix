@@ -20,6 +20,12 @@
         #fastfetch
         #fastfetch --config examples/25
         '';
+
+      # Fish 4's default Ctrl+L (scrollback-push clear-screen) keeps the old
+      # output in scrollback. `clear` also sends \e[3J, which wipes it too.
+      functions.fish_user_key_bindings = ''
+        bind ctrl-l 'clear; commandline -f repaint'
+      '';
     };
 
     xdg.configFile."fish/functions/fish_prompt.fish".text = ''
