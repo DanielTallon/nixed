@@ -2,7 +2,13 @@
 # Brave, with its crypto/AI/telemetry extras switched off by policy.
 {
   flake.modules.nixos.brave = { pkgs, ... }: {
-    environment.systemPackages = [ pkgs.brave ];
+    # Keep the key that encrypts cookies and logins in KWallet in every
+    # session. Left alone, Brave picks the keyring from the desktop name:
+    # KWallet in Plasma, but libsecret under Niri, where it can't find the
+    # key and every site signs you out.
+    environment.systemPackages = [
+      (pkgs.brave.override { commandLineArgs = "--password-store=kwallet6"; })
+    ];
 
     # --- Brave Settings ---
     programs.chromium = {

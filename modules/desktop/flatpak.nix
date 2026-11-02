@@ -12,6 +12,13 @@
       onCalendar = "daily";
     };
 
+    # The timer is Persistent, so after a missed day it runs right at boot, before DNS works, and fails
+    # (Restart=on-failure fixes it a minute later, but a switch in that minute reports it as failed).
+    systemd.services.flatpak-managed-install-timer = {
+      wants = [ "network-online.target" ];
+      after = [ "network-online.target" ];
+    };
+
     services.flatpak.packages = [
       "io.github.kolunmi.Bazaar"
     ];

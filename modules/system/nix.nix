@@ -68,6 +68,9 @@
       ];
     };
 
+    # --- envfs: Populate /bin and /usr/bin so hardcoded shebangs/paths resolve ---
+    services.envfs.enable = true;
+
     # nix-index (home-manager half below) answers "command not found" instead.
     programs.command-not-found.enable = false;
 

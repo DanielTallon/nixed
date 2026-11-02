@@ -17,8 +17,30 @@
       # forever: no device list for clients, and a 90s SIGKILL at every
       # shutdown. Still in upstream master as of 2026-10-29.
       # TODO: drop once upstream usbmuxd fixes the lock order.
+      #
+      # FIX: a second hang on the same kind of drop-out, one step earlier: if
+      # the phone is gone before the RX loops start, get_serial_callback()
+      # calls usb_disconnect() from inside a libusb transfer callback, which
+      # re-enters libusb event handling and blocks in libusb_lock_event_waiters
+      # forever. Mark the device dead and let reap_dead_devices() clean up
+      # instead, as rx_callback/tx_callback already do. Still in upstream
+      # master as of 2026-10-31.
+      # TODO: drop once upstream usbmuxd stops disconnecting from the callback.
+      #
+      # FIX: a third hang, on unplugging a phone that was fully connected: if a
+      # read finishes just as the phone goes away, rx_callback() resubmits it,
+      # ignores the failure, and leaves it in rx_xfers. That transfer never
+      # calls back, so usb_disconnect()'s busy-wait spins forever, and the main
+      # loop never gets back to answering clients. Drop the transfer and mark
+      # the device dead when the resubmit fails. Still in upstream master as
+      # of 2026-11-01.
+      # TODO: drop once upstream usbmuxd checks the RX resubmit.
       usbmuxd = pkgs.usbmuxd.overrideAttrs (old: {
-        patches = (old.patches or [ ]) ++ [ lockOrderPatch ];
+        patches = (old.patches or [ ]) ++ [
+          lockOrderPatch
+          serialCallbackPatch
+          rxResubmitPatch
+        ];
       });
 
       # Blank context lines are left empty (not a lone space) so formatters
@@ -41,6 +63,60 @@
          	FOREACH(struct mux_client *client, &client_list) {
          		if(client->state == CLIENT_LISTEN)
          			send_device_add(client, dev);
+      '';
+
+      serialCallbackPatch = pkgs.writeText "usbmuxd-get-serial-callback-no-reentry.patch" ''
+        --- a/src/usb.c
+        +++ b/src/usb.c
+        @@ -302,9 +302,13 @@
+         		usbdev->serial[di+1] = '\0';
+         	}
+
+        +	// We are inside a libusb transfer callback here, so usb_disconnect() would
+        +	// re-enter libusb event handling and hang. Mark the device dead instead and
+        +	// let reap_dead_devices() clean it up, as rx_callback/tx_callback do.
+        +
+         	/* Finish setup now */
+         	if(device_add(usbdev) < 0) {
+        -		usb_disconnect(usbdev);
+        +		usbdev->alive = 0;
+         		return;
+         	}
+
+        @@ -323,8 +327,7 @@
+         	if (rx_loops == NUM_RX_LOOPS) {
+         		usbmuxd_log(LL_FATAL, "Failed to start any RX loop for device %d-%d",
+         					usbdev->bus, usbdev->address);
+        -		device_remove(usbdev);
+        -		usb_disconnect(usbdev);
+        +		usbdev->alive = 0;
+         		return;
+         	} else if (rx_loops > 0) {
+         		usbmuxd_log(LL_WARNING, "Failed to start all %d RX loops. Going on with %d loops. "
+      '';
+
+      rxResubmitPatch = pkgs.writeText "usbmuxd-rx-resubmit-failure.patch" ''
+        --- a/src/usb.c
+        +++ b/src/usb.c
+        @@ -209,7 +209,17 @@
+         	usbmuxd_log(LL_SPEW, "RX callback dev %d-%d len %d status %d", dev->bus, dev->address, xfer->actual_length, xfer->status);
+         	if(xfer->status == LIBUSB_TRANSFER_COMPLETED) {
+         		device_data_input(dev, xfer->buffer, xfer->actual_length);
+        -		libusb_submit_transfer(xfer);
+        +		// If the resubmit fails (the device just went away), this transfer will
+        +		// never call back, and usb_disconnect() would wait for it forever.
+        +		// Drop it and mark the device dead like any other RX failure.
+        +		int res = libusb_submit_transfer(xfer);
+        +		if(res != 0) {
+        +			usbmuxd_log(LL_INFO, "Failed to resubmit RX transfer to device %d-%d: %s", dev->bus, dev->address, libusb_error_name(res));
+        +			free(xfer->buffer);
+        +			collection_remove(&dev->rx_xfers, xfer);
+        +			libusb_free_transfer(xfer);
+        +			dev->alive = 0;
+        +		}
+         	} else {
+         		switch(xfer->status) {
+         			case LIBUSB_TRANSFER_COMPLETED: //shut up compiler
       '';
     in
     {

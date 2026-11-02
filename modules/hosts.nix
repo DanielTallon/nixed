@@ -170,6 +170,7 @@ in
       ../hosts/desktop/gpu.nix # hasNvidia, written by the bootstrap app
       ../hosts/desktop/dualboot.nix # Windows entry, written by the bootstrap app
       ../hosts/desktop/locale.nix # timezone/language/keyboard, from the nixed installer
+      config.flake.modules.nixos.niri # Niri + Noctalia as a second login session (modules/desktop/niri.nix)
 
       {
         system.stateVersion = "25.11";

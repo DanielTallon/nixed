@@ -28,6 +28,7 @@
       ''}
       Hidden=false
       X-GNOME-Autostart-enabled=true
+      OnlyShowIn=KDE;
     '';
   };
 }

@@ -178,7 +178,7 @@
             },
             "keyIcon": "",
             "key": "║{#red}│ {icon}  Clang     │{$4}│{#keys}║{$2}",
-            "text": "clang --version | sed -n 's/.*version \\([0-9][0-9.]*\\).*/\\1/p'",
+            "text": "command -v clang >/dev/null && clang --version | sed -n 's/.*version \\([0-9][0-9.]*\\).*/\\1/p'",  // Hidden when not installed
             "format": "clang {}"
         },
         {
@@ -202,7 +202,7 @@
             "type": "command",
             "keyIcon": "",
             "key": "║{#red}│ {icon}  Go        │{$4}│{#keys}║{$2}",
-            "text": "go version | cut -d' ' -f3",
+            "text": "command -v go >/dev/null && go version | cut -d' ' -f3",  // Hidden when not installed
             "format": "go {~2}"                               // {~2} removes first 2 characters (go)
         },
         {

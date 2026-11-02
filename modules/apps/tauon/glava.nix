@@ -7,8 +7,14 @@
         name = "tauon-with-glava";
         runtimeInputs = [ pkgs.procps ];
         text = ''
+          # GLava only in Plasma: niri can't keep it behind windows and tiles
+          # it, so the Niri session uses Noctalia's visualizer instead.
           started_glava=0
-          if ! pgrep -x glava >/dev/null; then
+          case "''${XDG_CURRENT_DESKTOP:-}" in
+            *KDE*) want_glava=1 ;;
+            *) want_glava=0 ;;
+          esac
+          if [ "$want_glava" -eq 1 ] && ! pgrep -x glava >/dev/null; then
             ${pkgs.glava}/bin/glava &
             glava_pid=$!
             started_glava=1
