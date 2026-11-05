@@ -10,13 +10,14 @@
 #
 # To drop it: remove this file and its line in modules/hosts.nix, then
 # nh os switch. Leftovers in ~/.config/noctalia and ~/.local/state/noctalia
-# can be deleted by hand.
+# can be deleted by hand, and so can the noctalia/ and niri/ folders next to
+# this file.
 { config, ... }:
 let
   hmModule = config.flake.modules.homeManager.niri;
 in
 {
-  flake.modules.nixos.niri = { lib, pkgs, username, ... }: {
+  flake.modules.nixos.niri = { config, lib, pkgs, username, ... }: {
     programs.niri.enable = true;
 
     # --- Niri is the default session ---
@@ -47,19 +48,41 @@ in
       systemd.enable = true;
       systemd.target = "niri.service";
     };
+    # Apps started from Noctalia's launcher run inside noctalia.service and get
+    # its environment, not the environment block in niri/config.kdl. Without
+    # these, Qt apps (KCalc etc.) fall back to light Breeze, not kdeglobals.
+    systemd.user.services.noctalia.environment = {
+      QT_QPA_PLATFORMTHEME = "kde";
+      XDG_MENU_PREFIX = "plasma-";
+    };
+    # KDE's portal draws the Open/Save dialogs for every app. It's started by
+    # D-Bus/systemd, not by niri, so it misses the variable above too and
+    # draws them in light Breeze instead of the kdeglobals color scheme.
+    # A drop-in: the unit itself comes from the package via the system profile.
+    systemd.user.services.plasma-xdg-desktop-portal-kde = {
+      overrideStrategy = "asDropin";
+      environment.QT_QPA_PLATFORMTHEME = "kde";
+    };
 
     environment.systemPackages = [
       pkgs.xwayland-satellite # X11 apps (Steam, older games); niri starts it on demand
+      pkgs.nirimod # GUI config editor; saves to niri/config.kdl in this repo
+      # Volume of the focused app (keybinds in niri/config.kdl, with Mod+Alt)
+      (pkgs.writeShellApplication {
+        name = "app-volume";
+        runtimeInputs = with pkgs; [ niri jq procps pipewire wireplumber gawk libnotify ];
+        text = builtins.readFile ../../scripts/app-volume.sh;
+      })
     ];
 
     home-manager.users.${username}.imports = [ hmModule ];
   };
 
-  flake.modules.homeManager.niri = { lib, pkgs, ... }: {
+  flake.modules.homeManager.niri = { config, lib, pkgs, ... }: {
     # --- First window on a workspace opens wide ---
     # Niri can't pick a width by how many windows a workspace has, so this
     # watches niri's event stream: a window that opens alone on its workspace
-    # is set to the wide preset (2/3); always-center-single-column below puts
+    # is set to the wide preset (2/3); always-center-single-column in config.kdl puts
     # it in the middle. When a second window opens there, the wide one goes
     # back to normal (1/2), unless its width was changed by hand meanwhile.
     systemd.user.services.niri-first-window-wide = {
@@ -153,8 +176,17 @@ in
 
     # --- Noctalia ---
     # Files in ~/.config/noctalia are the base config; changes made in
-    # Noctalia's settings window go to ~/.local/state/noctalia and win.
+    # Noctalia's settings window go to its settings.toml and win.
     # The wallpaper picker draws the wallpaper, so Noctalia doesn't.
+
+    # settings.toml is linked to noctalia/settings.toml in this repo (not
+    # copied into the Nix store), so changes made in the settings window
+    # land in ~/.dotfiles right away, ready to commit. Noctalia saves
+    # through the link and reloads when the repo file is edited by hand.
+    xdg.stateFile."noctalia/settings.toml".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/.dotfiles/modules/desktop/noctalia/settings.toml";
+
     xdg.configFile."noctalia/wallpaper.toml".text = ''
       [wallpaper]
       enabled = false
@@ -165,6 +197,11 @@ in
     # media widget, and as a desktop widget along the bottom of DP-1.
     xdg.configFile."noctalia/layout.toml".text = ''
       [bar.default]
+#       position = "bottom"
+      position = "top"
+      thickness = 40        # bar height in pixels
+      font_scale = 1.5      # text size on this bar
+      scale = 1.1           # icons and widgets on this bar
       start = [ "launcher", "wallpaper", "workspaces" ]
       center = [ "clock" ]
       end = [
@@ -181,6 +218,10 @@ in
           "control-center",
           "session"
       ]
+      [widget.clock]
+        format = "{:%a, %b %-d  %-I:%M %p}"  # Mon, Nov 2  9:15 PM
+      [widget.network]
+        show_label = false  # icon only, no Wi-Fi network name
 
       [dock]
       enabled = true
@@ -220,189 +261,28 @@ in
     '';
 
     # --- Niri ---
-    # `niri validate` checks this file; niri reloads it live on save, but
-    # this one is a store link, so edit here and nh os switch.
-    xdg.configFile."niri/config.kdl".text = ''
-      input {
-          keyboard {
-              xkb {
-                  layout "us"
-              }
-              numlock
-          }
-          mouse {
-              accel-profile "flat"
-          }
-          focus-follows-mouse max-scroll-amount="0%"
-      }
+    # config.kdl is linked to niri/config.kdl in this repo (not copied into
+    # the Nix store), so changes saved in NiriMod land in ~/.dotfiles right
+    # away, ready to commit. NiriMod saves through the link (it writes to
+    # the file the link points at), and niri reloads it live on save.
+    xdg.configFile."niri/config.kdl".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/.dotfiles/modules/desktop/niri/config.kdl";
 
-      // Same layout as Plasma: the 1080p screen on the left, the ultrawide
-      // on the right, bottom edges lined up.
-      output "DP-3" {
-          mode "1920x1080@60.000"
-          scale 1
-          position x=0 y=0
-      }
-      output "DP-1" {
-          mode "3440x1440@143.923"
-          scale 1.35
-          position x=1920 y=13
-      }
-
-      layout {
-          gaps 12
-          center-focused-column "never"
-          // A lone window sits in the middle (see niri-first-window-wide above).
-          always-center-single-column
-          preset-column-widths {
-              proportion 0.33333
-              proportion 0.5
-              proportion 0.66667
-          }
-          default-column-width { proportion 0.5; }
-          focus-ring {
-              width 3
-              active-color "#00aaff"
-              inactive-color "#44475a"
-          }
-          border {
-              off
-          }
-          // Glow, like the blue Breeze shadow in Plasma (plasma.nix): a
-          // centered shadow in the focus-ring blue, dimmer on unfocused windows.
-          shadow {
-              on
-              softness 30
-              spread 4
-              offset x=0 y=0
-              color "#00aaffcc"
-              inactive-color "#00aaff40"
-          }
-      }
-
-      prefer-no-csd
-      screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
-
-      environment {
-          // Qt apps use the Plasma theme, colors and icons (kdeglobals).
-          QT_QPA_PLATFORMTHEME "kde"
-          XDG_MENU_PREFIX "plasma-"
-      }
-
-      // Autostart entries (~/.config/autostart, /etc/xdg/autostart) run here
-      // too, through systemd: that covers the wallpaper picker and KWallet's
-      // unlock. KDE's password prompt is marked KDE-only, so start it here.
-      spawn-at-startup "${pkgs.kdePackages.polkit-kde-agent-1}/libexec/polkit-kde-authentication-agent-1"
-
-      window-rule {
-          geometry-corner-radius 10
-          clip-to-geometry true
-      }
-      window-rule {
-          match app-id="org.kde.konsole"
-          opacity 0.95
-      }
-
-      binds {
-          Mod+Shift+Slash { show-hotkey-overlay; }
-
-          // Apps (Konsole keys match Plasma's)
-          Mod+Return hotkey-overlay-title="Konsole" { spawn "konsole"; }
-          Ctrl+Alt+T { spawn "konsole"; }
-          Mod+E hotkey-overlay-title="Dolphin" { spawn "dolphin"; }
-          Mod+K hotkey-overlay-title="Kate" { spawn "kate"; }
-          Mod+Space hotkey-overlay-title="Wallpaper picker" { spawn "wallpaperpicker" "toggle"; }
-
-          // Noctalia
-          Mod+D hotkey-overlay-title="Launcher" { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
-          Mod+S hotkey-overlay-title="Control center" { spawn "noctalia" "msg" "panel-toggle" "control-center"; }
-          Mod+Comma hotkey-overlay-title="Noctalia settings" { spawn "noctalia" "msg" "settings-toggle"; }
-
-          XF86AudioRaiseVolume allow-when-locked=true { spawn "noctalia" "msg" "volume-up"; }
-          XF86AudioLowerVolume allow-when-locked=true { spawn "noctalia" "msg" "volume-down"; }
-          XF86AudioMute        allow-when-locked=true { spawn "noctalia" "msg" "volume-mute"; }
-          XF86AudioMicMute     allow-when-locked=true { spawn "noctalia" "msg" "mic-mute"; }
-
-          // Windows
-          Mod+Q repeat=false { close-window; }
-          Alt+F4 repeat=false { close-window; }
-          Mod+O repeat=false { toggle-overview; }
-          Mod+MouseMiddle { toggle-overview; }
-
-          Mod+Left  { focus-column-left; }
-          Mod+Right { focus-column-right; }
-          Mod+Up    { focus-window-or-workspace-up; }
-          Mod+Down  { focus-window-or-workspace-down; }
-          Mod+H     { focus-column-left; }
-          Mod+L     { focus-column-right; }
-          Mod+J     { focus-window-or-workspace-down; }
-          Mod+I     { focus-window-or-workspace-up; }
-
-          Mod+Shift+Left  { move-column-left; }
-          Mod+Shift+Right { move-column-right; }
-          Mod+Shift+Up    { move-window-up-or-to-workspace-up; }
-          Mod+Shift+Down  { move-window-down-or-to-workspace-down; }
-
-          // Mouse wheel: Mod+wheel scrolls through columns, with Ctrl it
-          // carries the column along. Workspaces are on Mod+Shift+wheel below.
-          // The Left/Right ones are for tilt wheels.
-          Mod+WheelScrollDown      { focus-column-right; }
-          Mod+WheelScrollUp        { focus-column-left; }
-          Mod+Ctrl+WheelScrollDown { move-column-right; }
-          Mod+Ctrl+WheelScrollUp   { move-column-left; }
-          Mod+WheelScrollRight     { focus-column-right; }
-          Mod+WheelScrollLeft      { focus-column-left; }
-
-          Mod+Home { focus-column-first; }
-          Mod+End  { focus-column-last; }
-
-          // Monitors
-          Mod+Ctrl+Left        { focus-monitor-left; }
-          Mod+Ctrl+Right       { focus-monitor-right; }
-          Mod+Shift+Ctrl+Left  { move-column-to-monitor-left; }
-          Mod+Shift+Ctrl+Right { move-column-to-monitor-right; }
-
-          // Workspaces
-          Mod+Page_Down       { focus-workspace-down; }
-          Mod+Page_Up         { focus-workspace-up; }
-          Mod+Shift+Page_Down { move-column-to-workspace-down; }
-          Mod+Shift+Page_Up   { move-column-to-workspace-up; }
-          Mod+Shift+WheelScrollDown      cooldown-ms=150 { focus-workspace-down; }
-          Mod+Shift+WheelScrollUp        cooldown-ms=150 { focus-workspace-up; }
-          Mod+Ctrl+Shift+WheelScrollDown cooldown-ms=150 { move-column-to-workspace-down; }
-          Mod+Ctrl+Shift+WheelScrollUp   cooldown-ms=150 { move-column-to-workspace-up; }
-          Mod+1 { focus-workspace 1; }
-          Mod+2 { focus-workspace 2; }
-          Mod+3 { focus-workspace 3; }
-          Mod+4 { focus-workspace 4; }
-          Mod+5 { focus-workspace 5; }
-          Mod+Shift+1 { move-column-to-workspace 1; }
-          Mod+Shift+2 { move-column-to-workspace 2; }
-          Mod+Shift+3 { move-column-to-workspace 3; }
-          Mod+Shift+4 { move-column-to-workspace 4; }
-          Mod+Shift+5 { move-column-to-workspace 5; }
-
-          // Column sizing
-          Mod+BracketLeft  { consume-or-expel-window-left; }
-          Mod+BracketRight { consume-or-expel-window-right; }
-          Mod+R       { switch-preset-column-width; }
-          Mod+F       { maximize-column; }
-          Mod+Shift+F { fullscreen-window; }
-          Mod+C       { center-column; }
-          Mod+V       { toggle-window-floating; }
-          Mod+Minus   { set-column-width "-10%"; }
-          Mod+Equal   { set-column-width "+10%"; }
-          Mod+W       { toggle-column-tabbed-display; }
-
-          // Screenshots
-          Print      { screenshot; }
-          Ctrl+Print { screenshot-screen; }
-          Alt+Print  { screenshot-window; }
-
-          // Session
-          Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
-          Mod+Shift+E { quit; }
-      }
-    '';
+    # KDE's password prompt, for apps that ask for admin rights. Its autostart
+    # entry is marked KDE-only, so it's started here for niri instead of from
+    # config.kdl, which has to stay free of Nix store paths.
+    systemd.user.services.niri-polkit-agent = {
+      Unit = {
+        Description = "KDE polkit authentication agent for Niri";
+        After = [ "niri.service" ];
+        PartOf = [ "niri.service" ];
+      };
+      Service = {
+        ExecStart = "${pkgs.kdePackages.polkit-kde-agent-1}/libexec/polkit-kde-authentication-agent-1";
+        Restart = "on-failure";
+      };
+      Install.WantedBy = [ "niri.service" ];
+    };
   };
 }

@@ -65,6 +65,15 @@
       nix-packages.wallpaperpicker  # started on login by the autostart entry below
     ];
 
+    # --- Image viewer ---
+    # Open pictures (LocalSend, Dolphin, xdg-open) in Gwenview instead of
+    # whatever claims them first (GIMP). GIMP keeps its own .xcf files.
+    xdg.mime.defaultApplications = lib.genAttrs [
+      "image/avif" "image/bmp" "image/gif" "image/heif" "image/jpeg"
+      "image/jxl" "image/png" "image/svg+xml" "image/tiff" "image/webp"
+      "image/x-ico" "image/x-tga"
+    ] (_: "org.kde.gwenview.desktop");
+
     # --- Alternative Desktop Environments (commented out) ---
     # GNOME
     # services.displayManager.gdm.enable = true;

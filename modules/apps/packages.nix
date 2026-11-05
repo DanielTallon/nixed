@@ -46,7 +46,7 @@
       imagemagick
       jq
       lact
-      (onlyoffice-desktopeditors.override { gtk2 = null; }) # nixpkgs still lists gtk2, which it never uses; drop the override once nixpkgs does
+      onlyoffice-desktopeditors
       pkgs-stable.inetutils #Watch Star Wars with telnet towel.blinkenlights.nl
       pass
       pdfarranger

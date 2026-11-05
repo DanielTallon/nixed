@@ -6,6 +6,10 @@
       kdePackages.kate
       nixd
     ];
+    # Open .nix files in Kate (Dolphin, xdg-open). This is the system-wide
+    # default in /etc/xdg/mimeapps.list; ~/.config/mimeapps.list wins if it
+    # ever sets text/x-nix too.
+    xdg.mime.defaultApplications."text/x-nix" = "org.kde.kate.desktop";
   };
 
   flake.modules.homeManager.kate = { lib, pkgs, ... }: {

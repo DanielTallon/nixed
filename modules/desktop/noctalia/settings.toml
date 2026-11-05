@@ -1,0 +1,222 @@
+config_version = 16
+
+[accessibility]
+ui_scale = 1.2000000104308128
+
+[bar.default]
+background_opacity = 0.4999999888241291
+center = [ "group:g1" ]
+end = [
+    "weather",
+    "clipboard",
+    "volume",
+    "brightness",
+    "battery",
+    "control-center",
+    "tray",
+    "notifications",
+    "network",
+    "bluetooth",
+    "clock",
+    "session"
+]
+margin_ends = 25
+padding = 20
+
+    [[bar.default.capsule_group]]
+    accordion = false
+    accordion_direction = "end"
+    border_width = 1.0
+    enabled = true
+    fill = "surface_container"
+    id = "g1"
+    members = [ "media", "audio_visualizer" ]
+    opacity = 1.0
+    padding = 6.0
+
+[control_center]
+width = 680
+
+[desktop_widgets]
+schema_version = 2
+widget_order = [ "desktop-widget-0000000000000002" ]
+
+    [desktop_widgets.grid]
+    cell_size = 32
+    major_interval = 4
+    visible = false
+
+    [desktop_widgets.widget.desktop-widget-0000000000000002]
+    box_height = 218.0
+    box_width = 2499.0
+    cx = 1274.0
+    cy = 1064.0
+    output = "DP-1"
+    placement_height = 1067.0
+    placement_width = 2548.0
+    rotation = 0.0
+    type = "audio_visualizer"
+
+        [desktop_widgets.widget.desktop-widget-0000000000000002.settings]
+        background = false
+        bands = 128
+        centered = true
+        color_1 = "secondary"
+        color_2 = "secondary"
+        mirrored = true
+        reversed = false
+        show_wave = false
+        show_when_idle = true
+
+[dock]
+background_opacity = 0.4999999888241291
+enabled = true
+icon_size = 40
+main_axis_padding = 10
+
+[location]
+
+[lockscreen]
+blur_intensity = 0.34999999217689037
+
+[lockscreen_widgets]
+enabled = false
+schema_version = 2
+widget_order = [ "lockscreen-login-box@DP-3", "lockscreen-login-box@DP-1" ]
+
+    [lockscreen_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-1"]
+    box_height = 196.0
+    box_width = 810.0
+    cx = 1274.0
+    cy = 885.0
+    output = "DP-1"
+    placement_height = 1067.0
+    placement_width = 2548.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-1".settings]
+        background_color = "surface_container"
+        background_opacity = 0.88
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-3"]
+    box_height = 196.0
+    box_width = 810.0
+    cx = 960.0
+    cy = 898.0
+    output = "DP-3"
+    placement_height = 1080.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-3".settings]
+        background_color = "surface_container"
+        background_opacity = 0.88
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+[shell]
+time_format = "{:%-I:%M %p}"
+
+    [shell.launcher]
+    default_view = "all"
+    fetch_exchange_rates = false
+
+    [shell.panel]
+    launcher_placement = "attached"
+    launcher_position = "auto"
+
+    [shell.screenshot]
+    remember_last_region = true
+
+[theme]
+builtin = "Noctalia"
+community_palette = "Oxocarbon"
+mode = "dark"
+source = "builtin"
+wallpaper_scheme = "m3-content"
+
+[wallpaper.default]
+path = "/nix/store/5brnkh7ijg7s16c146hp2k2lhkz7p4ir-noctalia-5.4.0/share/noctalia/assets/noctalia-wallpaper.png"
+
+[wallpaper.last]
+path = "/nix/store/5brnkh7ijg7s16c146hp2k2lhkz7p4ir-noctalia-5.4.0/share/noctalia/assets/noctalia-wallpaper.png"
+
+[weather]
+unit = "imperial"
+
+[widget.audio_visualizer]
+bands = 100
+reversed = true
+width = 500
+
+[widget.battery]
+enabled = false
+
+[widget.brightness]
+enabled = false
+
+[widget.clipboard]
+enabled = false
+
+[widget.clock]
+font_scale = 0.85000000000000009
+scale = 0.85000000000000009
+
+[widget.control-center]
+enabled = false
+
+[widget.launcher]
+custom_image = "/run/current-system/sw/share/icons/hicolor/scalable/apps/nix-snowflake.svg"
+glyph = "brand-snowflake"
+scale = 1.3500000000000001
+
+[widget.media]
+art_size = 20
+hide_artist = true
+hide_when_no_media = true
+max_length = 200
+title_scroll = "on_hover"
+
+[widget.notifications]
+enabled = false
+
+[widget.volume]
+enabled = false
+
+[widget.wallpaper]
+enabled = false
+
+[widget.weather]
+font_scale = 0.85000000000000009
+scale = 0.85000000000000009
