@@ -130,6 +130,7 @@ let
     "iphone"
     "librewolf"
     "packages"
+    "spotify"
     "tauon"
 
     # --- Gaming ---

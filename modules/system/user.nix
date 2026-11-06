@@ -14,6 +14,9 @@
     };
 
     users.groups.${username} = { };
+
+    # Only wheel members can even execute the sudo binary.
+    security.sudo.execWheelOnly = true;
   };
 
   flake.modules.homeManager.user = { lib, username, ... }: {
