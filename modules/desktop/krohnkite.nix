@@ -36,7 +36,7 @@
       "kwinrc"."Script-krohnkite"."notificationDuration" = 500;
     };
 
-    # Meta+Return launches Konsole (see konsole.nix); unbind Krohnkite's
+    # Meta+Return launches Ghostty (see ghostty.nix); unbind Krohnkite's
     # default "Set master" so the two don't fight over it.
     programs.plasma.shortcuts.kwin."KrohnkiteSetMaster" = [ ];
   };

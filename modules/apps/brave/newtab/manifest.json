@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Cyberpunk Rain New Tab",
+  "description": "Replaces the new tab page with an animated pixel-art city in the rain.",
+  "version": "1.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArRFq3aPG+0RzHXaRvt7kS6ZcUk0sCf4c3sLzNPKsmd6Ko+5IPPnDFyEHPF/epcbeXvLgsjagntDu7+TaZ3jlH3T0vg4eKee3T5lo8K1zUy4AoSOSWerz3y2n0mbjtYfERHqcBA3q2lipZNXpkuMeCm8rNViAzFbIlFh59uWxPDzonkvOJAVZIEf3A70j+Lh4v9tI4YidhxQ1DdZU4BLApnDDLCIMEGyaS8mm0O65HW6AxkqQiL3xVUuhCDYqU00ikiZWcWkl3RiCnjoH7QfhmT25PvWyrsZR5gko5eB7ldCn5NiTYwOy9zwG4ZR4gFnq+pbJhTGvL/rb0eTxoZ0M9QIDAQAB",
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  }
+}

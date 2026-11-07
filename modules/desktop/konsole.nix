@@ -100,7 +100,7 @@
         "KonsoleWindow"."RememberWindowSize" = false;
       };
 
-      programs.plasma.shortcuts."services/org.kde.konsole.desktop"."_launch" = [ "Ctrl+Alt+T" "Meta+Return" ];
+      programs.plasma.shortcuts."services/org.kde.konsole.desktop"."_launch" = [ "Ctrl+Alt+T" ]; # Meta+Return opens Ghostty (ghostty.nix)
 
       # Hide both toolbars (main + session: New Tab / Split View / Copy / Paste / Find).
       # KDE 6 keeps toolbar visibility only inside Qt's saveState() blob in

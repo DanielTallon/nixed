@@ -22,6 +22,7 @@ end = [
 ]
 margin_ends = 25
 padding = 20
+start = [ "launcher", "workspaces" ]
 
     [[bar.default.capsule_group]]
     accordion = false
@@ -93,7 +94,7 @@ widget_order = [ "lockscreen-login-box@DP-3", "lockscreen-login-box@DP-1" ]
     box_height = 196.0
     box_width = 810.0
     cx = 1274.0
-    cy = 885.0
+    cy = 884.99993896484375
     output = "DP-1"
     placement_height = 1067.0
     placement_width = 2548.0
@@ -157,6 +158,7 @@ time_format = "{:%-I:%M %p}"
     launcher_position = "auto"
 
     [shell.screenshot]
+    region_modifier = "super"
     remember_last_region = true
 
 [theme]
@@ -178,6 +180,7 @@ unit = "imperial"
 [widget.audio_visualizer]
 bands = 100
 reversed = true
+show_when_idle = true
 width = 500
 
 [widget.battery]

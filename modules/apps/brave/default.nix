@@ -1,13 +1,25 @@
-# /.dotfiles/modules/apps/brave.nix
-# Brave, with its crypto/AI/telemetry extras switched off by policy.
+# /.dotfiles/modules/apps/brave/default.nix
+# Brave, with its crypto/AI/telemetry extras switched off by policy, and a
+# cyberpunk look: an animated new tab page (./newtab) plus matching colors (./theme).
 {
   flake.modules.nixos.brave = { pkgs, ... }: {
-    # Keep the key that encrypts cookies and logins in KWallet in every
-    # session. Left alone, Brave picks the keyring from the desktop name:
-    # KWallet in Plasma, but libsecret under Niri, where it can't find the
-    # key and every site signs you out.
     environment.systemPackages = [
-      (pkgs.brave.override { commandLineArgs = "--password-store=kwallet6"; })
+      (pkgs.brave.override {
+        commandLineArgs = builtins.concatStringsSep " " [
+          # Keep the key that encrypts cookies and logins in KWallet in every
+          # session. Left alone, Brave picks the keyring from the desktop name:
+          # KWallet in Plasma, but libsecret under Niri, where it can't find the
+          # key and every site signs you out.
+          "--password-store=kwallet6"
+
+          # Load both extensions straight from the Nix store on every launch.
+          # The "key" in each manifest pins its ID, so Brave sees the same
+          # extension after a rebuild even though the store path changes.
+          # To try a different animation, replace newtab/cyberpunk-rain.gif
+          # (any GIF works; it's cropped to fill the tab).
+          "--load-extension=${./newtab},${./theme}"
+        ];
+      })
     ];
 
     # --- Brave Settings ---

@@ -20,6 +20,34 @@ in
   flake.modules.nixos.niri = { config, lib, pkgs, username, ... }: {
     programs.niri.enable = true;
 
+    # Backport of niri-wm/niri#3004 (merged 2026-10-19, after 26.04), which
+    # adds layout { fullscreen-backdrop-color }, with its default changed from
+    # black to transparent so fullscreen windows stay see-through (Ghostty).
+    # The default is patched instead of setting the key in niri/config.kdl:
+    # an unpatched niri (an older generation, or a `test` build after a
+    # reboot) rejects the key and falls back to niri's default config, which
+    # drops every keybind in config.kdl.
+    # TODO: once nixpkgs ships a niri release newer than 26.04, drop this and
+    # put `fullscreen-backdrop-color "transparent"` in config.kdl's layout.
+    programs.niri.package = pkgs.niri.overrideAttrs (old: {
+      patches = (old.patches or [ ]) ++ [
+        (pkgs.fetchpatch {
+          name = "niri-fullscreen-backdrop-color.patch";
+          url = "https://github.com/niri-wm/niri/commit/58d213e6e910a825ecf374d3903ee5a3d71abaa2.patch";
+          excludes = [ "docs/*" ];
+          hash = "sha256-ostQeHGUwrustnccwC6xvIVyTpMK85yHNmvkMOA9ago=";
+        })
+      ];
+      postPatch = (old.postPatch or "") + ''
+        substituteInPlace niri-config/src/layout.rs --replace-fail \
+          'fullscreen_backdrop_color: Color::from_array_unpremul([0., 0., 0., 1.])' \
+          'fullscreen_backdrop_color: Color::from_array_unpremul([0., 0., 0., 0.])'
+        # parse()'s snapshot test checks that default too
+        sed -i '/fullscreen_backdrop_color: Color {/,/}/ s/a: 1\.0,/a: 0.0,/' niri-config/src/lib.rs
+        grep -A4 'fullscreen_backdrop_color: Color {' niri-config/src/lib.rs | grep -q 'a: 0.0,'
+      '';
+    });
+
     # --- Niri is the default session ---
     # SDDM's autologin and preselected session. Set back to "plasma" to make
     # Plasma the default again.
@@ -70,10 +98,20 @@ in
       # Volume of the focused app (keybinds in niri/config.kdl, with Mod+Alt)
       (pkgs.writeShellApplication {
         name = "app-volume";
-        runtimeInputs = with pkgs; [ niri jq procps pipewire wireplumber gawk libnotify ];
+        runtimeInputs = with pkgs; [ config.programs.niri.package jq procps pipewire wireplumber gawk libnotify ];
         text = builtins.readFile ../../scripts/app-volume.sh;
       })
+      # Silent screen recording toggle (Shift+Print in niri/config.kdl)
+      (pkgs.writeShellApplication {
+        name = "screen-record";
+        runtimeInputs = with pkgs; [ config.programs.niri.package jq procps libnotify coreutils ];
+        text = builtins.readFile ../../scripts/screen-record.sh;
+      })
     ];
+
+    # Installs gpu-screen-recorder with the setcap wrapper it needs to capture
+    # a monitor without a portal prompt. Used by screen-record above.
+    programs.gpu-screen-recorder.enable = true;
 
     home-manager.users.${username}.imports = [ hmModule ];
   };

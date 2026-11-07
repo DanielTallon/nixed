@@ -105,6 +105,7 @@ let
     # --- Desktop ---
     "display"
     "flatpak"
+    "ghostty"
     "kate"
     "konsole"
     "krohnkite"
@@ -132,6 +133,7 @@ let
     "packages"
     "spotify"
     "tauon"
+    "vlc"
 
     # --- Gaming ---
     "gaming"

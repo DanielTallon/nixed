@@ -72,7 +72,7 @@
       #pkgs-stable.openshot-qt #Video Editing
       parabolic
 #       pkgs-stable.obs-studio
-      pkgs-stable.vlc
+      # VLC is in vlc.nix
 
       # --- Utilities ---
       dysk

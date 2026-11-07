@@ -50,6 +50,9 @@ layout {
         proportion 0.66667
     }
     default-column-width { proportion 0.5; }
+    // Fullscreen windows have no solid backdrop: niri.nix patches niri's
+    // default for that. Don't add fullscreen-backdrop-color here until niri
+    // ships it in a release (see the TODO in niri.nix).
     focus-ring {
         width 3
         active-color "#00aaff"
@@ -92,12 +95,19 @@ window-rule {
     match app-id="org.kde.konsole"
     opacity 0.95
 }
+// Ghostty draws its own (undecorated) window, so niri would fill the focused
+// one with a solid focus-ring-blue background and hide its transparency.
+// Konsole lets niri decorate it, which skips that background on its own.
+window-rule {
+    match app-id="com.mitchellh.ghostty"
+    draw-border-with-background false
+}
 
 binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
 
-    // Apps (Konsole keys match Plasma's)
-    Mod+Return hotkey-overlay-title="Konsole" { spawn "konsole"; }
+    // Apps (terminal keys match Plasma's)
+    Mod+Return hotkey-overlay-title="Ghostty" { spawn "ghostty"; }
     Ctrl+Alt+T { spawn "konsole"; }
     Mod+E hotkey-overlay-title="Dolphin" { spawn "dolphin"; }
     Mod+K hotkey-overlay-title="Kate" { spawn "kate"; }
@@ -165,10 +175,10 @@ binds {
     Mod+Shift+Ctrl+Right { move-column-to-monitor-right; }
 
     // Workspaces
-    Mod+Page_Down       { focus-workspace-down; }
-    Mod+Page_Up         { focus-workspace-up; }
-    Mod+Shift+Page_Down { move-column-to-workspace-down; }
-    Mod+Shift+Page_Up   { move-column-to-workspace-up; }
+    Mod+Page_Down       { move-column-to-workspace-down; }
+    Mod+Page_Up         { move-column-to-workspace-up; }
+    Mod+Shift+Page_Down { focus-workspace-down; }
+    Mod+Shift+Page_Up   { focus-workspace-up; }
     Mod+Shift+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
     Mod+Shift+WheelScrollUp cooldown-ms=150 { focus-workspace-up; }
     Mod+Ctrl+Shift+WheelScrollDown cooldown-ms=150 { move-column-to-workspace-down; }
@@ -200,6 +210,8 @@ binds {
     Print      { screenshot; }
     Ctrl+Print { screenshot-screen; }
     Alt+Print  { screenshot-window; }
+    // Start/stop a silent recording of the focused monitor (screen-record, see niri.nix)
+    Shift+Print hotkey-overlay-title="Toggle screen recording" { spawn "screen-record"; }
 
     // Session
     Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }

@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Cyberpunk Rain",
+  "description": "Navy and neon browser colors to match the Cyberpunk Rain new tab page.",
+  "version": "1.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8x0OmtmSmbeMqtBlZaF8g7iGHKdEGlKRoNjig7PpWUDybXO7ga2LrwyDnU5y1oxVr4vNHM4yzehP6XIjS46Dgn6YWXaH3OCVx/NEfZvCmZDBvgr7Xw9J8LWcKHAWDAFa4JqCpTkWJ/wWAFU2x1Xz10xvsFhmaFkryDj1h9rONueHMrSG5pCw4iikToH+DdnmbpFFH/kqaMcZkzCLlnBuCLe3KrchwNONQU6cb6nFYLUFvtw3lDm+w0/I+gZjoWFCsNq10t7CZfhXdPFFv7I+1toi2fFOEGUA5waXqasHhj03tPc9gGwFFjwxz9oGvPT7Y5AT65rGcXrj1kiE78zODQIDAQAB",
+  "theme": {
+    "colors": {
+      "frame": [16, 14, 34],
+      "frame_inactive": [12, 11, 26],
+      "frame_incognito": [30, 12, 36],
+      "frame_incognito_inactive": [22, 10, 28],
+
+      "toolbar": [20, 18, 42],
+      "toolbar_text": [232, 228, 255],
+      "toolbar_button_icon": [120, 228, 255],
+
+      "tab_text": [232, 228, 255],
+      "tab_background_text": [148, 140, 196],
+      "tab_background_text_inactive": [112, 106, 150],
+
+      "omnibox_background": [32, 28, 64],
+      "omnibox_text": [232, 228, 255],
+
+      "bookmark_text": [232, 228, 255],
+
+      "ntp_background": [20, 18, 42],
+      "ntp_text": [232, 228, 255],
+      "ntp_link": [255, 92, 200]
+    }
+  }
+}

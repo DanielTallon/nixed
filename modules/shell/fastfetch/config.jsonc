@@ -107,6 +107,15 @@
             "key": "║{#green}│ {icon}  Desktop   │{$4}│{#keys}║{$2}"
         },
         {
+            // Same slot for Noctalia: "de" shows nothing under niri, and this
+            // prints nothing unless Noctalia is running, so Plasma shows only the line above
+            "type": "command",
+            "keyIcon": "\uE23C",                                   // the de module's own icon
+            "key": "║{#green}│ {icon}  Desktop   │{$4}│{#keys}║{$2}",
+            "text": "pgrep -f '/bin/noctalia( |$)' >/dev/null && noctalia --version",
+            "format": "Noctalia {~10}"                         // {~10} drops "noctalia v"
+        },
+        {
             "type": "wm",
             "key": "║{#green}│ {icon}  Session   │{$4}│{#keys}║{$2}"
         },
@@ -213,8 +222,13 @@
             "format": "zig {}"
         },
         {
-            "type": "editor",
-            "key": "║{#red}│ {icon}  Editor    │{$4}│{#keys}║{$2}"
+            // Shows Kate instead of $EDITOR (nano, NixOS's default for
+            // terminal edits like sudoedit), so nano stays the terminal editor
+            "type": "command",
+            "keyIcon": "󱞎",                                     // the editor module's own icon
+            "key": "║{#red}│ {icon}  Editor    │{$4}│{#keys}║{$2}",
+            "text": "kate --version 2>/dev/null",
+            "format": "{}"                                     // already "kate 26.08.2"
         },
         {
             "type": "command",
@@ -254,8 +268,8 @@
                 "!system": "macOS"
             },
             "type": "disk",
-            "keyIcon": "",
-            "key": "║{#magenta}│ {icon}   OS Age    │{$4}│{#keys}║{$2}",
+            "keyIcon": "\uDB80\uDCEB",                       // nf-md-cake_variant (OS birthday)
+            "key": "║{#magenta}│ {icon}  OS Age    │{$4}│{#keys}║{$2}",
             "folders": "/",                                   // Check root filesystem
             "format": "{create-time:10} [{days} days]"        // Show creation time and age in days
         },
@@ -264,7 +278,7 @@
                 "system": "macOS"
             },
             "type": "disk",
-            "keyIcon": "",
+            "keyIcon": "\uDB80\uDCEB",
             "key": "║{#magenta}│ {icon}  OS Age    │{$4}│{#keys}║{$2}",
             "folders": "/System/Volumes/VM",                 // Work around for APFS on macOS
             "format": "{create-time:10} [{days} days]"
