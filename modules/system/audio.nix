@@ -1,5 +1,8 @@
 # /.dotfiles/modules/system/audio.nix
-# PipeWire (with PulseAudio/JACK/ALSA shims) and the audio tools.
+# PipeWire (with PulseAudio/ALSA shims) and the audio tools. JACK apps run
+# through PipeWire with `pw-jack <app>` (e.g. `pw-jack ardour`). The global
+# `jack.enable` shim is deprecated: it puts PipeWire's libjack on everyone's
+# LD_LIBRARY_PATH.
 {
   flake.modules.nixos.audio = { pkgs, ... }: {
     services.pulseaudio.enable = false;
@@ -9,7 +12,6 @@
       alsa.enable = true;
       alsa.support32Bit = true;
       pulse.enable = true;
-      jack.enable = true;
       wireplumber.enable = true;
     };
 
@@ -21,6 +23,7 @@
     environment.systemPackages = with pkgs; [
       easyeffects
       headsetcontrol
+      pipewire.jack # pw-jack, for the occasional JACK-only app
     ];
   };
 }

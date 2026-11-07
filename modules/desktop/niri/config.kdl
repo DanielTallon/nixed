@@ -27,7 +27,8 @@ cursor {
 }
 
 // Same layout as Plasma: the 1080p screen on the left, the ultrawide
-// on the right, bottom edges lined up.
+// on the right, bottom edges lined up. The ultrawide is the primary
+// screen: niri focuses it at startup, so the first windows open there.
 output "DP-3" {
     mode "1920x1080@60.000"
     scale 1
@@ -37,6 +38,7 @@ output "DP-1" {
     mode "3440x1440@143.923"
     scale 1.35
     position x=1920 y=13
+    focus-at-startup
 }
 
 layout {
