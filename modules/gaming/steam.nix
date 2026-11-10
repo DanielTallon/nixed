@@ -42,6 +42,19 @@
     # --- Gameing: Steam ---
     programs.steam = {
       enable = true;
+      # GameMode for the whole Steam session, so no per-game launch option is needed.
+      # Registers the launcher's own PID with gamemoded right before it execs into
+      # bubblewrap, so that PID becomes Steam's sandbox and stays registered until
+      # Steam fully quits. Renice and core pinning are set before Steam starts, so
+      # Steam and every game it launches inherit them.
+      # (Preloading libgamemodeauto into Steam instead breaks steamwebhelper:
+      # Steam won't start, "unexpected error during startup (0x3009)".)
+      package = pkgs.steam.override {
+        extraPreBwrapCmds = ''
+          ${pkgs.gamemode}/bin/gamemoded -r$$ >/dev/null \
+            || echo "steam: couldn't start GameMode, launching without it" >&2
+        '';
+      };
       remotePlay.openFirewall = true;
       dedicatedServer.openFirewall = true;
       # Steam: faster game installs from another PC on your network

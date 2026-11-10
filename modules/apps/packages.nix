@@ -28,6 +28,17 @@
           '';
         });
       })
+
+      # FIX: rustdesk-flutter 1.5.0 fails with "The system library `libsodium`
+      # required by crate `libsodium-sys` was not found". nixpkgs 44cddf92c4
+      # ("rustPlatform.cargoSetupHook: Force system libs", 2026-10-12) sets
+      # SODIUM_USE_PKG_CONFIG=1 for every Rust build, but the package doesn't
+      # list libsodium. Drop this once nixpkgs adds it to buildInputs.
+      (_final: prev: {
+        rustdesk-flutter = prev.rustdesk-flutter.overrideAttrs (old: {
+          buildInputs = old.buildInputs ++ [ prev.libsodium ];
+        });
+      })
     ];
 
     environment.systemPackages = with pkgs; [

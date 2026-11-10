@@ -44,7 +44,7 @@ output "DP-1" {
 layout {
     gaps 12
     center-focused-column "never"
-    // A lone window sits in the middle (see niri-first-window-wide in niri.nix).
+    // A lone window sits in the middle, widened by niri-lone-window-wide (niri.nix).
     always-center-single-column
     preset-column-widths {
         proportion 0.33333
@@ -111,9 +111,10 @@ binds {
     // Apps (terminal keys match Plasma's)
     Mod+Return hotkey-overlay-title="Ghostty" { spawn "ghostty"; }
     Ctrl+Alt+T { spawn "konsole"; }
+    Ctrl+Alt+Delete hotkey-overlay-title="Task manager (btop)" { spawn "ghostty" "-e" "btop"; }
     Mod+E hotkey-overlay-title="Dolphin" { spawn "dolphin"; }
     Mod+K hotkey-overlay-title="Kate" { spawn "kate"; }
-    Mod+B hotkey-overlay-title="Brave" { spawn "brave"; }
+    Mod+B hotkey-overlay-title="Brave Origin" { spawn "brave-origin"; }
     Mod+Space hotkey-overlay-title="Wallpaper picker" { spawn "wallpaperpicker" "toggle"; }
 
     // Noctalia

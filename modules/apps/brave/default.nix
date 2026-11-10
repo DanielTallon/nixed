@@ -28,6 +28,16 @@
           # To try a different animation, replace newtab/cyberpunk-rain.gif
           # (any GIF works; it's cropped to fill the tab).
           "--load-extension=${./newtab},${./theme}"
+
+          # Cap how much GPU memory Brave allows itself for page tiles (first)
+          # and cached decoded images (second), so it gives VRAM back sooner
+          # while RPG Stories is running. Graphics acceleration stays on.
+          # Video and WebGL aren't covered by these. In a test with three
+          # image-heavy windows Brave stayed at 41 MiB with or without them,
+          # so the effect is unproven; if pages redraw while scrolling back
+          # up, raise the numbers or remove these two lines.
+          "--force-gpu-mem-available-mb=512"
+          "--force-gpu-mem-discardable-limit-mb=256"
         ];
       })
     ];

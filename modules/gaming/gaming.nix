@@ -19,6 +19,15 @@
     };
     users.users.${username}.extraGroups = [ "gamemode" ];
 
+    # --- Gaming: Ananicy ---
+    # Auto-renices known games, Proton and Wine (plus background tasks) without
+    # needing a launch option. GameMode still handles the CPU governor.
+    services.ananicy = {
+      enable = true;
+      package = pkgs.ananicy-cpp;
+      rulesProvider = pkgs.ananicy-rules-cachyos;
+    };
+
     # --- XBox Gaming Controller Support ---
 #     hardware.xone.enable = true;
 #     hardware.xpadneo.enable = true;

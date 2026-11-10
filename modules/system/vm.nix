@@ -178,7 +178,30 @@
             pkgs.swtpm       # TPM 2.0 for Windows 11 guests
             pkgs.virt-viewer # spice-app display (clipboard sharing)
             pkgs.passt       # passt network backend
+            pkgs.trash-cli   # VM Curator deletes with trash-put when it's on PATH;
+                             # without it, VMs pile up in a hidden <library>/.trash
           ];
+
+          # Purge anything trashed more than 30 days ago. trash-empty goes by the
+          # deletion date in each .trashinfo, not file mtimes, so a long-unused VM
+          # trashed today still gets its full 30 days.
+          systemd.user.services.trash-empty-old = {
+            description = "Purge trash older than 30 days";
+            unitConfig.ConditionUser = username;
+            serviceConfig = {
+              Type = "oneshot";
+              ExecStart = "${pkgs.trash-cli}/bin/trash-empty -f 30";
+            };
+          };
+          systemd.user.timers.trash-empty-old = {
+            description = "Daily purge of trash older than 30 days";
+            unitConfig.ConditionUser = username;
+            wantedBy = [ "timers.target" ];
+            timerConfig = {
+              OnCalendar = "daily";
+              Persistent = true;
+            };
+          };
 
           # UEFI firmware. VM Curator's only NixOS path is
           # /run/libvirt/nix-ovmf/OVMF_CODE.fd, but libvirt links QEMU's

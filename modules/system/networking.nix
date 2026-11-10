@@ -68,5 +68,22 @@
       enable = true;
       openFirewall = true;
     };
+
+    # FIX: localsend 1.18.0 won't start ("libz.so.1: cannot open shared object
+    # file") because the main binary is built without zlib on its library path.
+    # This applies the fix from NixOS/nixpkgs#585411 (issue #585072); it turns
+    # itself off once nixpkgs sets runtimeDependencies itself.
+    # TODO: delete this overlay after nixpkgs#585411 lands.
+    nixpkgs.overlays = [
+      (_final: prev: {
+        localsend =
+          if (prev.localsend.runtimeDependencies or [ ]) == [ ] then
+            prev.localsend.overrideAttrs (_old: {
+              runtimeDependencies = [ (prev.lib.getLib prev.zlib) ];
+            })
+          else
+            prev.localsend;
+      })
+    ];
   };
 }

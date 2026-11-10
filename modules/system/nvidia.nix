@@ -82,6 +82,58 @@
             ExecStart = "/run/current-system/sw/bin/nvidia-smi -pm 1";
           };
         };
+        # --- VRAM Warning Notification ---
+        # When the card runs out of video memory, the compositor can't get new
+        # window buffers ("Failed to allocate NVKMS memory for GEM object" in
+        # the kernel log) and a game's window stops updating while the game
+        # keeps running underneath. This checks once a minute and sends one
+        # desktop notification when VRAM use crosses 90%, early enough to save
+        # and restart the game. It re-arms once use drops back below 85%, so a
+        # long session hovering near the line doesn't send a stream of them.
+        systemd.user.services.vram-warning = {
+          description = "Warn when NVIDIA VRAM is nearly full";
+          unitConfig.ConditionPathExists = "/proc/driver/nvidia";
+          path = with pkgs; [ coreutils gawk libnotify procps ];
+          serviceConfig.Type = "oneshot";
+          script = ''
+            smi=/run/current-system/sw/bin/nvidia-smi
+            read -r used total < <($smi --query-gpu=memory.used,memory.total \
+              --format=csv,noheader,nounits | awk -F', ' 'NR==1 {print $1, $2}')
+            [ -n "$total" ] && [ "$total" -gt 0 ] || exit 0
+            pct=$((used * 100 / total))
+            flag="$XDG_RUNTIME_DIR/vram-warning.sent"
+
+            if [ "$pct" -lt 85 ]; then
+              rm -f "$flag"
+              exit 0
+            fi
+            [ "$pct" -ge 90 ] && [ ! -e "$flag" ] || exit 0
+
+            # The three biggest users, by process name.
+            top=$($smi --query-compute-apps=pid,used_memory \
+              --format=csv,noheader,nounits | sort -t, -k2 -n -r | head -3 |
+              while IFS=', ' read -r pid mib; do
+                name=$(ps -o comm= -p "$pid" 2>/dev/null || echo "pid $pid")
+                printf '%s: %s MiB\n' "$name" "$mib"
+              done)
+
+            notify-send --urgency=critical --app-name="VRAM" \
+              --icon=dialog-warning \
+              "GPU memory at $pct% ($used of $total MiB)" \
+              "Save your work. A full card can freeze game windows.
+            $top"
+            touch "$flag"
+          '';
+        };
+        systemd.user.timers.vram-warning = {
+          description = "Check NVIDIA VRAM use every minute";
+          wantedBy = [ "timers.target" ];
+          timerConfig = {
+            OnActiveSec = "1min";
+            OnUnitActiveSec = "1min";
+            AccuracySec = "10s";
+          };
+        };
         environment.sessionVariables = {
           __GLX_VENDOR_LIBRARY_NAME = "nvidia";
           LIBVA_DRIVER_NAME = "nvidia";

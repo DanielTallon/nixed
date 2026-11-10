@@ -117,20 +117,22 @@ in
   };
 
   flake.modules.homeManager.niri = { config, lib, pkgs, ... }: {
-    # --- First window on a workspace opens wide ---
+    # --- A window alone on its workspace goes wide ---
     # Niri can't pick a width by how many windows a workspace has, so this
-    # watches niri's event stream: a window that opens alone on its workspace
-    # is set to the wide preset (2/3); always-center-single-column in config.kdl puts
-    # it in the middle. When a second window opens there, the wide one goes
-    # back to normal (1/2), unless its width was changed by hand meanwhile.
-    systemd.user.services.niri-first-window-wide = {
+    # watches niri's event stream. Whenever a workspace is down to one tiled
+    # window (it opened alone, or the others closed or moved away), that
+    # window is set to the wide preset (2/3); always-center-single-column in
+    # config.kdl puts it in the middle. When another window joins it, the wide
+    # one goes back to normal (1/2). A window whose width was changed by hand
+    # while it was wide is left alone from then on.
+    systemd.user.services.niri-lone-window-wide = {
       Unit = {
-        Description = "Open the first window on a Niri workspace wide";
+        Description = "Widen a window that is alone on its Niri workspace";
         After = [ "niri.service" ];
         PartOf = [ "niri.service" ];
       };
       Service = {
-        ExecStart = lib.getExe (pkgs.writers.writePython3Bin "niri-first-window-wide" {
+        ExecStart = lib.getExe (pkgs.writers.writePython3Bin "niri-lone-window-wide" {
           flakeIgnore = [ "E501" ];
         } ''
           import json
@@ -143,32 +145,33 @@ in
 
           windows = {}  # id -> window from the event stream
           widened = {}  # id -> {"at": time we widened it, "width": its width after}
+          by_hand = set()  # ids resized by hand while wide; never widened again
 
 
           def width(win):
               return win["layout"]["tile_size"][0]
 
 
-          def tiled_on(ws, skip):
-              return [w for w in windows.values()
-                      if w["workspace_id"] == ws and not w["is_floating"] and w["id"] != skip]
-
-
           def set_width(win_id, change):
               subprocess.run([NIRI, "msg", "action", "set-window-width", "--id", str(win_id), change])
 
 
-          def opened(win):
-              if win["is_floating"] or win["workspace_id"] is None:
+          def reconcile(ws):
+              """Widen a lone tiled window on ws, or narrow wide ones that have company."""
+              if ws is None:
                   return
-              others = tiled_on(win["workspace_id"], win["id"])
-              if not others:
-                  set_width(win["id"], WIDE)
-                  widened[win["id"]] = {"at": time.monotonic(), "width": None}
-              elif len(others) == 1 and others[0]["id"] in widened:
-                  first = widened.pop(others[0]["id"])
-                  if first["width"] is None or abs(width(others[0]) - first["width"]) < 1:
-                      set_width(others[0]["id"], NORMAL)
+              tiled = [w for w in windows.values()
+                       if w["workspace_id"] == ws and not w["is_floating"]]
+              if len(tiled) == 1:
+                  win = tiled[0]
+                  if win["id"] not in widened and win["id"] not in by_hand:
+                      set_width(win["id"], WIDE)
+                      widened[win["id"]] = {"at": time.monotonic(), "width": None}
+                  return
+              for win in tiled:
+                  state = widened.pop(win["id"], None)
+                  if state is not None and (state["width"] is None or abs(width(win) - state["width"]) < 1):
+                      set_width(win["id"], NORMAL)
 
 
           def layout_changed(win_id, layout):
@@ -182,6 +185,7 @@ in
                   state["width"] = layout["tile_size"][0]
               elif state["width"] is not None and abs(layout["tile_size"][0] - state["width"]) >= 1:
                   del widened[win_id]
+                  by_hand.add(win_id)
 
 
           stream = subprocess.Popen([NIRI, "msg", "--json", "event-stream"],
@@ -190,17 +194,31 @@ in
               event = json.loads(line)
               if "WindowsChanged" in event:
                   windows = {w["id"]: w for w in event["WindowsChanged"]["windows"]}
+                  for ws in {w["workspace_id"] for w in windows.values()}:
+                      reconcile(ws)
               elif "WindowOpenedOrChanged" in event:
                   win = event["WindowOpenedOrChanged"]["window"]
                   old = windows.get(win["id"])
                   windows[win["id"]] = win
-                  if old is None:
-                      opened(win)
-                  elif old["workspace_id"] != win["workspace_id"] or old["is_floating"] != win["is_floating"]:
+                  if win["is_floating"]:
                       widened.pop(win["id"], None)
+                  if old is None:
+                      reconcile(win["workspace_id"])
+                  elif old["workspace_id"] != win["workspace_id"] or old["is_floating"] != win["is_floating"]:
+                      # Its pixel width changes on a monitor with another
+                      # size or scale; measure it again rather than calling
+                      # that a resize by hand.
+                      if win["id"] in widened:
+                          widened[win["id"]] = {"at": time.monotonic(), "width": None}
+                      reconcile(old["workspace_id"])
+                      reconcile(win["workspace_id"])
               elif "WindowClosed" in event:
-                  windows.pop(event["WindowClosed"]["id"], None)
-                  widened.pop(event["WindowClosed"]["id"], None)
+                  win_id = event["WindowClosed"]["id"]
+                  gone = windows.pop(win_id, None)
+                  widened.pop(win_id, None)
+                  by_hand.discard(win_id)
+                  if gone is not None:
+                      reconcile(gone["workspace_id"])
               elif "WindowLayoutsChanged" in event:
                   for win_id, layout in event["WindowLayoutsChanged"]["changes"]:
                       if win_id in windows:

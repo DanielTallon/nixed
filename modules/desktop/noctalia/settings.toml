@@ -146,6 +146,9 @@ widget_order = [ "lockscreen-login-box@DP-3", "lockscreen-login-box@DP-1" ]
         show_unlock_hint = true
         show_weather = true
 
+[notification]
+background_opacity = 0.89999997988343239
+
 [shell]
 time_format = "{:%-I:%M %p}"
 
