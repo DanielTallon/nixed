@@ -127,6 +127,24 @@
       };
       users.users.${username}.extraGroups = [ "usbmux" ];
 
+      # FIX: the first plug-in after each boot never connected. Plugging in an
+      # iPhone makes udev load apple_mfi_fastcharge, a whole-device driver, and
+      # once it registers the kernel unbinds the phone from the generic USB
+      # driver and rebinds it. That happens right after usbmuxd has switched
+      # the phone to its usbmux configuration, so usbmuxd loses the device
+      # mid-setup (and can even throw away the pair record). On the second
+      # plug-in the module is already loaded, so nothing rebinds. Load it at
+      # boot so the first plug-in looks like the second. (ipheth, the USB
+      # tethering driver, only binds one interface, so it loads late safely.)
+      boot.kernelModules = [ "apple_mfi_fastcharge" ];
+
+      # With Personal Hotspot on, a plugged-in iPhone shows up as a wired
+      # network (ipheth). NetworkManager would auto-connect it, and as "wired"
+      # it outranks Wi-Fi, so all traffic goes out over the phone's cellular
+      # data. Don't auto-create a connection for it; tethering on purpose
+      # still works by adding a profile for the device by hand.
+      networking.networkmanager.settings.main.no-auto-default = "driver:ipheth";
+
       environment.systemPackages = [
         iphone-music-sync
         pkgs.ifuse

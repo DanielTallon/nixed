@@ -91,9 +91,24 @@ That's it. `usbmuxd`, `ifuse`, `rsync` and `libimobiledevice` all come with the 
 iphone-music-sync -n                  # dry run: shows what would be copied/deleted, changes nothing
 iphone-music-sync                     # sync your music folder to the phone
 iphone-music-sync ~/Somewhere/Else    # sync a different folder
+iphone-music-sync -i                  # show the plugged-in phone's name and UDID
 ```
 
 Keep the phone unlocked while it runs. Afterwards, open VLC on the phone and check the **Audio** tab. If edited tags don't show up right away, fully close VLC and reopen it.
+
+### More than one phone
+
+To sync a different folder to each phone (say, a friend's iPhone gets her own music and not yours), list the phones in `~/.config/iphone-music-sync/phones`, one per line:
+
+```
+# UDID                      FOLDER          APP (optional)
+00008110-001A2B3C4D5E6F70   ~/Music
+00008030-00456789ABCDEF01   ~/FriendMusic   org.videolan.vlc-ios
+```
+
+Plug each phone in and run `iphone-music-sync -i` to get its UDID. The app column is optional (VLC if left out), and `ifuse -u UDID --list-apps` shows the app IDs that phone can take. Folder paths can't contain spaces.
+
+Once the file exists, a plain `iphone-music-sync` looks up whichever phone is plugged in and syncs its folder, and **refuses any phone that isn't listed**, so a new phone never gets your library by accident. Plug in one phone at a time; it refuses if it sees more than one. A folder given on the command line still overrides the file. Keep each phone's folder outside the others (e.g. not `~/Music/Friend` inside your `~/Music`), or it will get copied to both phones.
 
 ### How it behaves
 
@@ -111,7 +126,7 @@ Run `iphone-music-sync -n` first the very first time, and after any big cleanup,
 
 Two environment variables, if you need them:
 
-- `IPHONE_MUSIC_APP`: the app to sync into (default `org.videolan.vlc-ios`). Run `ifuse --list-apps` with the phone connected to find other apps' IDs.
+- `IPHONE_MUSIC_APP`: the app to sync into (default: the phone's app from the phones file, or `org.videolan.vlc-ios`). Run `ifuse --list-apps` with the phone connected to find other apps' IDs.
 - `IPHONE_MUSIC_SUBDIR`: the folder inside the app (default `Music`).
 
 Don't want any of this? Remove the `"iphone"` line from `features` in `modules/hosts.nix`.
@@ -142,4 +157,4 @@ A first full backup can take an hour or more. Before you start it, set the phone
 
 ## License
 
-Feel free to use, adapt, or borrow from anything here.
+[MIT](LICENSE). Feel free to use, adapt, or borrow from anything here.

@@ -171,11 +171,14 @@ mode = "dark"
 source = "builtin"
 wallpaper_scheme = "m3-content"
 
-[wallpaper.default]
-path = "/nix/store/5brnkh7ijg7s16c146hp2k2lhkz7p4ir-noctalia-5.4.0/share/noctalia/assets/noctalia-wallpaper.png"
+[wallpaper]
+fill_mode = "fit"
 
-[wallpaper.last]
-path = "/nix/store/5brnkh7ijg7s16c146hp2k2lhkz7p4ir-noctalia-5.4.0/share/noctalia/assets/noctalia-wallpaper.png"
+    [wallpaper.default]
+    path = "/nix/store/5brnkh7ijg7s16c146hp2k2lhkz7p4ir-noctalia-5.4.0/share/noctalia/assets/noctalia-wallpaper.png"
+
+    [wallpaper.last]
+    path = "/nix/store/5brnkh7ijg7s16c146hp2k2lhkz7p4ir-noctalia-5.4.0/share/noctalia/assets/noctalia-wallpaper.png"
 
 [weather]
 unit = "imperial"

@@ -90,6 +90,7 @@ let
     "bluetooth"
     "bootloader"
     "chaotic"
+    "hardening"
     "hardware"
     "kernel"
     "locale"

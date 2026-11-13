@@ -104,6 +104,14 @@ window-rule {
     match app-id="com.mitchellh.ghostty"
     draw-border-with-background false
 }
+// Discord (and Vesktop) also draw their own frames, so they need the same
+// background fix or the focused window turns blue behind the transparency.
+window-rule {
+    match app-id="^discord$"
+    match app-id="^vesktop$"
+    opacity 0.92
+    draw-border-with-background false
+}
 
 binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
@@ -120,6 +128,7 @@ binds {
     // Noctalia
     Mod+D hotkey-overlay-title="Launcher" { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
     Mod+S hotkey-overlay-title="Control center" { spawn "noctalia" "msg" "panel-toggle" "control-center"; }
+    Mod+M hotkey-overlay-title="Media" { spawn "noctalia" "msg" "panel-toggle" "control-center" "media"; }
     Mod+Comma hotkey-overlay-title="Noctalia settings" { spawn "noctalia" "msg" "settings-toggle"; }
     Mod+X hotkey-overlay-title="Power menu" { spawn "noctalia" "msg" "panel-toggle" "session"; }
 

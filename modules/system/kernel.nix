@@ -44,7 +44,7 @@
         type = lib.types.enum kernelProviders;
 
 
-                                      default = "zen";
+                                      default = "xanmod";
 
 
         description = "Kernel provider used for the default (non-specialised) boot entry.";

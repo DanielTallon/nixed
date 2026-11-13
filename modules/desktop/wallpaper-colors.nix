@@ -1,6 +1,8 @@
 # /.dotfiles/modules/desktop/wallpaper-colors.nix
 #---Desktop colors from the wallpaper---
-# One switch, useMatugen below:
+# Two switches, below:
+#
+# useMatugen
 #   false - Plasma's own "accent color from wallpaper": highlights, selection
 #           and focus follow the wallpaper, everything else stays Breeze Dark.
 #   true  - matugen (run by the wallpaper picker on every wallpaper it sets)
@@ -8,12 +10,37 @@
 #           button, header, selection and title-bar colors, plus the picker's
 #           own UI. Always dark; it never switches you to a light scheme.
 #
-# After changing it: nh os switch, then log out and back in. Plasma only picks
-# the change up at login (the matching startup script below runs once).
+# matugenScheme (only with useMatugen = true): how bold the colors are.
+# From most muted to boldest, with average saturation on a few of my own
+# wallpapers (0 = gray, 1 = fully saturated):
+#   scheme-monochrome  0.00  No color at all: grays only, whatever the wallpaper.
+#   scheme-neutral     0.16  Barely tinted grays.
+#   scheme-tonal-spot  0.53  matugen's default. Soft, pastel and a bit dusty.
+#   scheme-smart       0.53  Picks a style for each wallpaper; on mine it came
+#                            out the same as tonal spot.
+#   scheme-rainbow     0.60  Like tonal spot, with a stronger deep accent.
+#   scheme-fidelity    0.63  Sticks closest to the wallpaper's actual colors,
+#                            third color included (often a warm gold or orange).
+#   scheme-content     0.64  Like fidelity, but the third color is a pink
+#                            rather than taken from the wallpaper.
+#   scheme-expressive  0.68  Bold, but moves the hues around: blue wallpapers
+#                            get green accents. Least like the wallpaper.
+#   scheme-vibrant     0.79  Bold and keeps the wallpaper's hues. Picked.
+#   scheme-fruit-salad 0.89  Boldest, but leans everything toward blue/cyan,
+#                            so a purple wallpaper gives a blue scheme.
+#
+# The picker runs matugen itself, so it has its own copy of this setting:
+# matugenScheme in nix-packages' wallpaperpicker/wallpaperpicker.nix. Set
+# both to the same style, or the picker's swatch cards won't match what a
+# wallpaper actually sets. The one here only covers the login re-apply below.
+#
+# After changing either: nh os switch, then log out and back in. Plasma only
+# picks the change up at login (the matching startup script below runs once).
 {
   flake.modules.homeManager.wallpaperColors = { config, pkgs, lib, inputs, ... }:
   let
     useMatugen = true;
+    matugenScheme = "scheme-vibrant";
 
     system = pkgs.stdenv.hostPlatform.system;
     wallpaperpicker = inputs.nix-packages.packages.${system}.wallpaperpicker;
@@ -145,7 +172,7 @@
           ${kwriteconfig} --file kdeglobals --group General --key AccentColor --delete
           # The current wallpaper's scheme now, rather than at the next one picked.
           if [ -e "$HOME/.cache/current_wallpaper" ]; then
-            ${pkgs.matugen}/bin/matugen image "$HOME/.cache/current_wallpaper" --source-color-index 0
+            ${pkgs.matugen}/bin/matugen image "$HOME/.cache/current_wallpaper" --type ${matugenScheme} --source-color-index 0
           fi
         '' else ''
           ${applyColorScheme} ${config.programs.plasma.workspace.colorScheme}
