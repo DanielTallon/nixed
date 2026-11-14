@@ -1,7 +1,7 @@
 # /.dotfiles/modules/system/networking.nix
 # NetworkManager, Avahi, encrypted DNS and LocalSend.
 {
-  flake.modules.nixos.networking = { options, pkgs, lib, username, ... }: {
+  flake.modules.nixos.networking = { config, options, pkgs, lib, username, ... }: {
     networking.networkmanager.enable = true;
     users.users.${username}.extraGroups = [ "networkmanager" ];
 
@@ -64,8 +64,10 @@
 
     # --- LocalSend ---
     # Opens TCP/UDP 53317 so phones can find this PC and send files to it.
+    # Left out of the -firstboot build: on unstable the overlay below makes
+    # it a local Flutter compile (see firstBoot in modules/hosts.nix).
     programs.localsend = {
-      enable = true;
+      enable = !config.custom.firstBoot;
       openFirewall = true;
     };
 
@@ -76,8 +78,11 @@
     # TODO: delete this overlay after nixpkgs#585411 lands.
     nixpkgs.overlays = [
       (_final: prev: {
+        # 1.18.0+ only: 26.05's localsend 1.17.0 starts fine and is in
+        # cache.nixos.org; overriding it would mean compiling it locally.
         localsend =
-          if (prev.localsend.runtimeDependencies or [ ]) == [ ] then
+          if prev.lib.versionAtLeast prev.localsend.version "1.18.0"
+            && (prev.localsend.runtimeDependencies or [ ]) == [ ] then
             prev.localsend.overrideAttrs (_old: {
               runtimeDependencies = [ (prev.lib.getLib prev.zlib) ];
             })

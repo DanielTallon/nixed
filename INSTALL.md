@@ -38,6 +38,10 @@ space"), and internet.
    `~/.dotfiles`, hardware config, NVIDIA and Windows detection, your
    timezone/language/keyboard into `hosts/<host>/locale.nix`,
    `nixos-rebuild boot`), then reboots into the real config.
+8. Run `nh os switch` once. The install leaves out the few apps that no
+   binary cache has (Flow, and RustDesk and LocalSend on unstable), so
+   the first build is nearly all downloads; this adds them. See "Apps left
+   out of the first build" below.
 
 If stage 2 fails, fix the cause and run `bash /etc/nixos/nixed-stage2.sh`
 (it also retries at the next tty1 login). Logs: `/var/log/nixed-install.log`
@@ -117,6 +121,15 @@ live session. (`test` isn't enough either. It doesn't survive a reboot.)
 
 Reboot into the new generation. From here on, use `switch` (or
 `nh os switch`) for normal rebuilds.
+
+### Apps left out of the first build
+
+The bootstrap builds `<host>-firstboot`, not `<host>`: the same config
+minus the apps that would compile from source because no binary cache has
+them (they're wrapped in `lib.optionals (!config.custom.firstBoot)`; see
+`firstBoot` in `modules/hosts.nix`). Your first `nh os switch` builds the
+full host and adds them. Expect that one to take a while. To build
+everything during the install instead, run the bootstrap with `NIXED_FULL=1`.
 
 ## Afterwards
 

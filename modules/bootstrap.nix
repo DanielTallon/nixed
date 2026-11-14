@@ -18,9 +18,12 @@
 #      (writes hosts/<host>/dualboot.nix)
 #   3. swap the placeholder username for yours (public copy only)
 #   4. build the system with nom (live dependency tree), then
-#      `nixos-rebuild boot` — then you reboot into the real config
+#      `nixos-rebuild boot` — then you reboot into the real config.
+#      It builds <host>-firstboot, which leaves out the few apps that
+#      compile from source; the first `nh os switch` adds them.
 #
 # Overrides: NIXED_REPO=<git url>  NIXED_REF=<branch>  NIXED_DEST=<path>
+#            NIXED_FULL=1 (build the full <host> now, compiles included)
 # Also stage 2 of the no-Calamares installer (modules/installer.nix).
 # See INSTALL.md for the full install walkthrough.
 {
@@ -156,28 +159,40 @@
           # yet; pass both for this first build (root is a trusted user).
           # warn-dirty: the hardware config and username edits are
           # intentionally left uncommitted, so skip the "Git tree is dirty" noise.
-          # The config itself adds these caches (nix-caches.nix),
+          # The config itself adds these caches (modules/system/nix.nix),
           # but only once it's installed; this first build has to be
           # told about them. Keep this list in sync with that file:
           #   nix-community  most flake inputs' packages
+          #   danieltallon  nix-packages (flow-desktop etc.)
           nixconf="experimental-features = nix-command flakes
-          extra-substituters = https://nix-community.cachix.org
-          extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+          extra-substituters = https://nix-community.cachix.org https://danieltallon.cachix.org
+          extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= danieltallon.cachix.org-1:SZgjnye3onVT+RjHyc4LgDAhTVCJTf+9MZnSXxANFVs=
           warn-dirty = false"
 
 
 
+          # Build "<host>-firstboot": the full config minus the few packages
+          # no binary cache has, so this is nearly all downloads. The first
+          # `nh os switch` after reboot adds them (firstBoot in
+          # modules/hosts.nix). NIXED_FULL=1 builds everything now instead.
+          target="$host-firstboot"
+          if [ "''${NIXED_FULL:-0}" = 1 ]; then target="$host"; fi
+
           # `boot`, not `switch`: the real kernel/NVIDIA setup differs from
           # Calamares' defaults, so don't activate it in the live session.
-          echo "==> Building $host. This can take a while."
+          echo "==> Building $target. This can take a while."
           sudo env NIX_CONFIG="$nixconf" PATH="$PATH" \
-            nom build "$dest#nixosConfigurations.$host.config.system.build.toplevel" --no-link
+            nom build "$dest#nixosConfigurations.$target.config.system.build.toplevel" --no-link
 
           echo "==> Installing boot entry"
-          sudo env NIX_CONFIG="$nixconf" nixos-rebuild boot --flake "$dest#$host"
+          sudo env NIX_CONFIG="$nixconf" nixos-rebuild boot --flake "$dest#$target"
 
           echo
           echo "Done. Reboot to start the real config. Use 'nh os switch' from then on."
+          if [ "$target" != "$host" ]; then
+            echo "Your first 'nh os switch' also builds the apps left out for now"
+            echo "(Flow, RustDesk, LocalSend), which compile from source and take a while."
+          fi
         '';
       });
     };

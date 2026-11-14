@@ -7,7 +7,7 @@
   # there. On nixos-stable (base `pkgs` = 26.05) it's the real opt-in:
   # `pkgs-unstable.somePackage` for the occasional package you want off unstable.
 
-  flake.modules.nixos.packages = { config, pkgs, pkgs-stable, pkgs-unstable, inputs, ... }:
+  flake.modules.nixos.packages = { config, lib, pkgs, pkgs-stable, pkgs-unstable, inputs, ... }:
   let
     system = pkgs.stdenv.hostPlatform.system;
     nix-packages = inputs.nix-packages.packages.${system};
@@ -34,10 +34,17 @@
       # ("rustPlatform.cargoSetupHook: Force system libs", 2026-10-12) sets
       # SODIUM_USE_PKG_CONFIG=1 for every Rust build, but the package doesn't
       # list libsodium. Drop this once nixpkgs adds it to buildInputs.
+      # Only 1.5.0+ (unstable) needs it: on 26.05, rustdesk 1.4.5 builds fine
+      # and is in cache.nixos.org, and overriding it anyway turns that download
+      # into a 20+ minute local compile.
       (_final: prev: {
-        rustdesk-flutter = prev.rustdesk-flutter.overrideAttrs (old: {
-          buildInputs = old.buildInputs ++ [ prev.libsodium ];
-        });
+        rustdesk-flutter =
+          if lib.versionAtLeast prev.rustdesk-flutter.version "1.5.0" then
+            prev.rustdesk-flutter.overrideAttrs (old: {
+              buildInputs = old.buildInputs ++ [ prev.libsodium ];
+            })
+          else
+            prev.rustdesk-flutter;
       })
     ];
 
@@ -94,7 +101,7 @@
 
       # --- My packages (DanielTallon/nix-packages) ---
       # boot-gardener and wallpaperpicker sit with the features that use them.
-      nix-packages.flow-desktop       # registers the flow:// link handler too
+      # flow-desktop is with the slow-to-build packages below.
       nix-packages.kenku-fm
       nix-packages.lgl-papercutter
 
@@ -102,11 +109,15 @@
       (pkgs.btop.override { cudaSupport = config.hasNvidia; }) #BTop (GPU stats on NVIDIA hosts)
       mission-center
 
-      # --- Remote IT & Monitoring ---
-      rustdesk-flutter
-
       # --- Notes & Recording ---
       obsidian
+    ]
+    # Not in any binary cache, so a fresh install would compile them: skipped
+    # in the -firstboot build and added by the first normal `nh os switch`
+    # (see firstBoot in modules/hosts.nix).
+    ++ lib.optionals (!config.custom.firstBoot) [
+      nix-packages.flow-desktop # registers the flow:// link handler too
+      rustdesk-flutter          # Remote IT; only compiles on unstable (1.5.0 overlay above)
     ];
 
     # --- AppImage support ---

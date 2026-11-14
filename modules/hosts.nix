@@ -44,12 +44,27 @@ let
   # the bootstrap app) which nixosConfigurations entry this machine is.
   # `name` is that entry; it's written to /etc/nixed-host and NH_OS_FLAKE
   # points nh at it, so a plain `nh os switch` builds the right one.
-  mkHost = { name, nixpkgs, hostModule, extraArgs ? { } }:
+  #
+  # firstBoot = true makes the `<name>-firstboot` entry the installer builds:
+  # the same machine minus the few packages no binary cache has (they're
+  # wrapped in `lib.optionals (!config.custom.firstBoot)` where they're
+  # listed). A fresh install is then almost all downloads. /etc/nixed-host
+  # and NH_OS_FLAKE still say `name`, so the first normal `nh os switch`
+  # builds the full config and adds those packages.
+  mkHost = { name, nixpkgs, hostModule, extraArgs ? { }, firstBoot ? false }:
     let args = { inherit inputs pkgs-stable pkgs-unstable username; } // extraArgs;
     in nixpkgs.lib.nixosSystem {
       specialArgs = args;
       modules = [
         { nixpkgs.hostPlatform = system; }
+        {
+          options.custom.firstBoot = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+            description = "Leave out packages that would compile from source (the installer's first build).";
+          };
+          config.custom.firstBoot = firstBoot;
+        }
         {
           networking.hostName = "nixos";
           environment.etc."nixed-host".text = name;
@@ -238,16 +253,20 @@ in
     imports = featureModules "homeManager";
   };
 
-  flake.nixosConfigurations.nixos = mkHost {
-    name = "nixos";
-    nixpkgs = inputs.nixpkgs;
-    hostModule = config.flake.modules.nixos.desktop;
-  };
-
-  flake.nixosConfigurations.nixos-stable = mkHost {
-    name = "nixos-stable";
-    nixpkgs = inputs.nixpkgs-stable;
-    hostModule = config.flake.modules.nixos.nixosStable;
-
-  };
+  flake.nixosConfigurations = lib.concatMapAttrs
+    (name: host: {
+      ${name} = mkHost (host // { inherit name; });
+      # What the installer builds first (see firstBoot above mkHost).
+      "${name}-firstboot" = mkHost (host // { inherit name; firstBoot = true; });
+    })
+    {
+      nixos = {
+        nixpkgs = inputs.nixpkgs;
+        hostModule = config.flake.modules.nixos.desktop;
+      };
+      nixos-stable = {
+        nixpkgs = inputs.nixpkgs-stable;
+        hostModule = config.flake.modules.nixos.nixosStable;
+      };
+    };
 }
