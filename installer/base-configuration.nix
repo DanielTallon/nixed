@@ -48,6 +48,27 @@
   # running out of memory and hanging (the base system has no swap otherwise).
   zramSwap.enable = true;
 
+  # Stage 2 compiles some big packages from source when they aren't in the
+  # binary cache (rustdesk, localsend). With nix's defaults it ran 8 builds
+  # at once, each using every core, and an E14 laptop ran out of memory:
+  # udev and journald died and the build hung. Two builds at a time, two
+  # cores each, is slower but fits in a laptop's RAM. Only this throwaway
+  # base system uses these limits; the real config keeps nix's defaults.
+  nix.settings.max-jobs = 2;
+  nix.settings.cores = 2;
+
+  # If memory still runs out, kill a compiler (the build fails and stage 2
+  # says how to retry) instead of letting the kernel take out system
+  # services and hang the machine. Never pick nix-daemon (it would take every
+  # build with it) or the services that died last time.
+  services.earlyoom = {
+    enable = true;
+    extraArgs = [
+      "--prefer" "^(cc1|cc1plus|rustc|ld|ld.lld|clang|dart|node)$"
+      "--avoid" "^(systemd|systemd-udevd|systemd-journal|nix-daemon|NetworkManager)$"
+    ];
+  };
+
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   environment.systemPackages = [ pkgs.git pkgs.curl ];
 
