@@ -15,7 +15,7 @@
 # without needing mkForce, and keeps the priority hierarchy clean:
 # host defaults -> specialisation overrides.
 {
-  flake.modules.nixos.kernel = { config, lib, pkgs, inputs, ... }:
+  flake.modules.nixos.kernel = { config, options, lib, pkgs, inputs, ... }:
     let
       kernelProviders = [ "chaotic" "latest" "lts" "zen" "xanmod" ];
       # Per-provider config, shared between the default entry and every
@@ -77,6 +77,26 @@
             KERNEL=="ntsync", MODE="0660", TAG+="uaccess"
           '';
         }
+        # --- sched_ext CPU scheduler: scx_lavd ---
+        # Swaps the kernel's CPU scheduler for scx_lavd, the latency-focused
+        # one CachyOS ships for gaming. Needs a 6.12+ kernel with sched_ext,
+        # which every kernelProvider (LTS included) has. If it misbehaves the
+        # kernel drops back to its own scheduler by itself.
+        # Unstable replaced `services.scx` with `services.scx-loader` (the
+        # daemon behind CachyOS's scx-manager; `scxctl` switches schedulers
+        # live); 26.05 still has `services.scx`. Drop the else branch once
+        # nixpkgs-stable has scx-loader too.
+        (if options.services ? scx-loader then {
+          services.scx-loader = {
+            enable = true;
+            config.default_sched = "scx_lavd";
+          };
+        } else {
+          services.scx = {
+            enable = true;
+            scheduler = "scx_lavd";
+          };
+        })
         # --- Default boot entry: whichever provider kernelProvider is set to ---
         # --- Single specialisation: Always offer the LTS kernel ---
 # NOTE: LTS is the fallback specialization. Kernels Zen, Xanmod, both CachyOS builds and Latest all track the same recent upstream release. An upstream regression, or an out-of-tree module like nvidia or zfs failing to build against a new release, will often hit all of them at once. LTS is the only kernel with a separate upstream branch.

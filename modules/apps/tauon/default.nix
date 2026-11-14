@@ -36,6 +36,20 @@
           else
             prev.tauon;
       })
+
+      # FIX: the tag editor only blocks plain left clicks from reaching the UI
+      # underneath it. Double clicks, right/middle clicks, press/release (drag)
+      # and hover went through to the playlist behind it, so a quick double
+      # click in the editor could start playing whatever track was under it.
+      # The patch hides the mouse from everything drawn before the editor and
+      # hands it back right as the editor renders, the same way Tauon's custom
+      # layout mode already does it. Written against tauon 13.0.0; if a newer
+      # version fails to build with it, check whether upstream fixed it and drop it.
+      (_final: prev: {
+        tauon = prev.tauon.overridePythonAttrs (old: {
+          patches = (old.patches or [ ]) ++ [ ./tag-editor-click-through.patch ];
+        });
+      })
     ];
 
     environment.systemPackages = [

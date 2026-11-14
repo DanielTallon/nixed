@@ -181,6 +181,14 @@ in
         programs.gamemode.settings.cpu.pin_cores = "0-15"; # 14700KF P-core threads
         custom.vm.gpuPassthrough.enable = true;
 
+        # Btrfs mount options the nixed installer uses (installer/disk-layout.nix),
+        # which this desktop predates. zstd compression cuts SSD writes and
+        # applies to files written from now on; noatime stops a metadata write
+        # on every file read. Merges with the options in hardware-configuration.nix.
+        fileSystems."/".options = [ "compress=zstd" "noatime" ];
+        fileSystems."/home".options = [ "compress=zstd" "noatime" ];
+        fileSystems."/nix".options = [ "compress=zstd" "noatime" ];
+
         # Secondary NTFS drive (desktop only).
         fileSystems."/smssd" = {
           device = "/dev/disk/by-uuid/E64C9E294C9DF511";

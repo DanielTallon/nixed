@@ -76,7 +76,7 @@
       zenity
 
       # --- Music, Audio, Video ---
-      pkgs-stable.audacity
+#       pkgs-stable.audacity
       spotdl
       deno # Required for spotdl: nix-shell -p spotdl URL
       #pkgs-stable.davinci-resolve #Vdeo Editing

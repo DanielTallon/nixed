@@ -1,0 +1,74 @@
+diff -ru a/src/tauon/t_modules/t_main.py b/src/tauon/t_modules/t_main.py
+--- a/src/tauon/t_modules/t_main.py
++++ b/src/tauon/t_modules/t_main.py
+@@ -61488,6 +61488,13 @@
+ 					inp.mouse_click = False
+ 					gui.message_box = False
+ 
++			# Tag editor: hide the mouse from everything drawn before it, so
++			# clicks and hover don't reach the playlist underneath. It's
++			# handed back just before the editor renders. This runs before the
++			# custom layout stashes the mouse, so its widgets get the hidden copy.
++			if tauon.trans_edit_box.active and gui.mode == GuiMode.MAIN:
++				tauon.trans_edit_box.hold_pointer()
++
+ 			# Enable the garbage collector (since we disabled it during startup)
+ 			if ggc > 0:
+ 				if ggc == 2:
+@@ -63154,6 +63161,7 @@
+ 				if tauon.export_playlist_box.active:
+ 					tauon.export_playlist_box.render()
+ 
++				tauon.trans_edit_box.release_pointer()
+ 				if tauon.trans_edit_box.active:
+ 					tauon.trans_edit_box.render()
+ 
+diff -ru a/src/tauon/t_modules/t_tagedit_ui.py b/src/tauon/t_modules/t_tagedit_ui.py
+--- a/src/tauon/t_modules/t_tagedit_ui.py
++++ b/src/tauon/t_modules/t_tagedit_ui.py
+@@ -60,6 +60,8 @@
+ 		self.window_size = tauon.window_size
+ 		self.show_message = tauon.show_message
+ 		self.active = False
++		# Pointer state hidden from the UI drawn underneath the editor; see hold_pointer().
++		self.held_pointer: tuple[list[float], dict[str, bool]] | None = None
+ 		self.session: TagEditSession | None = None
+ 		self.tracks = []
+ 		self.boxes = {field: (TagTextBox(tauon) if field in VALUE_FIELDS else TextBox2(tauon)) for field in MAIN_FIELDS}
+@@ -2043,6 +2045,36 @@
+ 			self.lookup_scroll = 0
+ 			self.lookup_dragging = False
+ 
++	_HELD_POINTER_FLAGS = ("d_mouse_click", "mouse_down", "mouse_up", "right_click", "level_2_right_click", "middle_click")
++
++	def hold_pointer(self) -> None:
++		"""Hide the mouse from the UI drawn under the editor until release_pointer().
++
++		Plain clicks already reach the editor through level_2_click, but double
++		clicks, right/middle clicks, press/release and hover went straight
++		through to the playlist and panels underneath.
++		"""
++		if not self.active or self.held_pointer is not None:
++			return
++		inp = self.inp
++		self.held_pointer = (
++			list(inp.mouse_position),
++			{name: getattr(inp, name, False) for name in self._HELD_POINTER_FLAGS},
++		)
++		for name in self._HELD_POINTER_FLAGS:
++			setattr(inp, name, False)
++		inp.mouse_position[0] = -3000
++		inp.mouse_position[1] = -3000
++
++	def release_pointer(self) -> None:
++		if self.held_pointer is None:
++			return
++		position, flags = self.held_pointer
++		self.held_pointer = None
++		for name, value in flags.items():
++			setattr(self.inp, name, value)
++		self.inp.mouse_position[0], self.inp.mouse_position[1] = position[0], position[1]
++
+ 	def capture_wheel(self) -> None:
+ 		if self.active:
+ 			wheel = getattr(self.inp, "mouse_wheel", 0)

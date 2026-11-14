@@ -11,6 +11,17 @@
     # --- Printing ---
     services.printing.enable = true;
 
+    # --- Drive health ---
+    # smartd watches the drives' SMART data and warns (journal + wall
+    # message) when one starts failing. `sudo smartctl -a /dev/nvme0n1`
+    # shows a drive's report by hand.
+    services.smartd.enable = true;
+
+    # --- Firmware updates ---
+    # fwupd fetches firmware from LVFS (NVMe drives, some peripherals).
+    # Nothing installs on its own: `fwupdmgr refresh` then `fwupdmgr update`.
+    services.fwupd.enable = true;
+
     # Disk write-back: fewer stalls during large writes (shader caches, game installs)
     boot.kernel.sysctl = {
       "vm.dirty_bytes" = 268435456;            # 256 MB

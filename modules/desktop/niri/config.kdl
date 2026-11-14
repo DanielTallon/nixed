@@ -151,6 +151,9 @@ binds {
     Mod+Q repeat=false { close-window; }
     Alt+F4 repeat=false { close-window; }
     Mod+O repeat=false { toggle-overview; }
+    // Flips the focused window between its window-rule opacity and fully
+    // opaque, e.g. to watch a stream in Discord.
+    Mod+Shift+O repeat=false hotkey-overlay-title="Toggle transparency" { toggle-window-rule-opacity; }
     Mod+MouseMiddle { toggle-overview; }
 
     Mod+Left  { focus-column-left; }
