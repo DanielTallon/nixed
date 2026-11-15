@@ -2,7 +2,9 @@
 # Niri (scrollable-tiling Wayland compositor) with the Noctalia shell, the
 # default session: autologin lands in Niri. Plasma is still installed; log
 # out and choose "Plasma" at the SDDM login screen to use it.
-# Desktop host only (modules/hosts.nix): nixos-26.05 has no Noctalia module.
+# Both hosts (modules/hosts.nix). nixos-26.05 lacks the Noctalia module and
+# nirimod, so on nixos-stable both come from unstable (see `backport` below);
+# the desktop is unaffected.
 #
 # KDE apps (Kate, Konsole, Dolphin, ...) run as-is and keep their settings;
 # they're pointed at the Plasma theme so they look the same in both sessions.
@@ -12,12 +14,24 @@
 # nh os switch. Leftovers in ~/.config/noctalia and ~/.local/state/noctalia
 # can be deleted by hand, and so can the noctalia/ and niri/ folders next to
 # this file.
-{ config, ... }:
+{ config, inputs, ... }:
 let
   hmModule = config.flake.modules.homeManager.niri;
 in
 {
-  flake.modules.nixos.niri = { config, lib, pkgs, username, ... }: {
+  flake.modules.nixos.niri = { config, lib, pkgs, pkgs-unstable, modulesPath, username, ... }:
+  let
+    # True on nixos-26.05, which has no programs.noctalia module. There the
+    # module file is taken from unstable nixpkgs as-is, so the service is the
+    # same as on the desktop, and so is Noctalia itself: 26.05's noctalia is
+    # 5.0.1, older than the 5.4 that layout.toml and settings.toml are written
+    # for. Noctalia 5 doesn't use Qt, so an unstable build is safe on 26.05.
+    # Checked by file, not option: `imports` can't depend on `options`.
+    backport = !builtins.pathExists (modulesPath + "/programs/wayland/noctalia.nix");
+  in
+  {
+    imports = lib.optional backport "${inputs.nixpkgs}/nixos/modules/programs/wayland/noctalia.nix";
+
     programs.niri.enable = true;
 
     # Backport of niri-wm/niri#3004 (merged 2026-10-19, after 26.04), which
@@ -75,6 +89,8 @@ in
       enable = true;
       systemd.enable = true;
       systemd.target = "niri.service";
+    } // lib.optionalAttrs backport {
+      package = pkgs-unstable.noctalia;
     };
     # Apps started from Noctalia's launcher run inside noctalia.service and get
     # its environment, not the environment block in niri/config.kdl. Without
@@ -94,7 +110,9 @@ in
 
     environment.systemPackages = [
       pkgs.xwayland-satellite # X11 apps (Steam, older games); niri starts it on demand
-      pkgs.nirimod # GUI config editor; saves to niri/config.kdl in this repo
+      # GUI config editor; saves to niri/config.kdl in this repo.
+      # Not in 26.05, so nixos-stable takes it from unstable.
+      (pkgs.nirimod or pkgs-unstable.nirimod)
       # Volume of the focused app (keybinds in niri/config.kdl, with Mod+Alt)
       (pkgs.writeShellApplication {
         name = "app-volume";

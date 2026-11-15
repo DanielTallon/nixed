@@ -189,7 +189,7 @@ in
       ../hosts/desktop/gpu.nix # hasNvidia, written by the bootstrap app
       ../hosts/desktop/dualboot.nix # Windows entry, written by the bootstrap app
       ../hosts/desktop/locale.nix # timezone/language/keyboard, from the nixed installer
-      config.flake.modules.nixos.niri # Niri + Noctalia as a second login session (modules/desktop/niri.nix)
+      config.flake.modules.nixos.niri # Niri + Noctalia, the default session; Plasma stays a choice at login (modules/desktop/niri.nix)
 
       {
         system.stateVersion = "25.11";
@@ -222,6 +222,7 @@ in
       ../hosts/nixos-stable/gpu.nix # hasNvidia, written by the bootstrap app
       ../hosts/nixos-stable/dualboot.nix # Windows entry, written by the bootstrap app
       ../hosts/nixos-stable/locale.nix # timezone/language/keyboard, from the nixed installer
+      config.flake.modules.nixos.niri # Niri + Noctalia, the default session; Plasma stays a choice at login (modules/desktop/niri.nix)
 
       ({ config, lib, ... }: {
         # Assumed fresh install on the 26.05 stable channel — change if this
