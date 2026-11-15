@@ -45,10 +45,16 @@
       # hands it back right as the editor renders, the same way Tauon's custom
       # layout mode already does it. Written against tauon 13.0.0; if a newer
       # version fails to build with it, check whether upstream fixed it and drop it.
+      # 13.0.0+ only: 26.05's tauon 9.1.3 has no t_tagedit_ui.py, so the patch
+      # can't apply there and the nixos-stable build fails.
       (_final: prev: {
-        tauon = prev.tauon.overridePythonAttrs (old: {
-          patches = (old.patches or [ ]) ++ [ ./tag-editor-click-through.patch ];
-        });
+        tauon =
+          if prev.lib.versionAtLeast prev.tauon.version "13.0.0" then
+            prev.tauon.overridePythonAttrs (old: {
+              patches = (old.patches or [ ]) ++ [ ./tag-editor-click-through.patch ];
+            })
+          else
+            prev.tauon;
       })
     ];
 
