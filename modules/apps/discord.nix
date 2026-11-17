@@ -46,7 +46,7 @@
             done
           '';
         });
-        vencord.enable = true;
+        equicord.enable = true;          # Vencord fork; needed for Equicord-only plugins like questify
         krisp.enable = true;
       };
 
@@ -128,6 +128,11 @@
             multiplier = 2.0;
           };
           streamerModeOnStream.enable = true;
+
+          questify = {
+            enable = true;
+            disableQuestsEverything = true;  # remove all Quest UI (tab, banners, promos, badges)
+          };
         };
       };
     };

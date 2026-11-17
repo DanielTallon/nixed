@@ -1,4 +1,4 @@
-config_version = 16
+config_version = 20
 
 [accessibility]
 ui_scale = 1.2000000104308128
@@ -31,7 +31,7 @@ start = [ "launcher", "workspaces" ]
     enabled = true
     fill = "surface_container"
     id = "g1"
-    members = [ "media", "audio_visualizer" ]
+    members = [ "audio_visualizer", "media", "audio_visualizer" ]
     opacity = 1.0
     padding = 6.0
 
@@ -161,14 +161,16 @@ time_format = "{:%-I:%M %p}"
     launcher_position = "auto"
 
     [shell.screenshot]
+    confirm_region = true
+    copy_to_clipboard = true
     region_modifier = "super"
     remember_last_region = true
+    save_to_file = false
 
 [theme]
 builtin = "Noctalia"
 community_palette = "Oxocarbon"
 mode = "dark"
-source = "builtin"
 wallpaper_scheme = "m3-content"
 
 [wallpaper]
@@ -184,10 +186,12 @@ fill_mode = "fit"
 unit = "imperial"
 
 [widget.audio_visualizer]
-bands = 100
+bands = 50
+color_1 = "on_secondary_container"
+color_2 = "hover"
 reversed = true
 show_when_idle = true
-width = 500
+width = 300
 
 [widget.battery]
 enabled = false

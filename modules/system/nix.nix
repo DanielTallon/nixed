@@ -89,6 +89,8 @@
       nix-init  # Generate package derivations from a URL
       nurl      # Generate fetcher calls (with hashes) from a URL
       statix    # Lint .nix files for antipatterns (`statix fix` auto-fixes)
+      nix-tree  # Browse a closure: `nix-tree /run/current-system` (why is X here, how big)
+      nix-fast-build # Evaluate and build in parallel; `nix-fast-build` builds every host (see checks.nix)
     ];
   };
 

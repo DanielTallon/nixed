@@ -1,12 +1,8 @@
 # /.dotfiles/modules/desktop/plasma.nix (Desktop Environment)
 # KDE Plasma 6: the NixOS side (SDDM, Plasma, portals, which KDE apps ship)
 # and the plasma-manager side (effects, window rules, shortcuts, power).
-{ inputs, ... }:
 {
   flake.modules.nixos.plasma = { pkgs, lib, username, ... }:
-  let
-    nix-packages = inputs.nix-packages.packages.${pkgs.stdenv.hostPlatform.system};
-  in
   {
     services.displayManager.sddm.enable = true;
     services.desktopManager.plasma6.enable = true;
@@ -62,7 +58,6 @@
       kdePackages.kcalc    # Traditional scientific calculator
       kdePackages.kdialog
       kdePackages.kolourpaint
-      nix-packages.wallpaperpicker  # started on login by the autostart entry below
     ];
 
     # --- Image viewer ---
@@ -161,12 +156,7 @@
           };
         }
       ];
-      # Wallpaper picker (nix-packages.wallpaperpicker; started by the autostart entry below)
-      hotkeys.commands."wallpaperpicker" = {
-        name = "Wallpaper picker";
-        key = "Meta+Space";
-        command = "wallpaperpicker toggle";
-      };
+      # Wallpaper picker: its Meta+Space shortcut is in wallpaper-picker.nix
       workspace = {
         lookAndFeel = "org.kde.breezedark.desktop";
         colorScheme = "BreezeDark";
@@ -183,7 +173,7 @@
         "kwinrc".Effect-kwin4_effect_geometry_change.Duration = 500;
         "kscreenrc".Config.autoRotate = false;
         "ksmserverrc".General.confirmLogout = false;
-        # Accent color from wallpaper: see wallpaper-colors.nix
+        # Accent color from wallpaper: see wallpaper-picker.nix
 
         "breezerc"."Common" = {
           ShadowSize = "ShadowMedium";
@@ -234,14 +224,5 @@
         lockOnResume = false;
       };
     };
-
-    # --- Wallpaper picker: start it on login (the hotkey above toggles it) ---
-    xdg.configFile."autostart/wallpaperpicker.desktop".text = ''
-      [Desktop Entry]
-      Type=Application
-      Name=wallpaperpicker
-      Exec=wallpaperpicker
-      Icon=preferences-desktop-wallpaper
-    '';
   };
 }

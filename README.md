@@ -7,19 +7,22 @@ A flake-based NixOS + Home Manager config in the dendritic pattern (flake-parts 
 What's in it:
 
 - **Two hosts, one config.** Both share the same system modules and Home Manager profile:
-  - `nixos`: nixos-unstable. My two-monitor desktop: RTX 4070 Super on NVIDIA's newest driver, Zen kernel.
+  - `nixos`: nixos-unstable. My two-monitor desktop: RTX 4070 Super on NVIDIA's newest driver, XanMod kernel.
   - `nixos-stable`: nixos-26.05, LTS kernel, NVIDIA's production driver if there's a card. Any single package can still come from unstable via `pkgs-unstable`.
 - **Hardware detection at install.** The install command checks your PCI devices and writes `hosts/<host>/gpu.nix`, so either host works with or without an NVIDIA card (without one it sets up Intel graphics). It also looks for Windows' boot manager on any EFI partition and adds it to the Limine menu via `hosts/<host>/dualboot.nix`.
-- **Limine with switchable kernels.** Set `kernelProvider` in `modules/system/kernel.nix`: `zen` (default), `xanmod`, `chaotic` (CachyOS), `latest` or `lts`. Unless the default is already LTS, Limine also gets an LTS entry as a fallback, since the others all track the same upstream release and tend to break together. Run `kernel version` to see what each is currently at.
-- **Generation cleanup.** Limine shows the newest 10 generations; `nh` keeps 35 and cleans daily. Boot Gardener, a TUI I wrote, helps manage generations, pin old ones to the boot menu and free up space on `/boot`. With everything as is, I'd make `/boot` 2–3 GB.
+- **Limine with switchable kernels.** Set `kernelProvider` in `modules/system/kernel.nix`: `xanmod` (default), `zen`, `chaotic` (CachyOS), `latest` or `lts`. Unless the default is already LTS, Limine also gets an LTS entry as a fallback, since the others all track the same upstream release and tend to break together. Run `kernel version` to see what each is currently at.
+- **Generation cleanup.** Limine shows the newest 7 generations; `nh` keeps 35 and cleans daily. Boot Gardener, a TUI I wrote, helps manage generations, pin old ones to the boot menu and free up space on `/boot`. With everything as is, I'd make `/boot` 2–3 GB.
 - **Home Manager as a NixOS module**, so user and system config rebuild together as one generation (see [Before you use this](#before-you-use-this)).
-- **KDE Plasma 6** via plasma-manager, with Krohnkite tiling and desktop colors generated from the wallpaper (matugen + my WallpaperPicker).
-- **Gaming:** Steam with Proton-GE, Gamescope, GameMode, MangoHud, Heroic, and per-game Proton DPI overrides.
+- **Niri + Noctalia** as the default session on both hosts: scrollable tiling, the Noctalia shell for the bar, dock and control center, and `nirimod` to edit the Niri config from a GUI. **KDE Plasma 6** stays a choice at the login screen, set up through plasma-manager with Krohnkite tiling. KDE apps look the same in both.
+- **Wallpaper picker:** [my packaged kwepaperpicker](https://github.com/DanielTallon/nix-packages#wallpaperpicker), on Super+Space in both sessions. It draws the wallpaper itself in Niri and hands it to Plasma in Plasma, with transitions either way, and every wallpaper it sets recolors the desktop through matugen. It's set up through the Home Manager module in that repo (`modules/desktop/wallpaper-picker.nix`).
+- **Gaming:** Steam with Proton-GE and [Proton Wineland](https://github.com/DanielTallon/nix-packages#proton-wineland), Gamescope, GameMode, MangoHud, Heroic, per-game Proton DPI overrides, and Lossless Scaling frame generation (`lsfg-vk`, with its GUI). The kernel runs the `scx_lavd` scheduler CachyOS uses for gaming, plus SteamOS's network and scheduler tweaks. Steam Input works under Niri too.
 - **VMs:** virt-manager and VM Curator, with Secure Boot firmware and TPM for Windows 11 guests, plus single-GPU passthrough on the desktop.
-- **Privacy defaults:** DNS-over-TLS to Cloudflare/Google (so the network's DNS is never asked), locked-down Brave policies, and LibreWolf with DRM on for streaming.
-- **Tailscale and RustDesk** for remote support on family machines.
+- **Privacy defaults:** DNS-over-TLS to Cloudflare/Google (so the network's DNS is never asked), Brave Origin (Brave without Rewards, Wallet, VPN, AI or telemetry, packaged in my nix-packages) with the leftover extras switched off by policy, and LibreWolf with DRM on for streaming.
+- **Drive health and firmware:** `smartd` warns when a drive starts failing, and `fwupd` updates firmware when you ask (`fwupdmgr refresh`, then `fwupdmgr update`).
+- **Tailscale and RustDesk** for remote support.
+- **Binary caches**, including [my own Cachix](https://github.com/DanielTallon/nix-packages#binary-cache), so my packages download instead of compiling. `nix-fast-build` builds both hosts in parallel to check them, and `nix-tree` shows what's in a build and why.
 - **`iphone-music-sync`:** one command to mirror your music folder into VLC for iOS over USB, plus `idevicebackup2` for full iPhone backups. No iTunes needed. See [iPhone music sync](#iphone-music-sync).
-- And other personalizations (fish, Konsole, Tauon, Discord via Nixcord, Flatpak with Bazaar, nix-index/comma, zram).
+- And other personalizations (fish, with `trim` and `vol` for cutting songs and changing their volume; Ghostty and Konsole; Tauon, with a fix for its tag editor; Discord via Nixcord; Flatpak with Bazaar; nix-index/comma; zram).
 
 
 ## Quick install
@@ -42,7 +45,7 @@ Or if you would like the same setup on the versioned release branch, run:
 nix run --extra-experimental-features 'nix-command flakes' github:DanielTallon/nixed -- nixos-stable
 ```
 
-Either one clones this repo to `~/.dotfiles`, drops in your machine's hardware config, sets your username, and rebuilds. Reboot when it finishes. The full walkthrough, including disk sizes and my partition layout, is in [INSTALL.md](INSTALL.md).
+Either one clones this repo to `~/.dotfiles`, drops in your machine's hardware config, sets your username, and rebuilds. Reboot when it finishes, then run `nh os switch` once: the install leaves out the few apps no binary cache has (Flow, plus RustDesk and LocalSend on the rolling release), so it's nearly all downloads, and that first switch compiles and adds them. To build everything during the install instead, put `NIXED_FULL=1` in front of the command. The full walkthrough, including disk sizes and my partition layout, is in [INSTALL.md](INSTALL.md).
 
 ### From the minimal ISO (experimental)
 
@@ -52,7 +55,7 @@ Boot the NixOS **minimal** ISO (UEFI), connect with `nmtui` if you're on Wi-Fi, 
 nix run --extra-experimental-features 'nix-command flakes' github:DanielTallon/nixed#install
 ```
 
-It asks which host you want (rolling release or version release), your username and password, and shows the timezone, language and keyboard it detected so you can change them. Then you pick a disk and **it erases that disk** (3 GB FAT32 `/boot` + btrfs `/`, via disko) and installs a small base system. After it shuts down, and you turn your computer back on (without the ISO media anymore), the install continues to runs by itself. One more reboot lands you in the finished setup. The ISO's own disk isn't offered, and a disk with Windows or NTFS on it is refused. You can also build an ISO with the installer already on it: `nix build .#installer-iso`. You can find the details in [INSTALL.md](INSTALL.md#quick-install-no-calamares).
+It asks which host you want (rolling release or version release), your username and password, and shows the timezone, language and keyboard it detected so you can change them. Then you pick a disk and **it erases that disk** (3 GB FAT32 `/boot` + btrfs `/`, via disko) and installs a small base system. After it shuts down, and you turn your computer back on (without the ISO media anymore), the install continues by itself. One more reboot lands you in the finished setup; as above, run `nh os switch` once to add the apps the install left out. The ISO's own disk isn't offered, and a disk with Windows or NTFS on it is refused. You can also build an ISO with the installer already on it: `nix build .#installer-iso`. You can find the details in [INSTALL.md](INSTALL.md#quick-install-no-calamares).
 
 ## Before you use this
 
@@ -150,7 +153,9 @@ A first full backup can take an hour or more. Before you start it, set the phone
 - `flake.nix` / `flake.lock` — flake inputs and outputs
 - `hosts/` — per-machine files (desktop, nixos-stable): hardware config, plus `gpu.nix`, `dualboot.nix` and `locale.nix`, written by the install commands
 - `modules/` — one file per feature, grouped into `system/`, `desktop/`, `shell/`, `dev/`, `apps/` and `gaming/`. A feature file defines `flake.modules.nixos.<name>`, `flake.modules.homeManager.<name>`, or both, so a feature's system and user config live together (Kate and the nixd it uses, Fish and the login shell, Steam and its per-game Proton DPI)
-- `modules/hosts.nix` — the two hosts and the single `features` list both of them get
+- `modules/hosts.nix` — the two hosts and the single `features` list both of them get, plus a `<host>-firstboot` variant of each that the installer builds first
+- `modules/checks.nix` — both hosts as flake checks, for `nix-fast-build`
+- `modules/desktop/niri/` and `modules/desktop/noctalia/` — Niri's `config.kdl` and Noctalia's `settings.toml`, linked into place rather than copied, so changes made in nirimod or Noctalia's settings window land straight in the repo
 - `installer/` — the minimal-ISO installer (disk layout, base system, first-boot stage)
 - `scripts/` — misc helper scripts (including `iphone-music-sync.sh`)
 - `limine-pins.json` — old generations Boot Gardener has pinned to the boot menu

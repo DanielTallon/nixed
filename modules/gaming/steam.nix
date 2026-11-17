@@ -60,6 +60,9 @@
       # Steam: faster game installs from another PC on your network
       localNetworkGameTransfers.openFirewall = true;
       protontricks.enable = true;
+      # Steam Input on Wayland: turns Steam's X11 input events into uinput
+      # events, so controller-to-keyboard/mouse mappings reach games under niri.
+      extest.enable = true;
       extraCompatPackages = with pkgs; [
         proton-ge-bin
 #         proton-ge-bin nix-packages.proton-ge-w3rt

@@ -127,7 +127,7 @@ let
     "krohnkite"
     "plasma"
     "wallpaper"
-    "wallpaperColors"
+    "wallpaperPicker"
     "xdgUserDirs"
 
     # --- Shell ---

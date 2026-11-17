@@ -2,7 +2,21 @@
 # Everything game-related that isn't Steam: Gamescope, GameMode, launchers,
 # Wine tools, overlays and controller fixes.
 {
-  flake.modules.nixos.gaming = { pkgs, pkgs-stable, username, ... }: {
+  flake.modules.nixos.gaming = { pkgs, pkgs-stable, username, ... }:
+  let
+    # Plasma makes Qt Quick apps use the Breeze style, which needs Kirigami.
+    # lsfg-vk-ui's launcher only lists its own Qt modules, so it fails with
+    # 'module "org.kde.kirigami" is not installed'. Wrap it with Kirigami added.
+    lsfg-vk-ui = pkgs.symlinkJoin {
+      name = "lsfg-vk-ui-with-kirigami";
+      paths = [ pkgs.lsfg-vk-ui ];
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        wrapProgram $out/bin/lsfg-vk-ui \
+          --prefix NIXPKGS_QT6_QML_IMPORT_PATH : ${pkgs.kdePackages.kirigami.unwrapped}/lib/qt-6/qml
+      '';
+    };
+  in {
     # --- Gaming: Gamescope ---
     programs.gamescope = {
       enable = true;
@@ -44,6 +58,8 @@
       heroic-unwrapped
       mangohud # Track FPS of games
       mangojuice # GUI configure MangoHud
+      lsfg-vk    # Lossless Scaling frame generation as a Vulkan layer (reads Lossless.dll from the Steam install)
+      lsfg-vk-ui # GUI for per-game lsfg-vk profiles (Kirigami-wrapped, see let above)
       protonplus
       wine
       pkgs-stable.bottles

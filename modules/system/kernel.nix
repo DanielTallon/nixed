@@ -59,6 +59,10 @@
             "kernel.sched_autogroup_enabled" = 0; # Better for gaming workloads
             "vm.swappiness" = 100; # zram-only: prefer fast RAM swap early (see modules/system/zram.nix)
             "kernel.split_lock_mitigate" = 0; # Intel: stop split-lock slowdowns/stutter in some games
+            # The other two SteamOS sysctls (nix-gaming's platformOptimizations sets
+            # these four; the two above are the rest, so no extra flake input needed).
+            "net.ipv4.tcp_fin_timeout" = 5; # Games can reuse their port right after a crash/restart (default 60s)
+            "kernel.sched_cfs_bandwidth_slice_us" = 3000; # Smaller CPU-quota slices (default 5000)
             "kernel.nmi_watchdog" = 0;
             "vm.page-cluster" = 0; # zram: swap in one page at a time, not 8
             "vm.watermark_boost_factor" = 0;
