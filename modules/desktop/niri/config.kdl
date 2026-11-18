@@ -16,7 +16,10 @@ input {
     }
     focus-follows-mouse max-scroll-amount="0%"
 
-    touchpad
+    // Laptop touchpad: tap to click. No effect on machines without one.
+    touchpad {
+        tap
+    }
 
     trackpoint
 }
