@@ -6,7 +6,7 @@
 #   - nixos:        nixos-unstable base, NVIDIA (newest driver), plus this
 #                   desktop's own hardware bits (NTFS drive, CPU governor).
 #   - nixos-stable: nixos-26.05 base with `pkgs-unstable` as a per-package
-#                   opt-in, LTS kernel, NVIDIA production driver if present.
+#                   opt-in, NVIDIA production driver if present.
 # Whether a machine has an NVIDIA card lives in hosts/<host>/gpu.nix, and its
 # Windows boot entry (if any) in hosts/<host>/dualboot.nix. The bootstrap app
 # (modules/bootstrap.nix) writes both by detecting the hardware. Timezone,
@@ -236,15 +236,8 @@ in
         # with a plain assignment.
         hardware.nvidia.package = lib.mkForce config.boot.kernelPackages.nvidiaPackages.production;
 
-        # Uses the plain LTS kernel (always cached on the standard binary
-        # cache) instead of the shared default ("zen"), which tracks the
-        # newest upstream release.
-        #
-        # mkDefault (not a plain assignment) so a kernel.nix specialisation
-        # can override it with a plain assignment instead of needing
-        # lib.mkForce. With "lts" as the default there's no LTS
-        # specialisation here, since it would duplicate the default entry.
-        kernelProvider = lib.mkDefault "lts";
+        # Kernel: same as the desktop. The main entry uses kernel.nix's
+        # default kernelProvider, with the LTS specialisation as a fallback.
       })
     ];
   };
