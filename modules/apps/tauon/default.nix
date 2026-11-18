@@ -297,6 +297,12 @@
 
         # Custom layout editor slots. Copied, not linked, because Tauon saves this file itself.
         run ${pkgs.coreutils}/bin/install -m644 ${./custom_layouts.json} "${tauonDir}/custom_layouts.json"
+
+        # Keybinds. Copied, not linked, because Tauon's database migrations
+        # append new default binds to this file. Changes need a Tauon restart.
+        # Plain Left/Right skip tracks; Shift+Left/Right switch playlist tabs
+        # (the reverse of Tauon's defaults).
+        run ${pkgs.coreutils}/bin/install -m644 ${./input.txt} "${tauonDir}/input.txt"
       '';
     };
 }

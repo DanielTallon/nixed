@@ -104,6 +104,7 @@
       # flow-desktop is with the slow-to-build packages below.
       nix-packages.kenku-fm
       nix-packages.lgl-papercutter
+      nix-packages.nti   # try programs without a rebuild: `nti` (list in ~/.config/nti/packages.nix)
 
       # --- System & Monitoring ---
       (pkgs.btop.override { cudaSupport = config.hasNvidia; }) #BTop (GPU stats on NVIDIA hosts)

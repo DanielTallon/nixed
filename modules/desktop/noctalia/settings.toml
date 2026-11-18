@@ -31,7 +31,7 @@ start = [ "launcher", "workspaces" ]
     enabled = true
     fill = "surface_container"
     id = "g1"
-    members = [ "audio_visualizer", "media", "audio_visualizer" ]
+    members = [ "audio_visualizer", "media", "audio_visualizer_right" ]
     opacity = 1.0
     padding = 6.0
 
@@ -189,6 +189,15 @@ unit = "imperial"
 bands = 50
 color_1 = "on_secondary_container"
 color_2 = "hover"
+reversed = true
+show_when_idle = true
+width = 300
+
+[widget.audio_visualizer_right]
+type = "audio_visualizer"
+bands = 50
+color_1 = "hover"
+color_2 = "on_secondary_container"
 reversed = true
 show_when_idle = true
 width = 300

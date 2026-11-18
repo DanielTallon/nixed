@@ -49,6 +49,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # --- Luciole (Noctalia's file manager, trying it next to Dolphin) ---
+    luciole = {
+      url = "github:noctalia-dev/luciole";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # --- Plasma Manager ---
     plasma-manager = {
       url = "github:nix-community/plasma-manager";

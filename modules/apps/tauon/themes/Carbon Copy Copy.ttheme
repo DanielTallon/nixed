@@ -17,7 +17,7 @@
 1,0,18,207    gallery background
 1,0,18,231    tracklist panel
 122,122,122,255    track line
-85,85,85,255    track missing
+48,48,48,255    track missing
 5,0,103,255    playing highlight
 122,122,122,255    track time
 100,100,100,255    fav line
