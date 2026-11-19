@@ -158,11 +158,16 @@ keep your changes under version control:
    git remote add origin https://github.com/<you>/<your-repo>.git
    ```
 
-3. **Commit what the installer changed.** The bootstrap leaves your
-   `hardware-configuration.nix` and `username` staged but uncommitted. Fill
-   in `modules/dev/git.nix` first (see above), then:
+3. **Commit what the installer changed.** The bootstrap writes your
+   username to `username.nix` and your machine's files to `hosts/<host>/`,
+   then tells git to ignore local changes to them, so pulls from this repo
+   never overwrite them. That also keeps them out of commits, so undo it
+   before committing them to your fork. Fill in `modules/dev/git.nix`
+   first (see above), then:
 
    ```
+   git update-index --no-skip-worktree username.nix hosts/*/*.nix
+   git add -A
    git commit -m "Initial setup for my machine"
    git push -u origin main
    ```

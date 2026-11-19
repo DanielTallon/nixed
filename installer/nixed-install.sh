@@ -167,7 +167,7 @@ kbvariant=""
 title "Which configuration?"
 host="$(gum choose --header "Host to install" \
   "nixos         (unstable: rolling release, newest NVIDIA driver)" \
-  "nixos-stable  (stable: 26.05, LTS kernel, production NVIDIA driver)")"
+  "nixos-stable  (stable: 26.05, production NVIDIA driver)")"
 host="${host%% *}"
 [ -n "$host" ] || die "No host chosen."
 info "Host: $host"

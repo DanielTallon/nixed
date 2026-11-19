@@ -75,7 +75,7 @@
   # by import-tree — no manual imports list to keep in sync.
   outputs = inputs:
     let
-    username = "youruser";
+    username = import ./username.nix;
     in
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       systems = import inputs.systems;

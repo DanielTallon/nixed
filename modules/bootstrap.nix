@@ -16,7 +16,8 @@
 #      detect whether it has an NVIDIA GPU (writes hosts/<host>/gpu.nix),
 #      and look for a Windows install to add to Limine's menu
 #      (writes hosts/<host>/dualboot.nix)
-#   3. swap the placeholder username for yours (public copy only)
+#   3. write your username to username.nix, and tell git to leave that
+#      and the files from step 2 alone, so later pulls keep them
 #   4. build the system with nom (live dependency tree), then
 #      `nixos-rebuild boot` — then you reboot into the real config.
 #      It builds <host>-firstboot, which leaves out the few apps that
@@ -147,13 +148,17 @@
           fi
 
           me="$(id -un)"
-          if grep -q 'username = "youruser";' "$dest/flake.nix"; then
-            echo "==> Setting username to '$me' in flake.nix"
-            sed -i "s/username = \"youruser\";/username = \"$me\";/" "$dest/flake.nix"
-          fi
+          echo "==> Setting username to '$me' (username.nix)"
+          sed -i "s/^\"youruser\"$/\"$me\"/" "$dest/username.nix"
 
-          # Flakes only see git-tracked files.
-          git -C "$dest" add -A
+          # These files now belong to this machine, not the repo. skip-worktree
+          # tells git to leave them alone: they stay out of `git status`,
+          # stashes and `git add`, and `git pull` never overwrites them.
+          # Flakes still read them from disk. The update app below does the
+          # same; INSTALL.md shows how to undo it to commit them to a fork.
+          (cd "$dest" && git update-index --skip-worktree username.nix \
+            "hosts/$hwdir/hardware-configuration.nix" "hosts/$hwdir/gpu.nix" \
+            "hosts/$hwdir/dualboot.nix" "hosts/$hwdir/locale.nix")
 
                     # Fresh installs don't have flakes or the extra binary caches enabled
           # yet; pass both for this first build (root is a trusted user).
@@ -193,6 +198,79 @@
             echo "Your first 'nh os switch' also builds the apps left out for now"
             echo "(Flow, RustDesk, LocalSend), which compile from source and take a while."
           fi
+        '';
+      });
+    };
+
+    # `nix run github:DanielTallon/nixed#update`: pull the latest repo into
+    # an installed ~/.dotfiles without touching this machine's own files.
+    # Runs from GitHub, so it works on installs older than this app too.
+    apps.update = {
+      type = "app";
+      meta.description = "Pull the latest dotfiles, keeping this machine's own files";
+      program = pkgs.lib.getExe (pkgs.writeShellApplication {
+        name = "nixed-update";
+        runtimeInputs = [ pkgs.git ];
+        text = ''
+          dest="''${NIXED_DEST:-$HOME/.dotfiles}"
+          cd "$dest"
+
+          case "$(cat /etc/nixed-host 2>/dev/null || echo nixos)" in
+            nixos-stable) hwdir="nixos-stable" ;;
+            *)            hwdir="desktop"      ;;
+          esac
+          # Same list the bootstrap app marks on install.
+          machine_files=(username.nix "hosts/$hwdir/hardware-configuration.nix"
+            "hosts/$hwdir/gpu.nix" "hosts/$hwdir/dualboot.nix" "hosts/$hwdir/locale.nix")
+          protect() {
+            for f in "''${machine_files[@]}"; do
+              if [ -e "$f" ]; then git update-index --skip-worktree "$f"; fi
+            done
+          }
+
+          # Installs from before username.nix kept the username as an
+          # uncommitted edit to flake.nix, which would block the pull. The
+          # edit is undone here and the name written to username.nix below.
+          if [ ! -e username.nix ] && ! git diff --quiet -- flake.nix; then
+            if git diff -U0 -- flake.nix | grep '^[-+][^-+]' | grep -qv 'username = '; then
+              echo "flake.nix has changes besides the username. Commit or undo them first." >&2
+              exit 1
+            fi
+            echo "==> Moving your username out of flake.nix (it now lives in username.nix)"
+            git checkout -- flake.nix
+          fi
+
+          # Noctalia saves its settings file while it runs, which would put
+          # it back mid-update, so pause it and start it again at the end.
+          settings=modules/desktop/noctalia/settings.toml
+          restart_noctalia=0
+          if systemctl --user is-active --quiet noctalia.service; then
+            echo "==> Pausing Noctalia"
+            systemctl --user stop noctalia.service
+            restart_noctalia=1
+          fi
+          finish() {
+            if [ "$restart_noctalia" = 1 ]; then systemctl --user start noctalia.service; fi
+          }
+          trap finish EXIT
+          if ! git diff --quiet -- "$settings"; then
+            echo "==> Replacing your Noctalia settings-window changes with the repo's"
+            git checkout -- "$settings"
+          fi
+
+          protect
+          echo "==> Pulling"
+          git pull --ff-only
+
+          if grep -q '^"youruser"$' username.nix; then
+            me="$(id -un)"
+            echo "==> Setting username to '$me' (username.nix)"
+            sed -i "s/^\"youruser\"$/\"$me\"/" username.nix
+          fi
+          protect
+
+          echo
+          echo "Up to date. Rebuild to apply it: nh os switch"
         '';
       });
     };

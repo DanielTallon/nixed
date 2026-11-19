@@ -8,7 +8,7 @@ What's in it:
 
 - **Two hosts, one config.** Both share the same system modules and Home Manager profile:
   - `nixos`: nixos-unstable. My two-monitor desktop: RTX 4070 Super on NVIDIA's newest driver, XanMod kernel.
-  - `nixos-stable`: nixos-26.05, LTS kernel, NVIDIA's production driver if there's a card. Any single package can still come from unstable via `pkgs-unstable`.
+  - `nixos-stable`: nixos-26.05, NVIDIA's production driver if there's a card. Any single package can still come from unstable via `pkgs-unstable`.
 - **Hardware detection at install.** The install command checks your PCI devices and writes `hosts/<host>/gpu.nix`, so either host works with or without an NVIDIA card (without one it sets up Intel graphics). It also looks for Windows' boot manager on any EFI partition and adds it to the Limine menu via `hosts/<host>/dualboot.nix`.
 - **Limine with switchable kernels.** Set `kernelProvider` in `modules/system/kernel.nix`: `xanmod` (default), `zen`, `chaotic` (CachyOS), `latest` or `lts`. Unless the default is already LTS, Limine also gets an LTS entry as a fallback, since the others all track the same upstream release and tend to break together. Run `kernel version` to see what each is currently at.
 - **Generation cleanup.** Limine shows the newest 7 generations; `nh` keeps 35 and cleans daily. Boot Gardener, a TUI I wrote, helps manage generations, pin old ones to the boot menu and free up space on `/boot`. With everything as is, I'd make `/boot` 2–3 GB.
@@ -57,11 +57,21 @@ nix run --extra-experimental-features 'nix-command flakes' github:DanielTallon/n
 
 It asks which host you want (rolling release or version release), your username and password, and shows the timezone, language and keyboard it detected so you can change them. Then you pick a disk and **it erases that disk** (3 GB FAT32 `/boot` + btrfs `/`, via disko) and installs a small base system. After it shuts down, and you turn your computer back on (without the ISO media anymore), the install continues by itself. One more reboot lands you in the finished setup; as above, run `nh os switch` once to add the apps the install left out. The ISO's own disk isn't offered, and a disk with Windows or NTFS on it is refused. You can also build an ISO with the installer already on it: `nix build .#installer-iso`. You can find the details in [INSTALL.md](INSTALL.md#quick-install-no-calamares).
 
+## Updating
+
+Already installed? To get my latest changes and settings, run:
+
+```
+nix run github:DanielTallon/nixed#update
+```
+
+Then rebuild with `nh os switch`. The update pulls this repo into `~/.dotfiles` but keeps your machine's own files: your username and your `hosts/<host>/` files (hardware config, GPU, dual-boot, locale). The install tells git to leave those alone, so a pull never overwrites them. Noctalia rewrites its settings file while it runs, so the update pauses Noctalia for a moment and replaces any changes you made in its settings window with mine. If you installed before the username moved to `username.nix` (November 18, 2026), the first update moves it there for you.
+
 ## Before you use this
 
 If you're not using the install commands above, this won't build or apply as-is on your machine. You'll need to (the install commands do 1 and 2 for you):
 
-1. **Set your own username** — in `flake.nix`, change `username = "youruser";` to your actual username. Everything else in the flake reads from this single value.
+1. **Set your own username** — in `username.nix`, change `"youruser"` to your actual username. Everything else in the flake reads from this single value.
 
 2. **Generate your own hardware config** — the files at `hosts/desktop/hardware-configuration.nix` and `hosts/nixos-stable/hardware-configuration.nix` are placeholders. Run:
    ```
