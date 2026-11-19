@@ -258,6 +258,14 @@
             git checkout -- "$settings"
           fi
 
+          # A rebuild can rewrite flake.lock (a new input gets locked, or
+          # `nh os switch --update`). Updating means taking the repo's
+          # versions, so the local lock goes too.
+          if ! git diff --quiet -- flake.lock; then
+            echo "==> Replacing your local flake.lock with the repo's"
+            git checkout -- flake.lock
+          fi
+
           protect
           echo "==> Pulling"
           git pull --ff-only

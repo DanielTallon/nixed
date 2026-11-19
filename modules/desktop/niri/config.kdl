@@ -143,6 +143,17 @@ binds {
     XF86AudioMute allow-when-locked=true { spawn "noctalia" "msg" "volume-mute"; }
     XF86AudioMicMute allow-when-locked=true { spawn "noctalia" "msg" "mic-mute"; }
 
+    // Laptop screen brightness (ThinkPad F5/F6)
+    XF86MonBrightnessUp allow-when-locked=true { spawn "noctalia" "msg" "brightness-up"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "noctalia" "msg" "brightness-down"; }
+
+    // Media playback keys, sent to the active player
+    XF86AudioPlay allow-when-locked=true { spawn "noctalia" "msg" "media" "toggle"; }
+    XF86AudioPause allow-when-locked=true { spawn "noctalia" "msg" "media" "toggle"; }
+    XF86AudioStop allow-when-locked=true { spawn "noctalia" "msg" "media" "stop"; }
+    XF86AudioNext allow-when-locked=true { spawn "noctalia" "msg" "media" "next"; }
+    XF86AudioPrev allow-when-locked=true { spawn "noctalia" "msg" "media" "previous"; }
+
     // Volume of the focused app only (app-volume, see niri.nix)
     Mod+Alt+Up hotkey-overlay-title="App volume up" { spawn "app-volume" "up"; }
     Mod+Alt+Down hotkey-overlay-title="App volume down" { spawn "app-volume" "down"; }
