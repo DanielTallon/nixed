@@ -125,6 +125,13 @@ in
         runtimeInputs = with pkgs; [ config.programs.niri.package jq procps libnotify coreutils ];
         text = builtins.readFile ../../scripts/screen-record.sh;
       })
+      # Projector modes: computer only / clone / extend / projector only
+      # (XF86Display and Mod+P in niri/config.kdl)
+      (pkgs.writeShellApplication {
+        name = "display-mode";
+        runtimeInputs = with pkgs; [ config.programs.niri.package jq procps util-linux wl-mirror libnotify ];
+        text = builtins.readFile ../../scripts/display-mode.sh;
+      })
     ];
 
     # Installs gpu-screen-recorder with the setcap wrapper it needs to capture

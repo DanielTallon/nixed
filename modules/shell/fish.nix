@@ -78,6 +78,22 @@
             | string match -rg 'max_volume: (-?[0-9.]+) dB'
       '';
 
+      # Some files' album art says PNG but is really a JPEG, and ffmpeg then
+      # refuses to copy it. Prints "-c:v:N mjpeg" (put before -i) for each
+      # such picture, so ffmpeg reads it as the JPEG it is. Used by trim and vol.
+      functions.__audio_art_fix = ''
+        set -l i 0
+        for line in (ffprobe -v quiet -select_streams v -show_entries stream=codec_name,width -of csv=p=0 -i $argv[1])
+            # A PNG ffmpeg couldn't read has no width
+            if test "$line" = "png,0"
+                echo "Note: the album art is labeled PNG but is really a JPEG; reading it as a JPEG." >&2
+                echo -c:v:$i
+                echo mjpeg
+            end
+            set i (math $i + 1)
+        end
+      '';
+
       functions.trim = {
         description = "Trim an audio file: trim FILE START [END] [--fade SECONDS]";
         body = ''
@@ -100,7 +116,7 @@
           set -l out (path change-extension "" -- $in)" (trimmed)"(path extension -- $in)
 
           # -ss before -i: start there, and count the new file's time from 0
-          set -l cmd ffmpeg -hide_banner -loglevel warning -stats -ss $argv[2] -i $in
+          set -l cmd ffmpeg -hide_banner -loglevel warning -stats -ss $argv[2] (__audio_art_fix $in) -i $in
 
           # Length of the new file: END - START, or (song length - START)
           # when only a fade needs it
@@ -198,7 +214,7 @@
 
           set -l out (path change-extension "" -- $in)" ($word)"(path extension -- $in)
           # -c:v copy keeps any album art as it is
-          set -l cmd ffmpeg -hide_banner -loglevel warning -stats -i $in -af "volume=$db""dB" -b:a 320k -c:v copy $out
+          set -l cmd ffmpeg -hide_banner -loglevel warning -stats (__audio_art_fix $in) -i $in -af "volume=$db""dB" -b:a 320k -c:v copy $out
           set_color --dim; echo (string escape -- $cmd); set_color normal
           $cmd
         '';

@@ -115,6 +115,13 @@ window-rule {
     opacity 0.92
     draw-border-with-background false
 }
+// The clone window from display-mode (Mod+P / projector key) fills the
+// projector; keep focus on the laptop screen instead of jumping to it.
+window-rule {
+    match app-id="^at\\.yrlf\\.wl_mirror$" title="^display-mode-mirror$"
+    open-focused false
+    geometry-corner-radius 0
+}
 
 binds {
     
@@ -146,6 +153,10 @@ binds {
     // Laptop screen brightness (ThinkPad F5/F6)
     XF86MonBrightnessUp allow-when-locked=true { spawn "noctalia" "msg" "brightness-up"; }
     XF86MonBrightnessDown allow-when-locked=true { spawn "noctalia" "msg" "brightness-down"; }
+
+    // Projector modes: computer only, clone, extend, projector only (display-mode, see niri.nix)
+    XF86Display hotkey-overlay-title="Projector mode" { spawn "display-mode"; }
+    Mod+P hotkey-overlay-title="Projector mode" { spawn "display-mode"; }
 
     // Media playback keys, sent to the active player
     XF86AudioPlay allow-when-locked=true { spawn "noctalia" "msg" "media" "toggle"; }
