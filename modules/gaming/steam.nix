@@ -76,7 +76,35 @@
     # steamtinkerlaunch brings its own xdotool, xwininfo and yad.
     environment.systemPackages = with pkgs; [
       steamtinkerlaunch
+      # DLSS override (from CachyOS-Settings). Steam launch option:
+      #   dlss-swapper %command%
+      # Proton downloads NVIDIA's newest DLSS files for the game, and DXVK-NVAPI
+      # forces the newest preset for upscaling (SR), ray reconstruction (RR) and
+      # frame generation (FG). Needs a Proton with recent DXVK-NVAPI (GE does).
+      (writeShellApplication {
+        name = "dlss-swapper";
+        text = ''
+          export PROTON_ENABLE_NGX_UPDATER=1
+          export DXVK_NVAPI_DRS_NGX_DLSS_RR_OVERRIDE=on
+          export DXVK_NVAPI_DRS_NGX_DLSS_SR_OVERRIDE=on
+          export DXVK_NVAPI_DRS_NGX_DLSS_FG_OVERRIDE=on
+          export DXVK_NVAPI_DRS_NGX_DLSS_RR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_latest
+          export DXVK_NVAPI_DRS_NGX_DLSS_SR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_latest
+          exec "$@"
+        '';
+      })
     ];
+
+    # systemd-oomd: Steam runs each game in its own app-steam-app<id>-<pid>.scope.
+    # Mark those kill-last, so oomd picks a background app before the game.
+    # The "app-steam-" prefix drop-in covers every game. See modules/system/zram.nix.
+    systemd.user.units."app-steam-.scope" = {
+      overrideStrategy = "asDropin";
+      text = ''
+        [Scope]
+        ManagedOOMPreference=avoid
+      '';
+    };
 
     # --- Steam Shaders Set To Use Multicore Setup ---
     systemd.user.services.steam-shader-config = {

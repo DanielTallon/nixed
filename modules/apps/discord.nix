@@ -36,7 +36,15 @@
       discord = {
 #         IN CASE IT BREAKS AGAIN:
 #         package = oldPkgs.callPackage "${inputs.nixcord}/pkgs/discord" { };
-        package = options.programs.nixcord.discord.package.default.overrideAttrs (old: {
+        # nixcord's openasar.patch and nixpkgs (NixOS/nixpkgs#587646) make the same
+        # cmdSwitches.js edits (OpenH264 2.7.0, no EnableDrDc), so nixpkgs' --replace-fail
+        # finds nothing left to replace and the build fails. Let it skip what the patch
+        # already did. Remove once nixcord drops those hunks from its openasar.patch.
+        package = (options.programs.nixcord.discord.package.default.override {
+          openasar = pkgs.openasar.overrideAttrs (old: {
+            postPatch = builtins.replaceStrings [ "--replace-fail" ] [ "--replace-quiet" ] old.postPatch;
+          });
+        }).overrideAttrs (old: {
           postInstall = (old.postInstall or "") + ''
             voice="$out/opt/Discord/modules/discord_voice"
             mkdir -p "$out/share/discord-ml"

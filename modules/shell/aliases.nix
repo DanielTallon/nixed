@@ -11,11 +11,20 @@
       # since flakes only see tracked/staged files. Run from the flake root.
       # Builds this machine's config (/etc/nixed-host), since both hosts
       # share the hostname "nixos".
+      # Afterward it prints how many derivations were built locally, counted
+      # from the build logs Nix wrote during the run (cache downloads leave no
+      # log, so they aren't counted). nom clears its own totals when it ends.
       (writeShellScriptBin "nhs" ''
         set -euo pipefail
         git add -A
         host="$(cat /etc/nixed-host 2>/dev/null || hostname)"
-        exec nh os "''${1:-test}" ".#$host"
+        marker="$(mktemp)"
+        trap 'rm -f "$marker"' EXIT
+        status=0
+        nh os "''${1:-test}" ".#$host" || status=$?
+        built="$(find /nix/var/log/nix/drvs -type f -newer "$marker" | wc -l)"
+        echo "Built locally: $built"
+        exit "$status"
       '')
 
       # `kernel version`: prints the resolved kernel version for each

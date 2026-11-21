@@ -114,6 +114,25 @@
 
       # Secure Boot capable, 4M, with a Microsoft-keys VARS template (Windows 11).
       ovmf = pkgs.OVMFFull.fd;
+
+      # Full QEMU (launch.sh calls qemu-system-* from PATH, and the retro
+      # profiles need the non-x86 emulators), built with smbd support so VM
+      # Curator's SMB shared folders work. Upstream QEMU looks for
+      # /usr/sbin/smbd, which NixOS doesn't have. Not in the binary cache with
+      # this override, so QEMU builds from source on updates.
+      qemu = pkgs.qemu.override { smbdSupport = true; };
+
+      # The nixpkgs package has no .desktop file. Ghostty comes from the
+      # ghostty home-manager feature, so drop or change this if that goes.
+      vm-curator-desktop = pkgs.makeDesktopItem {
+        name = "vm-curator";
+        desktopName = "VM Curator";
+        genericName = "VM Manager";
+        comment = "Manage QEMU/KVM virtual machines";
+        exec = "ghostty --title=\"VM Curator\" -e vm-curator";
+        icon = "computer";
+        categories = [ "System" "Emulator" ];
+      };
     in
     {
       options.custom.vm.gpuPassthrough = {
@@ -173,8 +192,13 @@
           # --- VM Curator ---
           environment.systemPackages = [
             vm-curator
-            pkgs.qemu        # full QEMU: launch.sh calls qemu-system-* from PATH, and
-                             # the retro profiles need non-x86 emulators (ppc, m68k...)
+            vm-curator-desktop
+            qemu             # full QEMU with smbd support (see above)
+            pkgs.samba       # smbd on PATH: VM Curator checks for it when saving an
+                             # SMB share (QEMU itself uses the path it was built with).
+                             # Just the binaries, no Samba server is enabled.
+            pkgs.hwdata      # pci.ids at /run/current-system/sw/share/hwdata, where
+                             # VM Curator looks up PCI device names for passthrough
             pkgs.swtpm       # TPM 2.0 for Windows 11 guests
             pkgs.virt-viewer # spice-app display (clipboard sharing)
             pkgs.passt       # passt network backend

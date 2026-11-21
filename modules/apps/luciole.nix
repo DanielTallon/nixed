@@ -7,7 +7,8 @@
 # input tracks its main branch. Update it with
 #   nix flake update luciole
 # or pin a known-good rev in flake.nix if an update breaks something.
-# There's no binary cache for it, so it compiles from source on each update.
+# There's no binary cache for it, so it compiles from source on each update,
+# along with its custom gdk-pixbuf and librsvg (tests skipped below).
 #
 # Settings: ~/.config/luciole/config.toml, or Ctrl+, in the app. Anything set
 # in `programs.luciole.settings` below becomes that file (a read-only base);
@@ -23,13 +24,25 @@
     services.gvfs.enable = true;
   };
 
-  flake.modules.homeManager.luciole = { lib, osConfig, ... }: {
+  flake.modules.homeManager.luciole = { lib, pkgs, osConfig, ... }: {
     imports = [ inputs.luciole.homeModules.default ];
 
     programs.luciole = {
       # Left out of the installer's first build, since it compiles from source.
       enable = !osConfig.custom.firstBoot;
       settings = { };
+
+      # Luciole's package builds its own gdk-pixbuf (older version, glycin
+      # loaders) and a librsvg linked against it. Neither is in
+      # cache.nixos.org, so both rebuild on nearly every nixpkgs update.
+      # Their test suites take about as long as the builds and only re-test
+      # code Hydra already tests in the stock versions, so skip them.
+      # Luciole applies its own overrides on top of these, so they carry
+      # through. Remove this once upstream stops overriding gdk-pixbuf.
+      package = inputs.luciole.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
+        librsvg = pkgs.librsvg.overrideAttrs { doCheck = false; };
+        gdk-pixbuf = pkgs.gdk-pixbuf.overrideAttrs { doCheck = false; };
+      };
     };
   };
 }

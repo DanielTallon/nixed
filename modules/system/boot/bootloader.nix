@@ -101,9 +101,6 @@
       "splash"
       "udev.log_level=3"
       "usbcore.autosuspend=-1"
-    ] ++ lib.optionals config.hasNvidia [
-      "nvidia_drm.modeset=1"
-      "nvidia_drm.fbdev=1"
     ];
 
     boot.tmp.cleanOnBoot = true;

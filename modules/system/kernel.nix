@@ -67,7 +67,16 @@
             "vm.page-cluster" = 0; # zram: swap in one page at a time, not 8
             "vm.watermark_boost_factor" = 0;
             "vm.watermark_scale_factor" = 125;
+            # All Magic SysRq keys (default 16 = sync only), so Alt+SysRq+REISUB
+            # can safely reboot a frozen desktop instead of the power button.
+            "kernel.sysrq" = 1;
           };
+          # THP shrinker (from CachyOS-Settings): with transparent_hugepage=always,
+          # let the kernel split huge pages that are mostly empty and reclaim the
+          # memory. Any value below 511 turns the shrinker on.
+          systemd.tmpfiles.rules = [
+            "w! /sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none - - - - 409"
+          ];
           boot.kernelParams = [
             "transparent_hugepage=always"
             "nowatchdog"

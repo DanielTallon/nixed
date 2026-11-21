@@ -99,6 +99,9 @@ in
       QT_QPA_PLATFORMTHEME = "kde";
       XDG_MENU_PREFIX = "plasma-";
     };
+    # systemd-oomd: kill the bar (and the apps it launched) only as a last
+    # resort when memory runs out. See modules/system/zram.nix.
+    systemd.user.services.noctalia.serviceConfig.ManagedOOMPreference = "avoid";
     # KDE's portal draws the Open/Save dialogs for every app. It's started by
     # D-Bus/systemd, not by niri, so it misses the variable above too and
     # draws them in light Breeze instead of the kdeglobals color scheme.

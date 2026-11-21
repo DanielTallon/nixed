@@ -38,6 +38,9 @@ start = [ "launcher", "workspaces" ]
 [control_center]
 width = 680
 
+    [control_center.media]
+    show_visualizer = false
+
 [desktop_widgets]
 schema_version = 2
 widget_order = [ "desktop-widget-0000000000000002" ]
@@ -194,12 +197,12 @@ show_when_idle = true
 width = 300
 
 [widget.audio_visualizer_right]
-type = "audio_visualizer"
 bands = 50
 color_1 = "hover"
 color_2 = "on_secondary_container"
 reversed = true
 show_when_idle = true
+type = "audio_visualizer"
 width = 300
 
 [widget.battery]

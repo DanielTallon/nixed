@@ -47,11 +47,20 @@
       # version fails to build with it, check whether upstream fixed it and drop it.
       # 13.0.0+ only: 26.05's tauon 9.1.3 has no t_tagedit_ui.py, so the patch
       # can't apply there and the nixos-stable build fails.
+      #
+      # FIX: right-clicking the last track in a playlist opened the "empty
+      # space" menu (just Paste) instead of the track menu. The playlist
+      # renderer reuses the variable holding the row count as a loop variable,
+      # so the empty-space zone started at the last track instead of below it.
+      # Same 13.0.0 caveat as above: drop it if a newer version fixes it.
       (_final: prev: {
         tauon =
           if prev.lib.versionAtLeast prev.tauon.version "13.0.0" then
             prev.tauon.overridePythonAttrs (old: {
-              patches = (old.patches or [ ]) ++ [ ./tag-editor-click-through.patch ];
+              patches = (old.patches or [ ]) ++ [
+                ./tag-editor-click-through.patch
+                ./last-track-right-click.patch
+              ];
             })
           else
             prev.tauon;

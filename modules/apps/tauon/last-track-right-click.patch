@@ -1,0 +1,22 @@
+--- a/src/tauon/t_modules/t_main.py
++++ b/src/tauon/t_modules/t_main.py
+@@ -38427,6 +38427,10 @@
+ 		if align_tracklist_to_row:
+ 			gui.playlist_scroll_pixels = 0
+ 
++		# The draw loop below reuses "number" as its loop variable, so keep the
++		# total row count for the empty-space right-click check after it.
++		rows_used = number
++
+ 		# For every track in view
+ 		# for i in range(gui.playlist_view_length + 1):
+ 		gui.tracklist_bg_is_light = test_lumi(colours.playlist_panel_background) < 0.55
+@@ -39077,7 +39081,7 @@
+ 		gui.playlist_current_visible_tracks = cv
+ 		gui.playlist_current_visible_tracks_id = pctl.multi_playlist[pctl.active_playlist_viewing].uuid_int
+ 
+-		if (inp.right_click and gui.playlist_top + 5 * gui.scale + gui.playlist_row_height * number - gui.playlist_scroll_pixels <
++		if (inp.right_click and gui.playlist_top + 5 * gui.scale + gui.playlist_row_height * rows_used - gui.playlist_scroll_pixels <
+ 				self.inp.mouse_position[1] < window_size[1] - 55 and width + left > self.inp.mouse_position[0] > gui.playlist_left + 15):
+ 			tauon.playlist_menu.activate()
+ 
