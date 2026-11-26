@@ -146,7 +146,7 @@ let
     "glava"
     "iphone"
     "librewolf"
-    "luciole"
+#     "luciole"
     "packages"
     "spotify"
     "tauon"

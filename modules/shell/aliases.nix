@@ -8,7 +8,9 @@
 
       # --- Aliases ---
       # `nhs` / `nhs switch`: stages new files (git add -A) before rebuilding,
-      # since flakes only see tracked/staged files. Run from the flake root.
+      # since flakes only see tracked/staged files. Works from any folder: it
+      # changes into ~/.dotfiles first. Flags go straight to nh, e.g.
+      # `nhs --update` (test) or `nhs switch --update`.
       # Builds this machine's config (/etc/nixed-host), since both hosts
       # share the hostname "nixos".
       # Afterward it prints how many derivations were built locally, counted
@@ -16,12 +18,19 @@
       # log, so they aren't counted). nom clears its own totals when it ends.
       (writeShellScriptBin "nhs" ''
         set -euo pipefail
+        cd "$HOME/.dotfiles"
         git add -A
         host="$(cat /etc/nixed-host 2>/dev/null || hostname)"
+        # No mode, or a flag first (`nhs --update`), means test.
+        mode=test
+        if [[ $# -gt 0 && $1 != -* ]]; then
+          mode="$1"
+          shift
+        fi
         marker="$(mktemp)"
         trap 'rm -f "$marker"' EXIT
         status=0
-        nh os "''${1:-test}" ".#$host" || status=$?
+        nh os "$mode" ".#$host" "$@" || status=$?
         built="$(find /nix/var/log/nix/drvs -type f -newer "$marker" | wc -l)"
         echo "Built locally: $built"
         exit "$status"

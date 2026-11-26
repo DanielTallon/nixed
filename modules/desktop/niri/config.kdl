@@ -92,9 +92,15 @@ environment {
 // unlock. KDE's password prompt is marked KDE-only, so niri.nix starts it
 // as the niri-polkit-agent user service.
 
+// Blur behind every window. It only shows where a window is see-through
+// (Discord, Tauon, Konsole); opaque windows cover it. Apps that ask for blur
+// themselves (Ghostty's background-blur) already got it before this rule.
 window-rule {
     geometry-corner-radius 10
     clip-to-geometry true
+    background-effect {
+        blur true
+    }
 }
 window-rule {
     match app-id="org.kde.konsole"
@@ -121,6 +127,27 @@ window-rule {
     match app-id="^at\\.yrlf\\.wl_mirror$" title="^display-mode-mirror$"
     open-focused false
     geometry-corner-radius 0
+}
+// Fade windows that aren't the active one on their monitor, so the focused
+// window stands out. is-active (not is-focused) keeps a video on the other
+// monitor solid while you work on this one. It comes after the per-app
+// opacity rules so unfocused Konsole/Discord fade too; Mod+Shift+O
+// (toggle-window-rule-opacity) still makes a window fully solid. The
+// projector mirror never takes focus, so it's left out or it would stay faded.
+window-rule {
+    match is-active=false
+    exclude app-id="^at\\.yrlf\\.wl_mirror$"
+    opacity 0.85
+}
+
+// Blur behind Noctalia's bar, dock and panels (they're 50-90% opaque).
+// The desktop audio visualizer is left out, or it would get a blurred box.
+layer-rule {
+    match namespace="^noctalia-"
+    exclude namespace="desktop-widget"
+    background-effect {
+        blur true
+    }
 }
 
 binds {
@@ -263,7 +290,42 @@ binds {
     Mod+D { toggle-column-tabbed-display; }
 }
 
-animations
+animations {
+    // Closed windows fall away with a slight random tilt and fade out.
+    // niri's "fall and rotate" example shader; it wants a linear curve.
+    window-close {
+        duration-ms 300
+        curve "linear"
+        custom-shader r"
+            vec4 close_color(vec3 coords_geo, vec3 size_geo) {
+                // Accelerated fall: square the linear progress.
+                float progress = niri_clamped_progress * niri_clamped_progress;
+
+                // Pivot at the bottom center of the window.
+                vec2 coords = (coords_geo.xy - vec2(0.5, 1.0)) * size_geo.xy;
+                coords.y -= progress * 200.0;
+
+                // Random tilt direction and size.
+                float random = (niri_random_seed - 0.5) / 2.0;
+                random = sign(random) - random;
+                float angle = progress * 0.05 * random;
+                mat2 rotate = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+                coords = rotate * coords;
+
+                coords_geo = vec3(coords / size_geo.xy + vec2(0.5, 1.0), 1.0);
+                vec3 coords_tex = niri_geo_to_tex * coords_geo;
+                vec4 color = texture2D(niri_tex, coords_tex.st);
+                return color * (1.0 - niri_clamped_progress);
+            }
+        "
+    }
+
+    // A small overshoot-and-settle when windows slide into place.
+    // Default damping is 1.0 (no bounce); below ~0.6 it gets wobbly.
+    window-movement {
+        spring damping-ratio=0.75 stiffness=800 epsilon=0.0001
+    }
+}
 
 gestures {
     hot-corners {

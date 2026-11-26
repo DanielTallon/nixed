@@ -10,6 +10,8 @@
       roundedLeftCap = builtins.fromJSON ''"\ue0b6"''; # rounded left cap (start of prompt)
       pointRightCap = builtins.fromJSON ''"\ue0b0"''; # solid right-pointing triangle (connector)
       nixosIcon = builtins.fromJSON ''"\uf313"''; # nf-linux-nixos glyph
+      branchIcon = builtins.fromJSON ''"\ue0a0"''; # nf-pl-branch glyph (git branch)
+      behindArrow = builtins.fromJSON ''"\u2193"''; # down arrow: remote has commits to pull
     in
     {
       # --- Konsole: launch with fish default ---
@@ -153,6 +155,22 @@
                   background = "#3A8B9B"; #Deep cyan-teal
                   powerline_symbol = pointRightCap;
                   template = "  {{ .Path }} ";
+                }
+                {
+                  # Only appears inside a git repo. Shows the branch, then
+                  # "*" if there are changes not yet staged (edits or new files),
+                  # then the down arrow if the remote has commits to pull.
+                  # "Behind" is only as fresh as your last git fetch/pull.
+                  type = "git";
+                  style = "powerline";
+                  foreground = "#ffffff";
+                  background = "#2E5C8A"; #Steel blue
+                  powerline_symbol = pointRightCap;
+                  options = {
+                    fetch_status = true; # needed for the "*" check
+                    branch_icon = "${branchIcon} ";
+                  };
+                  template = " {{ .HEAD }}{{ if .Working.Changed }} *{{ end }}{{ if gt .Behind 0 }} ${behindArrow}{{ end }} ";
                 }
               ];
             }

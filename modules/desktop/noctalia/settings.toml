@@ -3,6 +3,9 @@ config_version = 20
 [accessibility]
 ui_scale = 1.2000000104308128
 
+[audio]
+enable_overdrive = true
+
 [bar.default]
 background_opacity = 0.4999999888241291
 center = [ "group:g1" ]
@@ -37,9 +40,6 @@ start = [ "launcher", "workspaces" ]
 
 [control_center]
 width = 680
-
-    [control_center.media]
-    show_visualizer = false
 
 [desktop_widgets]
 schema_version = 2
@@ -171,7 +171,6 @@ time_format = "{:%-I:%M %p}"
     save_to_file = false
 
 [theme]
-builtin = "Noctalia"
 community_palette = "Oxocarbon"
 mode = "dark"
 wallpaper_scheme = "m3-content"
@@ -208,6 +207,9 @@ width = 300
 [widget.battery]
 enabled = false
 
+[widget.bluetooth]
+enabled = false
+
 [widget.brightness]
 enabled = false
 
@@ -234,6 +236,9 @@ max_length = 200
 title_scroll = "on_hover"
 
 [widget.notifications]
+enabled = false
+
+[widget.session]
 enabled = false
 
 [widget.volume]

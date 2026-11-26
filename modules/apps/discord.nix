@@ -68,7 +68,6 @@
         plugins = {
         # Media / quality
         fixImagesQuality.enable = true;      # loads images at original resolution
-        fixYoutubeEmbeds.enable = true;      # bypasses YouTube embed blocks
 
         # Voice
         disableCallIdle.enable = true;       # don't get kicked from DM VCs after 3 min

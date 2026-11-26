@@ -306,6 +306,8 @@ in
         format = "{:%a, %b %-d  %-I:%M %p}"  # Mon, Nov 2  9:15 PM
       [widget.network]
         show_label = false  # icon only, no Wi-Fi network name
+      [widget.tray]
+        hidden = [ "blueman" ]  # Noctalia's bluetooth widget covers it
 
       [dock]
       enabled = true

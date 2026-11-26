@@ -13,6 +13,24 @@
   };
 
   flake.modules.homeManager.fish = { pkgs, ... }: {
+    # --- Carapace: richer tab completions (carapace.sh) ---
+    # Adds completions with descriptions for ~1000 commands (git, nix,
+    # systemctl, ...). Commands Carapace doesn't know keep fish's own.
+    programs.carapace = {
+      enable = true;
+      enableFishIntegration = true;
+    };
+
+    # --- lsd: `ls` with colors, icons and a tree view (github.com/lsd-rs/lsd) ---
+    # The fish integration adds these aliases:
+    #   ls = lsd, ll = lsd -l, la = lsd -A, lla = lsd -lA,
+    #   lt = lsd --tree, llt = lsd -l --tree
+    # Icons come from the Nerd Fonts installed in aliases.nix.
+    programs.lsd = {
+      enable = true;
+      enableFishIntegration = true;
+    };
+
     programs.fish = {
       enable = true;
       interactiveShellInit = ''
@@ -25,6 +43,66 @@
       # output in scrollback. `clear` also sends \e[3J, which wipes it too.
       functions.fish_user_key_bindings = ''
         bind ctrl-l 'clear; commandline -f repaint'
+        bind tab __audio_tab
+      '';
+
+      # Tab after `trim FILE` fills in "0:00 END", END being the song's
+      # length; Tab after `vol FILE` fills in the biggest boost that won't
+      # distort, like "+4.2". Both are ready to edit. Everywhere else Tab
+      # completes as usual.
+      functions.__audio_tab = ''
+        set -l tokens (commandline -xpc) # words before the cursor's word
+        set -l cur (commandline -ct)     # the cursor's word, as typed
+        set -l sep ""
+        if test -n "$cur"
+            set -a tokens (commandline -xt)
+            set sep " "
+        end
+        # Pager open, or not `trim FILE` / `vol FILE` before the cursor:
+        # normal Tab
+        if commandline --paging-mode; or not contains -- "$tokens[1]" trim vol
+            commandline -f complete
+            return
+        end
+
+        # `trim FILE ` (cursor after a space) or `trim FILE` (cursor at the
+        # end of a finished file name)
+        set -l file $tokens[2]
+        # A name still inside an open quote gets normal Tab, which closes it
+        set -l open_quote false
+        if string match -qr '^["\']' -- $cur; and not string match -qr '^(["\']).*\1$' -- $cur
+            set open_quote true
+        end
+        if test (count $tokens) -ne 2; or not test -f "$file"; or $open_quote
+            commandline -f complete
+            return
+        end
+
+        if test "$tokens[1]" = trim
+            set -l dur (ffprobe -v error -show_entries format=duration -of csv=p=0 -i $file)
+            if test -z "$dur"
+                commandline -f complete
+                return
+            end
+            # Round up, so the end time keeps the whole song
+            set -l secs (math "ceil($dur)")
+            commandline -i -- "$sep""0:00 "(math -s0 "floor($secs / 60)")":"(string pad -w 2 -c 0 (math "$secs % 60"))
+        else
+            set -l peak (__audio_peak $file)
+            if test -z "$peak"
+                commandline -f complete
+                return
+            end
+            # Same headroom as vol uses: below 0 dB, with 1 dB spare
+            set -l room (math -s1 "-1 * $peak - 1")
+            if test $room -gt 0
+                commandline -i -- "$sep+$room"
+            else
+                echo
+                echo "Loudest peak: $peak dB. It's already at the maximum, so only turning it down (like -3) won't distort."
+                commandline -f repaint
+            end
+        end
       '';
 
       # --- Audio helpers: `trim` and `vol` ---
@@ -42,6 +120,7 @@
         echo "    Times are seconds (90) or m:ss (1:30)."
         echo "    --fade (or -f) fades out over that many seconds at the end."
         echo "    Saves \"NAME (trimmed).EXT\" next to the original."
+        echo "    Press Tab after the file name to fill in 0:00 and the song's length."
         echo
         echo "    trim ~/Music/Song.mp3 0:05             cut off the first 5 seconds"
         echo "    trim ~/Music/Song.mp3 0:00 4:05        end the song at 4:05"
@@ -50,6 +129,7 @@
         set_color --bold; echo "vol: check or change a song's volume"; set_color normal
         echo "  vol FILE [+dB | -dB]"
         echo "    Saves \"NAME (louder).EXT\" or \"NAME (quieter).EXT\" next to the original."
+        echo "    Press Tab after the file name to fill in the biggest boost that won't distort."
         echo
         echo "    vol ~/Music/Song.mp3        show how loud it is, and how much it can go up"
         echo "    vol ~/Music/Song.mp3 +6     louder (about twice as loud)"

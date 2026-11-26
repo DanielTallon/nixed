@@ -17,12 +17,12 @@ What's in it:
 - **Wallpaper picker:** [my packaged kwepaperpicker](https://github.com/DanielTallon/nix-packages#wallpaperpicker), on Super+Space in both sessions. It draws the wallpaper itself in Niri and hands it to Plasma in Plasma, with transitions either way, and every wallpaper it sets recolors the desktop through matugen. It's set up through the Home Manager module in that repo (`modules/desktop/wallpaper-picker.nix`).
 - **Gaming:** Steam with Proton-GE and [Proton Wineland](https://github.com/DanielTallon/nix-packages#proton-wineland), Gamescope, GameMode, MangoHud, Heroic, per-game Proton DPI overrides, and Lossless Scaling frame generation (`lsfg-vk`, with its GUI). The kernel runs the `scx_lavd` scheduler CachyOS uses for gaming, plus SteamOS's network and scheduler tweaks. Steam Input works under Niri too.
 - **VMs:** virt-manager and VM Curator, with Secure Boot firmware and TPM for Windows 11 guests, plus single-GPU passthrough on the desktop.
-- **Privacy defaults:** DNS-over-TLS to Cloudflare/Google (so the network's DNS is never asked), Brave Origin (Brave without Rewards, Wallet, VPN, AI or telemetry, packaged in my nix-packages) with the leftover extras switched off by policy, and LibreWolf with DRM on for streaming.
+- **Privacy defaults:** DNS goes only to Cloudflare/Google, over TLS whenever they accept it (the network's own DNS is never asked), Brave Origin (Brave without Rewards, Wallet, VPN, AI or telemetry, packaged in my nix-packages) with the leftover extras switched off by policy, and LibreWolf with DRM on for streaming.
 - **Drive health and firmware:** `smartd` warns when a drive starts failing, and `fwupd` updates firmware when you ask (`fwupdmgr refresh`, then `fwupdmgr update`).
 - **Tailscale and RustDesk** for remote support.
 - **Binary caches**, including [my own Cachix](https://github.com/DanielTallon/nix-packages#binary-cache), so my packages download instead of compiling. `nix-fast-build` builds both hosts in parallel to check them, and `nix-tree` shows what's in a build and why.
 - **`iphone-music-sync`:** one command to mirror your music folder into VLC for iOS over USB, plus `idevicebackup2` for full iPhone backups. No iTunes needed. See [iPhone music sync](#iphone-music-sync).
-- And other personalizations (fish, with `trim` and `vol` for cutting songs and changing their volume; Ghostty and Konsole; Tauon, with a fix for its tag editor; Discord via Nixcord; Flatpak with Bazaar; nix-index/comma; zram).
+- And other personalizations (fish, with `trim` and `vol` for cutting songs and changing their volume, where Tab fills in the song's length or the safe boost; Ghostty and Konsole; Tauon, with a fix for its tag editor; Discord via Nixcord; Spotify through Spicetify, with ads blocked and a Dracula theme; Flatpak with Bazaar; nix-index/comma; zram).
 
 
 ## Quick install
