@@ -1,14 +1,14 @@
 --- a/fetch.c
 +++ b/fetch.c
-@@ -946,6 +946,7 @@
+@@ -1006,6 +1006,7 @@
  static char config_shading[128] = "";
  static char config_shading_mode[16] = "";
  static char config_separator[8] = "-";
 +static char config_title[64] = "";
  static float config_depth = 1.0f;
  static int depth_user_set = 0;
- static char config_logo_outer[32] = "";
-@@ -1099,6 +1100,10 @@
+ // Give outline cells side walls (flat, gear-like logos)
+@@ -1176,6 +1177,10 @@
        strncpy(config_shading_mode, val, sizeof(config_shading_mode) - 1);
        continue;
      }
@@ -19,8 +19,8 @@
      if (strncmp(line, "separator=", 10) == 0) {
        char *val = line + 10; // note: no strip_inline_hint() here to allow freeform separator strings
        strncpy(config_separator, val, sizeof(config_separator) - 1);
-@@ -1424,12 +1429,19 @@
-   gethostname(host, sizeof(host));
+@@ -1497,12 +1502,19 @@
+   gethostname(host, sizeof(host) - 1);
  
    char line[MAX_LINE_LEN];
 -  snprintf(line, sizeof(line), "\033[1;%sm%s\033[0m@\033[1;%sm%s\033[0m",
@@ -42,11 +42,11 @@
    char sep[MAX_LINE_LEN];
    int sep_char_len = strlen(config_separator);
    if (sep_char_len == 0)
-@@ -4153,6 +4165,7 @@
-           "    label_color=<color>      Label color (red, green, yellow, "
-           "blue,\n"
+@@ -4247,6 +4259,7 @@
            "                             magenta, cyan, white, or ANSI number)\n"
+           "    logo_outer=<color>       Extruded side color (same color format)\n"
+           "    logo_inner=<color>       Front/back face color (same color format)\n"
 +          "    title=<text>             Replace the user@host title\n"
            "    separator=<char>         Title separator character\n"
+           "    show_title=<0/1>         Show user@host and underline (default 1)\n"
            "    shading_mode=<mode>      ascii (default), blocks or sextants\n"
-           "    shading=<str>            Shading ramp characters\n"

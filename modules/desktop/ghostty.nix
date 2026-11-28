@@ -62,6 +62,12 @@
         # it too). Stays see-through on niri thanks to the backdrop patch in
         # niri.nix; under stock niri the fullscreen backdrop is solid black.
         keybind = [ "f11=toggle_fullscreen" ];
+
+        # Neon bloom: bright text glows in its own color. Knobs (glow size,
+        # brightness, optional scanlines) are at the top of the shader file.
+        # Remove these two lines to turn it off.
+        custom-shader = "${./ghostty/bloom.glsl}";
+        custom-shader-animation = false; # static effect: only redraw when the terminal changes
       };
     };
 

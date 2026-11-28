@@ -58,9 +58,14 @@ layout {
     // Fullscreen windows have no solid backdrop: niri.nix patches niri's
     // default for that. Don't add fullscreen-backdrop-color here until niri
     // ships it in a release (see the TODO in niri.nix).
+    // Neon gradient ring: cyan into hot pink. relative-to="workspace-view"
+    // stretches one gradient across the whole screen, so each window's ring
+    // shows its own slice of it and shifts as windows move. Mixing in oklch
+    // keeps the purple in the middle vivid instead of going gray. For the
+    // old solid ring, swap active-gradient for: active-color "#00aaff"
     focus-ring {
         width 3
-        active-color "#00aaff"
+        active-gradient from="#00aaff" to="#ff2a6d" angle=45 relative-to="workspace-view" in="oklch shorter hue"
         inactive-color "#44475a"
     }
     border {
@@ -291,10 +296,260 @@ binds {
 }
 
 animations {
-    // Closed windows fall away with a slight random tilt and fade out.
-    // niri's "fall and rotate" example shader; it wants a linear curve.
+    // Three close effects live here. niri uses the one without /- in front;
+    // to switch, put /- on the active one and remove it from another.
+
+    // Code rain: each narrow column of the window is eaten from the top by a
+    // falling stream of made-up glyphs, Matrix-style. Every glyph takes the
+    // color of the part of the window it replaces (brightened so dark
+    // backgrounds still show), with a near-white head on each stream.
+    // Knobs: duration-ms; cw/ch (glyph cell size in pixels); trail (stream
+    // length in glyphs); the 0.35 in rain_head (how staggered the columns
+    // are); radius/strength in close_color (the glow around each stream's
+    // lead glyph); 0.55/1.25 and 0.93 in rain_glyphs (trail brightness range
+    // and how rare flares are).
     window-close {
-        duration-ms 300
+        duration-ms 1500
+        curve "linear"
+        custom-shader r"
+            float rain_hash(vec2 p) {
+                return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+            }
+
+            vec4 rain_window(vec2 g) {
+                vec3 t = niri_geo_to_tex * vec3(g, 1.0);
+                return texture2D(niri_tex, t.st);
+            }
+
+            // Where a column's stream head is, in rows (fractional). Each
+            // column starts at its own time and falls at its own speed; all
+            // of them finish by the end of the animation.
+            float rain_head(float col, float rows, float trail, float seed) {
+                float start = rain_hash(vec2(col, seed)) * 0.35;
+                float len = 0.5 + rain_hash(vec2(col + 0.37, seed + 7.0)) * 0.15;
+                float t = clamp((niri_clamped_progress - start) / len, 0.0, 1.0);
+                return t * (rows + trail) - 1.0;
+            }
+
+            // The window and the falling glyphs, without the head glow.
+            vec4 rain_glyphs(vec3 coords_geo, vec3 size_geo) {
+                float cw = 12.0;
+                float ch = 16.0;
+                float trail = 14.0;
+
+                vec2 px = coords_geo.xy * size_geo.xy;
+                float col = floor(px.x / cw);
+                float row = floor(px.y / ch);
+                float rows = ceil(size_geo.y / ch);
+                float seed = niri_random_seed * 100.0;
+
+                float head = rain_head(col, rows, trail, seed);
+                float dist = head - row;
+
+                // Below the stream's head: the window, untouched.
+                if (dist < 0.0)
+                    return rain_window(coords_geo.xy);
+                // Behind the trail: already gone.
+                if (dist >= trail)
+                    return vec4(0.0);
+
+                // Backdrop: a near-black green fill behind each trail, like
+                // the films' black screen, fading out toward the trail's end.
+                // backdrop is its darkness at the head: 0.0 turns it off,
+                // 1.0 is solid.
+                float backdrop = 0.5;
+                float bd_alpha = backdrop * (1.0 - dist / trail);
+                vec4 bd = vec4(vec3(0.0, 0.03, 0.01) * bd_alpha, bd_alpha);
+
+                // A 5x7 grid of 2-pixel dots inside each cell, 1 pixel margin.
+                vec2 local = px - vec2(col * cw, row * ch) - vec2(1.0);
+                vec2 cell = floor(local / 2.0);
+                if (cell.x < 0.0 || cell.x > 4.0 || cell.y < 0.0 || cell.y > 6.0)
+                    return bd;
+
+                // Pick a glyph for this cell; it flickers to a new one a few
+                // times as the stream passes. Half the glyphs are mirrored,
+                // which makes random dots read more like characters.
+                float flicker = floor(niri_clamped_progress * 15.0
+                        * (0.5 + rain_hash(vec2(row + seed, col))));
+                float glyph = rain_hash(vec2(col * 31.0 + row, flicker + seed));
+                float gx = glyph > 0.5 ? min(cell.x, 4.0 - cell.x) : cell.x;
+                if (rain_hash(vec2(glyph * 100.0 + gx, cell.y + 3.0)) < 0.5)
+                    return bd;
+
+                // Color: the most colorful of five spots in the cell, so
+                // text wins over background.
+                vec2 base = vec2(col * cw, row * ch);
+                vec4 s = rain_window((base + vec2(6.0, 8.0)) / size_geo.xy);
+                vec4 o;
+                o = rain_window((base + vec2(3.0, 4.0)) / size_geo.xy);
+                if (max(o.r, max(o.g, o.b)) > max(s.r, max(s.g, s.b))) s = o;
+                o = rain_window((base + vec2(9.0, 4.0)) / size_geo.xy);
+                if (max(o.r, max(o.g, o.b)) > max(s.r, max(s.g, s.b))) s = o;
+                o = rain_window((base + vec2(3.0, 12.0)) / size_geo.xy);
+                if (max(o.r, max(o.g, o.b)) > max(s.r, max(s.g, s.b))) s = o;
+                o = rain_window((base + vec2(9.0, 12.0)) / size_geo.xy);
+                if (max(o.r, max(o.g, o.b)) > max(s.r, max(s.g, s.b))) s = o;
+
+                // Undo premultiplied alpha, then brighten while keeping the
+                // hue, so a dark blue background becomes a light blue glyph.
+                vec3 c = s.rgb / max(s.a, 0.001);
+                float m = max(c.r, max(c.g, c.b));
+                // if (m < 0.02)
+                    // c = vec3(0.7);
+                // else
+                    // c = c / m * mix(0.6, 1.0, m);
+
+                float lum = dot(c, vec3(0.299, 0.587, 0.114));
+                c = vec3(0.0, 1.0, 0.25) * mix(0.45, 1.0, lum);
+
+                // Bright at the head, fading toward the end of the trail.
+                float fade = 1.0 - dist / trail;
+                fade *= fade;
+                if (dist < 1.0) {
+                    c = mix(c, vec3(1.0), 0.75);
+                    fade = 1.0;
+                } else {
+                    // Uneven trail: each glyph gets its own brightness, and
+                    // about 1 in 14 flares up pale and bright. Both reroll
+                    // when the glyph flickers to a new shape.
+                    float shimmer = rain_hash(vec2(glyph * 57.0, row + seed));
+                    c *= mix(0.55, 1.25, shimmer);
+                    if (shimmer > 0.93) {
+                        c = mix(c, vec3(0.7, 1.0, 0.75), 0.6);
+                        fade = max(fade, 0.8);
+                    }
+                    c = min(c, vec3(1.0));
+                }
+
+                // Premultiplied output: the glyph drawn over the backdrop.
+                vec4 g = vec4(c * fade, fade);
+                return g + bd * (1.0 - g.a);
+            }
+
+            vec4 close_color(vec3 coords_geo, vec3 size_geo) {
+                // This shader covers the whole screen; draw nothing outside
+                // the window.
+                if (coords_geo.x < 0.0 || coords_geo.x > 1.0 ||
+                        coords_geo.y < 0.0 || coords_geo.y > 1.0)
+                    return vec4(0.0);
+
+                vec4 color = rain_glyphs(coords_geo, size_geo);
+
+                // Head glow: a soft pale-green halo around the lead glyph of
+                // each stream, added on top of everything. Checks this column
+                // and its two neighbors, so the halo spills across columns.
+                // Must match cw/ch/trail in rain_glyphs.
+                float cw = 12.0;
+                float ch = 16.0;
+                float trail = 14.0;
+                float radius = 10.0;  // halo size in pixels
+                float strength = 0.45;
+                vec2 px = coords_geo.xy * size_geo.xy;
+                float col = floor(px.x / cw);
+                float rows = ceil(size_geo.y / ch);
+                float seed = niri_random_seed * 100.0;
+
+                float glow = 0.0;
+                for (int i = -1; i <= 1; i++) {
+                    float c = col + float(i);
+                    if (c < 0.0 || c * cw >= size_geo.x)
+                        continue;
+                    float hrow = floor(rain_head(c, rows, trail, seed));
+                    if (hrow < 0.0 || hrow >= rows)
+                        continue;
+                    vec2 center = vec2((c + 0.5) * cw, (hrow + 0.5) * ch);
+                    vec2 d = (px - center) / vec2(radius, radius * 1.3);
+                    glow = max(glow, exp(-dot(d, d)));
+                }
+                glow *= strength;
+
+                vec3 glow_rgb = vec3(0.6, 1.0, 0.65) * glow;
+                return vec4(min(color.rgb + glow_rgb, vec3(1.0)),
+                            max(color.a, glow));
+            }
+        "
+    }
+
+    // Burn: blotchy holes open up from the edges inward, each with a glowing
+    // edge in the focus-ring blue and a bright white-hot line right where the
+    // window is disappearing.
+    // Knobs: duration-ms for speed; edge (glow band width) and the 140.0
+    // blotch size (bigger = larger holes) in the shader below.
+    /-window-close {
+        duration-ms 700
+        curve "linear"
+        custom-shader r"
+            float burn_hash(vec2 p) {
+                return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+            }
+
+            float burn_noise(vec2 p) {
+                vec2 i = floor(p);
+                vec2 f = fract(p);
+                vec2 u = f * f * (3.0 - 2.0 * f);
+                return mix(mix(burn_hash(i), burn_hash(i + vec2(1.0, 0.0)), u.x),
+                           mix(burn_hash(i + vec2(0.0, 1.0)), burn_hash(i + vec2(1.0, 1.0)), u.x),
+                           u.y);
+            }
+
+            // Layered noise for ragged, organic burn shapes (0 to ~1).
+            float burn_fbm(vec2 p) {
+                float v = 0.0;
+                float a = 0.5;
+                for (int i = 0; i < 4; i++) {
+                    v += a * burn_noise(p);
+                    p *= 2.0;
+                    a *= 0.5;
+                }
+                return v / 0.9375;
+            }
+
+            vec4 close_color(vec3 coords_geo, vec3 size_geo) {
+                // This shader covers the whole screen; draw nothing outside
+                // the window, or the texture's edge pixels smear across it.
+                if (coords_geo.x < 0.0 || coords_geo.x > 1.0 ||
+                        coords_geo.y < 0.0 || coords_geo.y > 1.0)
+                    return vec4(0.0);
+
+                vec3 coords_tex = niri_geo_to_tex * coords_geo;
+                vec4 color = texture2D(niri_tex, coords_tex.st);
+
+                // Noise in pixels so blotches are the same size on any window,
+                // offset by the random seed so every close burns differently.
+                vec2 px = coords_geo.xy * size_geo.xy;
+                float n = burn_fbm(px / 140.0 + niri_random_seed * 100.0);
+
+                // Lower values near the edges, so it burns inward.
+                float d = length(coords_geo.xy - vec2(0.5)) * 1.4;
+                n = n * 0.7 + (1.0 - d) * 0.3;
+
+                // Pixels with n below the burn line are gone; the band just
+                // above it glows. The line sweeps from -edge to 1+edge.
+                float edge = 0.08;
+                float burn = niri_clamped_progress * (1.0 + 2.0 * edge) - edge;
+                if (n < burn)
+                    return vec4(0.0);
+
+                // Scorch: darken the window a little ahead of the glow.
+                float scorch = 1.0 - clamp((n - burn) / (edge * 2.5), 0.0, 1.0);
+                color.rgb *= 1.0 - 0.5 * scorch;
+
+                // Glow: blue that turns white-hot right at the burn line.
+                // Values are premultiplied, so (rgb, 1.0) is fully opaque.
+                float g = 1.0 - clamp((n - burn) / edge, 0.0, 1.0);
+                vec3 glow = mix(vec3(0.0, 0.667, 1.0), vec3(0.85, 0.95, 1.0),
+                                smoothstep(0.6, 1.0, g));
+                color = mix(color, vec4(glow, 1.0), smoothstep(0.0, 1.0, g));
+
+                return color;
+            }
+        "
+    }
+
+    // Fall: the window drops and fades (rotation set to 0.00).
+    /-window-close {
+        duration-ms 500
         curve "linear"
         custom-shader r"
             vec4 close_color(vec3 coords_geo, vec3 size_geo) {
@@ -308,7 +563,7 @@ animations {
                 // Random tilt direction and size.
                 float random = (niri_random_seed - 0.5) / 2.0;
                 random = sign(random) - random;
-                float angle = progress * 0.05 * random;
+                float angle = progress * 0.00 * random;
                 mat2 rotate = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
                 coords = rotate * coords;
 
@@ -320,10 +575,100 @@ animations {
         "
     }
 
+    // Glitch: the window opens like a corrupted video signal locking on.
+    // Horizontal slices tear sideways, the red and cyan channels split
+    // apart, scanlines and a few blocks of corrupted data flicker, and it
+    // all settles into the clean window by the end. Motion is stepped (a
+    // new glitch frame every 1/24 of the animation) rather than smooth.
+    // To turn it off, put /- in front of window-open.
+    // Knobs: duration-ms; steps (glitch frames); tear (max slice shift, in
+    // pixels); split (max channel split, in pixels); the 0.12 in the
+    // corrupt-block check (how many blocks); the neon colors in block_rgb.
+    window-open {
+        duration-ms 550
+        curve "linear"
+        custom-shader r"
+            float glitch_hash(vec2 p) {
+                return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+            }
+
+            // The window at a geometry position, or nothing outside it (so
+            // shifted samples don't smear the window's edge pixels).
+            vec4 glitch_window(vec2 g) {
+                if (g.x < 0.0 || g.x > 1.0 || g.y < 0.0 || g.y > 1.0)
+                    return vec4(0.0);
+                vec3 t = niri_geo_to_tex * vec3(g, 1.0);
+                return texture2D(niri_tex, t.st);
+            }
+
+            vec4 open_color(vec3 coords_geo, vec3 size_geo) {
+                // This shader covers the whole screen; keep every effect
+                // inside the new window's own rectangle.
+                if (coords_geo.x < 0.0 || coords_geo.x > 1.0 ||
+                        coords_geo.y < 0.0 || coords_geo.y > 1.0)
+                    return vec4(0.0);
+
+                float steps = 24.0;
+                float tear = 90.0;
+                float split = 14.0;
+
+                float p = niri_clamped_progress;
+                // Strongest at the start, gone at the end.
+                float k = pow(1.0 - p, 1.5);
+                float frame = floor(p * steps);
+                float seed = niri_random_seed * 100.0 + frame * 7.31;
+                vec2 px = coords_geo.xy * size_geo.xy;
+
+                // Tearing: the window is cut into bands of uneven height
+                // (re-cut every frame); some bands slide sideways.
+                float bandH = 8.0 + glitch_hash(vec2(seed, 1.0)) * 40.0;
+                float band = floor(px.y / bandH);
+                float shift = 0.0;
+                if (glitch_hash(vec2(band, seed)) < 0.4 * k)
+                    shift = (glitch_hash(vec2(band + 0.5, seed)) - 0.5) * 2.0 * tear * k;
+
+                // Channel split: red one way, cyan (green+blue) the other,
+                // wider inside torn bands.
+                float s = split * k * (shift != 0.0 ? 1.8 : 1.0);
+                vec2 base = vec2(px.x + shift, px.y);
+                vec4 cR = glitch_window((base + vec2(s, 0.0)) / size_geo.xy);
+                vec4 cC = glitch_window((base - vec2(s, 0.0)) / size_geo.xy);
+                vec4 c0 = glitch_window(base / size_geo.xy);
+                vec4 color = vec4(cR.r, cC.g, cC.b, max(c0.a, max(cR.a, cC.a)));
+                // Where only one channel landed (past the window's edge),
+                // keep alpha honest for premultiplied output.
+                color.rgb = min(color.rgb, vec3(color.a));
+
+                // Corrupted blocks: a few 48x16 blocks per frame flash a
+                // solid neon color, cyan or hot pink.
+                vec2 block = floor(px / vec2(48.0, 16.0));
+                float bh = glitch_hash(block + vec2(seed, seed * 0.5));
+                if (bh < 0.12 * k * k) {
+                    vec3 block_rgb = bh < 0.06 * k * k
+                        ? vec3(0.0, 0.667, 1.0)    // #00aaff
+                        : vec3(1.0, 0.165, 0.427); // #ff2a6d
+                    color = vec4(block_rgb, 1.0);
+                }
+
+                // Scanlines: every other 2-pixel row dimmed.
+                if (mod(floor(px.y / 2.0), 2.0) == 0.0)
+                    color *= 1.0 - 0.35 * k;
+
+                // Signal locking on: fades in over the first third, with a
+                // few frames that drop out almost completely.
+                float alpha = clamp(p * 3.0, 0.0, 1.0);
+                if (glitch_hash(vec2(frame, niri_random_seed * 13.0)) < 0.3 * k)
+                    alpha *= 0.25;
+
+                return color * alpha;
+            }
+        "
+    }
+
     // A small overshoot-and-settle when windows slide into place.
     // Default damping is 1.0 (no bounce); below ~0.6 it gets wobbly.
     window-movement {
-        spring damping-ratio=0.75 stiffness=800 epsilon=0.0001
+        spring damping-ratio=0.85 stiffness=800 epsilon=0.0001
     }
 }
 

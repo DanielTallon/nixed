@@ -271,6 +271,11 @@ in
       config.lib.file.mkOutOfStoreSymlink
         "${config.home.homeDirectory}/.dotfiles/modules/desktop/noctalia/settings.toml";
 
+    # Rajdhani: narrow, squared-off lettering close to Cyberpunk 2077's UI.
+    # Noctalia's font is set in settings.toml ([shell] font_family). Not in
+    # nixpkgs on its own; the Google Fonts package builds just this family.
+    home.packages = [ (pkgs.google-fonts.override { fonts = [ "Rajdhani" ]; }) ];
+
     xdg.configFile."noctalia/wallpaper.toml".text = ''
       [wallpaper]
       enabled = false

@@ -153,6 +153,7 @@ widget_order = [ "lockscreen-login-box@DP-3", "lockscreen-login-box@DP-1" ]
 background_opacity = 0.89999997988343239
 
 [shell]
+font_family = "Rajdhani"
 time_format = "{:%-I:%M %p}"
 
     [shell.launcher]

@@ -122,6 +122,7 @@ let
     "display"
     "flatpak"
     "ghostty"
+    "icons"
     "kate"
     "konsole"
     "krohnkite"
